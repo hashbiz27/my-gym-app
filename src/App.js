@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   AGE_CLASSES, WEIGHT_CLASSES, DAYS_OF_WEEK,
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
-  MOBILITY_WARMUPS, getSessionWithAge,
+  MOBILITY_WARMUPS, getSessionWithAge, EXERCISE_GUIDES,
 } from "./gymData";
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -37,6 +37,7 @@ export default function GymRoutine() {
   const [activeSession, setActiveSession] = useState(() => LS.get("gym_session", null));
   const [swaps, setSwaps] = useState(() => LS.get("gym_swaps", {}));
   const [showAlts, setShowAlts] = useState({});
+  const [showGuide, setShowGuide] = useState({});
   const [showAgeInfo, setShowAgeInfo] = useState(false);
   const [showMobility, setShowMobility] = useState(false);
   // View: "routine" | "log" | "history"
@@ -577,6 +578,7 @@ export default function GymRoutine() {
             const isSwapped = !!swaps[key];
             const displayName = swaps[key] || ex.name;
             const isAgeSwap = !swaps[key] && ex.name !== baseName;
+            const guide = EXERCISE_GUIDES[displayName];
             return (
               <div key={i} style={{ borderBottom: i < currentSession.exercises.length - 1 ? "1px solid #f5f5f5" : "none", padding: "11px 14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
@@ -589,13 +591,35 @@ export default function GymRoutine() {
                     </div>
                     {ex.note && <div style={{ fontSize: 11, color: "#999", paddingLeft: 22, fontStyle: "italic", marginBottom: 2 }}>{ex.note}</div>}
                     {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22, marginBottom: 3 }}><span style={{ color: "#aaa" }}>Start: </span><strong>{ex.weight[weightClass]}</strong></div>}
-                    <button onClick={() => setShowAlts(p => ({ ...p, [key]: !p[key] }))} style={{ marginLeft: 22, fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{showAlts[key] ? "hide" : "swap exercise"}</button>
+                    <div style={{ paddingLeft: 22, display: "flex", gap: 12, marginTop: 2 }}>
+                      <button onClick={() => setShowAlts(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{showAlts[key] ? "hide" : "swap exercise"}</button>
+                      {guide && <button onClick={() => setShowGuide(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: showGuide[key] ? "#1b5e20" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showGuide[key] ? 600 : 400 }}>{showGuide[key] ? "hide guide" : "how to"}</button>}
+                    </div>
                     {showAlts[key] && (
                       <div style={{ paddingLeft: 22, marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {ALL_SESSIONS[regime]?.[activeSession]?.exercises[i]?.alts?.map(alt => (
                           <button key={alt} onClick={() => { setSwaps(p => ({ ...p, [key]: alt })); setShowAlts(p => ({ ...p, [key]: false })); }} style={{ padding: "3px 8px", background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#444" }}>{alt}</button>
                         ))}
                         {isSwapped && <button onClick={() => setSwaps(p => { const n = { ...p }; delete n[key]; return n; })} style={{ padding: "3px 8px", background: "#fff0f0", border: "1px solid #f5c6c6", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#a33" }}>restore</button>}
+                      </div>
+                    )}
+                    {showGuide[key] && guide && (
+                      <div style={{ paddingLeft: 22, marginTop: 8, background: "#f9faf7", border: "1px solid #e8f0e0", borderRadius: 3, padding: "10px 14px" }}>
+                        <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginBottom: 6 }}>Muscles</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+                          {guide.muscles.primary.map(m => <span key={m} style={{ fontSize: 10, fontWeight: 700, background: "#e8f5e9", color: "#1b5e20", padding: "2px 7px", borderRadius: 2 }}>{m}</span>)}
+                          {guide.muscles.secondary.map(m => <span key={m} style={{ fontSize: 10, fontWeight: 600, background: "#fff8e1", color: "#b45309", padding: "2px 7px", borderRadius: 2 }}>{m}</span>)}
+                        </div>
+                        <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginBottom: 4 }}>How to perform</div>
+                        {guide.steps.map((s, si) => <div key={si} style={{ display: "flex", gap: 7, marginBottom: 3 }}><span style={{ fontSize: 11, color: "#1b5e20", fontWeight: 700, flexShrink: 0 }}>{si + 1}</span><span style={{ fontSize: 12, color: "#444", lineHeight: 1.5 }}>{s}</span></div>)}
+                        {guide.cues.length > 0 && <>
+                          <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginTop: 8, marginBottom: 4 }}>Key cues</div>
+                          {guide.cues.map((c, ci) => <div key={ci} style={{ display: "flex", gap: 7, marginBottom: 2 }}><span style={{ fontSize: 11, color: "#1b5e20", flexShrink: 0 }}>+</span><span style={{ fontSize: 12, color: "#444", lineHeight: 1.5 }}>{c}</span></div>)}
+                        </>}
+                        {guide.mistakes.length > 0 && <>
+                          <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginTop: 8, marginBottom: 4 }}>Common mistakes</div>
+                          {guide.mistakes.map((m, mi) => <div key={mi} style={{ display: "flex", gap: 7, marginBottom: 2 }}><span style={{ fontSize: 11, color: "#b91c1c", flexShrink: 0 }}>−</span><span style={{ fontSize: 12, color: "#444", lineHeight: 1.5 }}>{m}</span></div>)}
+                        </>}
                       </div>
                     )}
                   </div>
