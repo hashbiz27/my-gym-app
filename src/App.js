@@ -265,7 +265,10 @@ export default function GymRoutine() {
   }
 
   // Route to setup if needed
-  if (step === 4 && selectedDays.length === 0 && view !== "setup") { setTimeout(() => setView("setup"), 0); return null; }
+  if (step === 4 && selectedDays.length === 0 && view !== "setup") {
+    setView("setup");
+    return null;
+  }
 
   // ─── Log view ─────────────────────────────────────────────────────────────
   if (view === "log" && activeLog) {
@@ -474,7 +477,12 @@ export default function GymRoutine() {
   }
 
   // ─── Routine view ─────────────────────────────────────────────────────────
-  if (!activeSession && regimeCfg) { const firstSid = regimeCfg.sessionOrder[0]; setActiveSession(firstSid); return null; }
+  if (!activeSession && regimeCfg) {
+    const firstSid = regimeCfg.sessionOrder[0];
+    LS.set("gym_session", firstSid);
+    setActiveSession(firstSid);
+    return null;
+  }
   const currentSession = getSessionWithAge(regime, activeSession, ageClass);
   if (!currentSession) return null;
   const mobility = MOBILITY_WARMUPS[ageClass]?.[activeSession];
