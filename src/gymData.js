@@ -656,9 +656,479 @@ export const EXERCISE_GUIDES = {
     cues: ["Bent knees target the soleus specifically — that's the point", "Full range of motion every rep", "3-second negative for maximum growth stimulus"],
     mistakes: ["Bouncing reps with no control", "Not going through the full stretch at the bottom", "Rushing through sets — calves need time under tension"],
   },
+  // ─── Alt + age-override exercises (hypertrophy) ─────────────────────────────
+  "Arnold Press": {
+    muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps", "Upper chest"] },
+    steps: [
+      "Sit on a bench with back support, dumbbells at shoulder height, palms facing you.",
+      "Press up while rotating your palms to face forward by the top.",
+      "Lock out overhead, then reverse the rotation as you lower back to the start.",
+    ],
+    cues: ["Smooth rotation — don't jerk it", "Full lockout at the top", "Control the descent and rotation together"],
+    mistakes: ["Rotating too early — palms should face forward only at the top", "Leaning back excessively", "Using momentum instead of controlled pressing"],
+  },
+  "Assisted Pull-Up": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Set the assistance on the machine or loop a band around the bar and under your knees.",
+      "Grip the bar shoulder-width or slightly wider.",
+      "Pull yourself up until your chin clears the bar.",
+      "Lower under control to full arm extension.",
+    ],
+    cues: ["Drive your elbows down, not back", "Squeeze at the top before lowering", "Use the least assistance you can manage with good form"],
+    mistakes: ["Relying too much on the assistance — reduce it progressively", "Half reps — full extension at the bottom every time", "Swinging or kipping"],
+  },
+  "Assisted Pull-Up / Lat Pulldown": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Use either an assisted pull-up machine or a lat pulldown station.",
+      "Grip shoulder-width or slightly wider.",
+      "Pull down (or up) until the bar reaches upper chest level.",
+      "Return slowly to full arm extension. 3-second negative on each rep.",
+    ],
+    cues: ["Focus on the squeeze — slow and controlled", "Initiate with your lats, not your arms", "Full stretch at the top of every rep"],
+    mistakes: ["Going too fast — tempo matters more at this stage", "Leaning back excessively on the pulldown", "Gripping too tight — let your back do the work"],
+  },
+  "Band Face Pull": {
+    muscles: { primary: ["Rear delts", "Rotator cuff"], secondary: ["Traps", "Rhomboids"] },
+    steps: [
+      "Attach a resistance band at face height to a rack or post.",
+      "Grip the band with both hands, thumbs pointing back.",
+      "Pull toward your face, separating your hands past your ears.",
+      "Squeeze rear delts, then return slowly.",
+    ],
+    cues: ["High elbows throughout", "Externally rotate at the end — thumbs point behind you", "Constant tension — don't let the band go slack"],
+    mistakes: ["Using a band that's too heavy — form breaks down", "Pulling to your chest instead of your face", "Rushing the reps — this is a control exercise"],
+  },
+  "Band Pull-Apart": {
+    muscles: { primary: ["Rear delts", "Rhomboids"], secondary: ["Traps"] },
+    steps: [
+      "Hold a resistance band in front of you at shoulder height, arms straight.",
+      "Pull the band apart by squeezing your shoulder blades together.",
+      "Bring the band to your chest, then return slowly.",
+    ],
+    cues: ["Arms stay straight — don't bend your elbows", "Squeeze your shoulder blades at the end", "Control the return — don't let the band snap back"],
+    mistakes: ["Shrugging your shoulders up", "Bending the elbows to cheat the movement", "Going too fast — this is about contraction quality"],
+  },
+  "Belt Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Attach the belt around your hips and stand on the platforms.",
+      "Feet shoulder-width, toes slightly out.",
+      "Squat down until thighs are parallel or below.",
+      "Drive up through your whole foot.",
+    ],
+    cues: ["Torso stays upright — that's the whole point of belt squats", "Push knees out over toes", "No spinal load — so you can focus purely on your legs"],
+    mistakes: ["Leaning forward — stay upright", "Not going deep enough", "Rushing reps — controlled tempo"],
+  },
+  "Cable Curl": {
+    muscles: { primary: ["Biceps"], secondary: ["Brachialis", "Forearms"] },
+    steps: [
+      "Stand facing a low cable with a straight or EZ bar attachment.",
+      "Curl the bar up, keeping elbows pinned to your sides.",
+      "Squeeze at the top, then lower under control.",
+    ],
+    cues: ["Constant tension from the cable — use it", "Don't swing your body", "Full extension at the bottom, full squeeze at the top"],
+    mistakes: ["Swaying the torso to generate momentum", "Letting elbows drift forward", "Going too heavy and losing the contraction"],
+  },
+  "Cable Incline Fly": {
+    muscles: { primary: ["Upper chest"], secondary: ["Front delts"] },
+    steps: [
+      "Set cables at the lowest position. Lie on an incline bench between the pulleys.",
+      "Grab the handles and press them up to the start position, slight bend in elbows.",
+      "Open your arms wide in an arc until you feel a deep chest stretch.",
+      "Squeeze your chest to bring the handles back together at the top.",
+    ],
+    cues: ["Think about hugging a tree — wide arc, not a press", "Constant slight bend in the elbows", "Squeeze hard at the top for peak contraction"],
+    mistakes: ["Turning it into a press by bending elbows too much", "Going too heavy — flys are about stretch and squeeze", "Not controlling the eccentric"],
+  },
+  "Cable Kickback": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Attach an ankle cuff to a low cable. Face the machine.",
+      "Kick your leg straight back, squeezing your glute at the top.",
+      "Return slowly without letting the weight stack crash.",
+    ],
+    cues: ["Slight forward lean for balance — hold the machine", "Squeeze the glute hard at full extension", "Don't arch your lower back — move from the hip"],
+    mistakes: ["Swinging the leg with momentum", "Arching the lower back instead of using the glute", "Going too heavy and losing control"],
+  },
+  "Cable Pull-Through": {
+    muscles: { primary: ["Glutes", "Hamstrings"], secondary: ["Erectors"] },
+    steps: [
+      "Stand facing away from a low cable, rope attachment between your legs.",
+      "Hinge at the hips, letting the cable pull your hands back between your legs.",
+      "Drive your hips forward to stand tall, squeezing your glutes at the top.",
+    ],
+    cues: ["This is a hip hinge — push hips back, not bend at the waist", "Arms are just hooks — your glutes do the work", "Full glute squeeze at lockout"],
+    mistakes: ["Squatting instead of hinging", "Pulling with your arms", "Hyperextending at the top"],
+  },
+  "Cable Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit at a cable row station, feet on the platform, slight knee bend.",
+      "Grip the handle and sit upright with arms extended.",
+      "Pull the handle toward your lower chest, driving elbows back.",
+      "Squeeze your shoulder blades, then extend slowly.",
+    ],
+    cues: ["Minimal body lean — stay upright", "Pull to your belly button, not your chest", "Let your shoulders protract slightly at the stretch for full ROM"],
+    mistakes: ["Excessive rocking back and forth", "Rounding the upper back", "Using momentum instead of a controlled pull"],
+  },
+  "Close-Grip Bench Press": {
+    muscles: { primary: ["Triceps", "Chest"], secondary: ["Front delts"] },
+    steps: [
+      "Lie flat on the bench, grip the bar about shoulder-width or slightly narrower.",
+      "Unrack and lower the bar to your lower chest, keeping elbows tucked close.",
+      "Press up, focusing on extending through the elbows.",
+    ],
+    cues: ["Elbows stay close to your body throughout", "Touch your lower chest / upper stomach area", "Lockout hard at the top — that's the tricep contraction"],
+    mistakes: ["Grip too narrow — stresses the wrists, shoulder-width is fine", "Flaring elbows wide — defeats the purpose", "Bouncing the bar off the chest"],
+  },
+  "DB Lateral Raise": {
+    muscles: { primary: ["Lateral delts"], secondary: ["Traps"] },
+    steps: [
+      "Stand with dumbbells at your sides, slight bend in elbows.",
+      "Raise the dumbbells out to the sides until hands reach shoulder height.",
+      "Pause briefly, then lower under control.",
+    ],
+    cues: ["Lead with your elbows, not your hands", "Pinky finger slightly higher than thumb — like pouring a jug", "Don't go above shoulder height"],
+    mistakes: ["Swinging the weights up with momentum", "Shrugging your traps to help lift", "Going too heavy — lateral raises work best light with control"],
+  },
+  "Donkey Calf Raise": {
+    muscles: { primary: ["Gastrocnemius"], secondary: ["Soleus"] },
+    steps: [
+      "Position yourself in the donkey calf raise machine or bend at the hips with weight on your back.",
+      "Balls of feet on the platform, heels hanging off.",
+      "Lower your heels for a deep stretch, then rise as high as possible.",
+    ],
+    cues: ["The hip-flexed position pre-stretches the gastrocnemius — makes it more effective", "Full range every rep", "Pause at the top and the bottom"],
+    mistakes: ["Bouncing through reps", "Not going through the full stretch", "Bending your knees — legs stay straight"],
+  },
+  "Dumbbell Bench Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Sit on the bench with dumbbells on your thighs, then kick them up as you lie back.",
+      "Press the dumbbells up until arms are extended, palms facing forward.",
+      "Lower slowly until a deep stretch in the chest, elbows at about 45 degrees.",
+      "Press back up without clanking the dumbbells together.",
+    ],
+    cues: ["Squeeze shoulder blades together into the bench", "Dumbbells travel in a slight arc", "Greater range of motion than barbell — use it"],
+    mistakes: ["Dropping the dumbbells too fast on the negative", "Elbows flaring to 90 degrees", "Uneven pressing — one arm ahead of the other"],
+  },
+  "Dumbbell RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Erectors", "Forearms"] },
+    steps: [
+      "Stand with feet hip-width, a dumbbell in each hand in front of your thighs.",
+      "Push your hips back, lowering the dumbbells along your legs. Slight knee bend.",
+      "Go until you feel a deep hamstring stretch, then drive hips forward to stand.",
+    ],
+    cues: ["Dumbbells stay close to your legs throughout", "Same hip hinge pattern as barbell RDL — just more natural wrist position", "Squeeze glutes at the top"],
+    mistakes: ["Rounding the back", "Bending the knees too much", "Not hinging deep enough — go until you feel the hamstrings"],
+  },
+  "Dumbbell Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Place one hand and knee on a bench, other foot on the floor.",
+      "Hold a dumbbell in your free hand, arm hanging straight down.",
+      "Row the dumbbell to your hip, driving your elbow past your torso.",
+      "Lower under control to a full stretch.",
+    ],
+    cues: ["Pull to your hip, not your chest — maximises lat involvement", "Keep your torso parallel to the floor", "Slight rotation at the top is fine — don't force a rigid torso"],
+    mistakes: ["Twisting your torso to heave the weight up", "Rowing to the chest instead of the hip", "Cutting range short — full extension at the bottom"],
+  },
+  "Front Squat": {
+    muscles: { primary: ["Quads", "Core"], secondary: ["Glutes", "Upper back"] },
+    steps: [
+      "Bar rests on your front delts in a clean grip or crossed-arm position.",
+      "Unrack, feet shoulder-width, toes slightly out.",
+      "Squat straight down, keeping elbows high and chest up.",
+      "Drive up through your whole foot.",
+    ],
+    cues: ["Elbows stay high — if they drop, the bar rolls", "More upright torso than back squat", "Go as deep as you can while keeping your back straight"],
+    mistakes: ["Elbows dropping — the most common issue", "Leaning forward — this is a quad exercise, stay upright", "Wrist pain — try the crossed-arm grip instead"],
+  },
+  "Glute Bridge": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Lie on your back, knees bent, feet flat on the floor close to your glutes.",
+      "Drive through your heels to lift your hips toward the ceiling.",
+      "Squeeze your glutes hard at the top, then lower slowly.",
+    ],
+    cues: ["Posterior pelvic tilt at the top — tuck your tailbone", "Don't hyperextend your back — it's a glute exercise", "Pause at the top for a full second"],
+    mistakes: ["Pushing through your toes instead of heels", "Arching your lower back at the top", "Rushing through reps without squeezing"],
+  },
+  "Goblet Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core", "Upper back"] },
+    steps: [
+      "Hold a dumbbell or kettlebell vertically at your chest, cupping the top end.",
+      "Feet shoulder-width, toes slightly out.",
+      "Squat down, keeping the weight close to your chest and elbows inside your knees.",
+      "Drive up through your whole foot.",
+    ],
+    cues: ["The weight acts as a counterbalance — use it to stay upright", "Elbows push your knees out at the bottom", "Great for learning squat mechanics"],
+    mistakes: ["Letting the weight drift away from your chest", "Not going deep enough — aim for full depth", "Rounding the upper back"],
+  },
+  "Hack Squat Machine": {
+    muscles: { primary: ["Quads"], secondary: ["Glutes"] },
+    steps: [
+      "Position yourself in the machine, shoulders under the pads, back flat.",
+      "Feet shoulder-width on the platform.",
+      "Release the safeties and lower until thighs are at least parallel.",
+      "Drive through your feet to return to the start.",
+    ],
+    cues: ["Back stays flat against the pad throughout", "Lower foot placement = more quad emphasis", "Don't lock out your knees at the top"],
+    mistakes: ["Back coming off the pad", "Not reaching parallel depth", "Locking out knees aggressively"],
+  },
+  "Incline Barbell Press": {
+    muscles: { primary: ["Upper chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Set the bench to 30–45 degrees. Unrack the bar with a grip slightly wider than shoulder-width.",
+      "Lower the bar to your upper chest, just below the collarbone.",
+      "Press up in a slight arc back toward the rack. Lock out.",
+    ],
+    cues: ["Shoulder blades squeezed and retracted", "Touch your upper chest — not your chin, not your stomach", "Slight arch in your upper back, not your lower back"],
+    mistakes: ["Bench too steep — turns it into a shoulder press", "Bar path drifting too far forward", "Bouncing off the chest"],
+  },
+  "Incline Cable Fly": {
+    muscles: { primary: ["Upper chest"], secondary: ["Front delts"] },
+    steps: [
+      "Set an incline bench between two low cable pulleys.",
+      "Grab the handles and lie back, arms extended above you with a slight elbow bend.",
+      "Open your arms in a wide arc until you feel a deep chest stretch.",
+      "Squeeze your chest to bring the handles together at the top.",
+    ],
+    cues: ["Arc motion — not a press", "Constant cable tension makes this superior to dumbbell flys", "Squeeze hard at the top"],
+    mistakes: ["Bending elbows too much — turns it into a press", "Going too heavy", "Not controlling the stretch at the bottom"],
+  },
+  "Incline Machine Press": {
+    muscles: { primary: ["Upper chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Adjust the seat so the handles align with your upper chest.",
+      "Grip the handles and press forward until arms are extended.",
+      "Return slowly to the start with a controlled negative.",
+    ],
+    cues: ["Machine guides the path — focus on squeezing your chest", "Don't lock out aggressively", "Great for going to failure safely"],
+    mistakes: ["Seat too low — shoulders take over", "Rushing the negative — slow and controlled", "Not using full range of motion"],
+  },
+  "Landmine Press": {
+    muscles: { primary: ["Front delts", "Upper chest"], secondary: ["Triceps", "Core"] },
+    steps: [
+      "Place one end of a barbell in a landmine attachment or corner.",
+      "Stand holding the other end at shoulder height with one or both hands.",
+      "Press the bar up and forward in an arc.",
+      "Lower under control back to shoulder height.",
+    ],
+    cues: ["The angled path is easier on the shoulder joint than straight overhead pressing", "Lean slightly into the press", "Core stays braced throughout"],
+    mistakes: ["Arching the back — stay tight", "Pressing straight up instead of following the natural arc", "Not controlling the descent"],
+  },
+  "Lat Pulldown": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit at the pulldown machine, thighs secured under the pad.",
+      "Grip the bar slightly wider than shoulder-width.",
+      "Pull the bar down to your upper chest, driving elbows down and back.",
+      "Return slowly to full arm extension.",
+    ],
+    cues: ["Lean back slightly — about 15 degrees", "Pull to your chest, not behind your neck", "Squeeze your lats at the bottom of each rep"],
+    mistakes: ["Leaning back too far and turning it into a row", "Pulling behind the neck — shoulder injury risk", "Using momentum to swing the weight down"],
+  },
+  "Leg Press Calf Raise": {
+    muscles: { primary: ["Gastrocnemius", "Soleus"], secondary: [] },
+    steps: [
+      "Sit in the leg press machine with just the balls of your feet on the bottom edge of the platform.",
+      "Extend your legs (don't lock out) and release the safeties.",
+      "Push through your toes to extend your ankles fully.",
+      "Lower slowly for a deep calf stretch.",
+    ],
+    cues: ["Small range of motion — all the work is in the ankle", "Don't bend your knees — only your ankles move", "Full stretch at the bottom every rep"],
+    mistakes: ["Bending knees to help push — ankles only", "Bouncing at the bottom", "Using too much weight and losing range of motion"],
+  },
+  "Machine Chest Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Adjust the seat so the handles are at mid-chest height.",
+      "Grip the handles and press forward until arms are extended.",
+      "Return slowly to the start position.",
+    ],
+    cues: ["Machine guides the path — focus purely on chest contraction", "Great for isolating the chest without stabiliser fatigue", "Safe to push close to failure"],
+    mistakes: ["Seat too high or low — handles should be at chest level", "Not using full range of motion", "Rushing through reps"],
+  },
+  "Machine Lateral Raise": {
+    muscles: { primary: ["Lateral delts"], secondary: ["Traps"] },
+    steps: [
+      "Sit in the machine with your arms against the pads.",
+      "Raise the pads out to the sides until your arms are at shoulder height.",
+      "Lower under control.",
+    ],
+    cues: ["Machine removes momentum — every rep is strict", "Pause at the top", "Don't go above shoulder height"],
+    mistakes: ["Shrugging up to help the movement", "Going above shoulder height — traps take over", "Rushing the negative"],
+  },
+  "Nordic Curl": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Kneel on a pad with your ankles secured under a bar or held by a partner.",
+      "Keeping your hips extended, slowly lower your body toward the floor.",
+      "Use your hamstrings to control the descent as long as possible.",
+      "Catch yourself with your hands and push back up to assist the return.",
+    ],
+    cues: ["Stay straight from knees to shoulders — don't bend at the hips", "Control the eccentric — that's where the growth comes from", "Use your hands to assist on the way up as needed"],
+    mistakes: ["Bending at the hips instead of staying straight", "Dropping too fast — the slow lowering is the exercise", "Not progressing — aim to lower a little further each session"],
+  },
+  "Overhead Tricep Extension": {
+    muscles: { primary: ["Triceps (long head)"], secondary: [] },
+    steps: [
+      "Hold a dumbbell or cable rope overhead with arms extended.",
+      "Lower behind your head by bending at the elbows.",
+      "Extend back up to the start, squeezing your triceps.",
+    ],
+    cues: ["Elbows stay close to your head and point forward", "Full stretch at the bottom — the long head needs the overhead position", "Don't flare your elbows wide"],
+    mistakes: ["Elbows flaring out to the sides", "Arching the back to press the weight", "Cutting range short — go deep for the stretch"],
+  },
+  "Preacher Curl": {
+    muscles: { primary: ["Biceps (short head)"], secondary: ["Brachialis"] },
+    steps: [
+      "Sit at the preacher bench, upper arms flat on the pad.",
+      "Curl the bar or dumbbells up, keeping your upper arms on the pad.",
+      "Squeeze at the top, then lower slowly to near-full extension.",
+    ],
+    cues: ["The pad removes all momentum — pure bicep work", "Don't fully lock out at the bottom — keep slight tension", "Slow negative — 2–3 seconds down"],
+    mistakes: ["Lifting your elbows off the pad to cheat", "Dropping the weight on the eccentric", "Hyperextending the elbow at the bottom — slight bend always"],
+  },
+  "Reverse Lunge": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Stand upright holding dumbbells at your sides.",
+      "Step one foot backward and lower until both knees are at about 90 degrees.",
+      "Drive through your front foot to return to standing.",
+      "Alternate legs or complete all reps on one side.",
+    ],
+    cues: ["Easier on the knees than forward lunges — less shear force", "Keep your torso upright", "Front shin stays roughly vertical"],
+    mistakes: ["Stepping too short — knee shoots too far forward", "Leaning forward excessively", "Letting the back knee slam the floor"],
+  },
+  "Reverse Pec Deck": {
+    muscles: { primary: ["Rear delts"], secondary: ["Rhomboids", "Traps"] },
+    steps: [
+      "Sit facing the machine, chest against the pad.",
+      "Grip the handles with arms extended in front of you.",
+      "Open your arms in a wide arc, squeezing your rear delts.",
+      "Return slowly to the start.",
+    ],
+    cues: ["Lead with your elbows, not your hands", "Squeeze your shoulder blades at the end", "Don't go behind your shoulder line — stop when arms are in line with your body"],
+    mistakes: ["Using too much weight and losing the contraction", "Swinging the handles with momentum", "Not fully returning to the start — use full ROM"],
+  },
+  "Seated Cable Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit with feet on the platform, slight knee bend. Grip the V-handle.",
+      "Sit tall, arms extended.",
+      "Pull the handle toward your belly button, squeezing your shoulder blades.",
+      "Extend slowly back to the start.",
+    ],
+    cues: ["Minimal body lean", "Pull to your belly, not your chest", "Let your shoulders stretch forward slightly at the start for full ROM"],
+    mistakes: ["Rocking your torso back and forth", "Rounding your back on the stretch", "Using arms more than back — think elbows, not hands"],
+  },
+  "Seated DB Shoulder Press": {
+    muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps"] },
+    steps: [
+      "Sit on a bench with back support, dumbbells at shoulder height, palms forward.",
+      "Press both dumbbells overhead until arms are extended.",
+      "Lower slowly back to shoulder height.",
+    ],
+    cues: ["Back stays against the pad", "Press straight up — don't let the dumbbells drift forward", "Full lockout at the top"],
+    mistakes: ["Arching the back away from the pad", "Pressing unevenly — one arm ahead of the other", "Not going through the full range of motion"],
+  },
+  "Single-Leg Leg Press": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Sit in the leg press machine, place one foot on the platform.",
+      "Release the safeties and lower until your knee reaches about 90 degrees.",
+      "Press through your foot back to the start. Complete all reps then switch legs.",
+    ],
+    cues: ["Keep your lower back pressed into the seat", "Machine guides the path — focus on the working leg", "Start lighter than you think — single leg is humbling"],
+    mistakes: ["Going too deep and lower back rounding off the pad", "Locking out the knee at the top", "Pushing off with the non-working leg on the floor"],
+  },
+  "Smith Machine Bench Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Position the bench so the bar path hits your mid-chest.",
+      "Grip slightly wider than shoulder-width. Unrack by twisting the bar.",
+      "Lower to your chest, then press up and twist to rack.",
+    ],
+    cues: ["Fixed bar path — focus purely on pressing force", "Bench position is critical — test with an empty bar first", "Good for training to failure safely"],
+    mistakes: ["Bench positioned wrong — bar hits too high or low", "Not retracting shoulder blades", "Using the Smith as a crutch — still use free weights as your main lift"],
+  },
+  "Step-Ups": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Stand facing a bench or box, holding dumbbells at your sides.",
+      "Step one foot onto the box and drive through it to stand up.",
+      "Lower back down under control.",
+    ],
+    cues: ["Drive through the heel of the top foot", "Don't push off with the bottom foot — make the top leg do the work", "Box height should put your knee at roughly 90 degrees"],
+    mistakes: ["Pushing off the ground foot instead of the box foot", "Leaning forward excessively", "Box too high — losing balance and form"],
+  },
+  "Step-Up (slow eccentric)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Stand on a box or step, holding dumbbells at your sides.",
+      "Slowly lower one foot to the ground over 3 seconds, controlling with the standing leg.",
+      "Lightly tap the floor, then drive back up.",
+    ],
+    cues: ["3-second lowering is the whole point — don't rush", "Standing leg does all the work", "Stay upright — don't lean toward the stepping side"],
+    mistakes: ["Dropping too fast — defeats the purpose", "Shifting weight to the lower leg", "Box too high for controlled movement"],
+  },
+  "Straight Arm Pulldown": {
+    muscles: { primary: ["Lats"], secondary: ["Teres major", "Rear delts"] },
+    steps: [
+      "Stand facing a high cable with a straight bar attachment.",
+      "Arms straight, pull the bar down in an arc to your thighs.",
+      "Squeeze your lats at the bottom, then return slowly.",
+    ],
+    cues: ["Arms stay straight — only your shoulders move", "Think about pushing the bar to your hips, not pulling", "Great lat isolation — feel the squeeze"],
+    mistakes: ["Bending the elbows — turns it into a pulldown", "Leaning too far forward", "Using too much weight and losing the isolation"],
+  },
+  "Sumo Deadlift": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings"], secondary: ["Erectors", "Traps", "Forearms"] },
+    steps: [
+      "Wide stance, toes pointed out 30–45 degrees. Bar over mid-foot.",
+      "Grip the bar between your knees with arms straight down.",
+      "Drop your hips, lift your chest, and drive through the floor.",
+      "Lock out at the top, squeezing glutes.",
+    ],
+    cues: ["Push your knees out hard — they should track over your toes", "More upright torso than conventional — use that", "Hips and shoulders rise together"],
+    mistakes: ["Hips shooting up first — stay patient off the floor", "Knees caving in — push them out", "Not setting up wide enough — experiment with stance width"],
+  },
+  "T-Bar Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps", "Rear delts", "Erectors"] },
+    steps: [
+      "Straddle the T-bar, grip the handles, and stand with a slight hip hinge.",
+      "Pull the weight toward your chest, driving elbows back.",
+      "Squeeze at the top, then lower under control.",
+    ],
+    cues: ["Chest up, back flat throughout", "Pull to your upper abdomen / lower chest area", "Elbows stay close to your body"],
+    mistakes: ["Rounding the lower back", "Standing too upright — maintain the hip hinge", "Using momentum to swing the weight"],
+  },
+  "Trap Bar Deadlift": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings", "Erectors"], secondary: ["Traps", "Forearms", "Core"] },
+    steps: [
+      "Stand inside the trap bar, feet hip-width.",
+      "Hinge down and grip the handles at your sides.",
+      "Lift your chest, brace your core, and drive through the floor.",
+      "Stand tall at the top, then lower under control.",
+    ],
+    cues: ["Neutral grip is easier on the back and shoulders", "More upright than a conventional deadlift — that's the advantage", "Push the floor away rather than pulling the bar"],
+    mistakes: ["Rounding the back — same rules as any deadlift", "Hips shooting up first", "Not bracing properly before each rep"],
+  },
+  "Wide Grip Lat Pulldown": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Grip the pulldown bar well outside shoulder-width.",
+      "Lean back slightly and pull the bar to your upper chest.",
+      "Squeeze at the bottom, then return slowly to full arm extension.",
+    ],
+    cues: ["Wide grip shifts emphasis to the outer lats — width builder", "Pull to your upper chest, not behind your neck", "Control the return — don't let the weight yank you up"],
+    mistakes: ["Pulling behind the neck — shoulder injury risk", "Leaning back too far", "Grip too wide — if your wrists hurt, narrow slightly"],
+  },
 };
-
-// ─── Session map ──────────────────────────────────────────────────────────────
 
 export const ALL_SESSIONS = {
   hypertrophy: HYPERTROPHY_SESSIONS,
