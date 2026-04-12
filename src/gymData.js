@@ -2068,14 +2068,6 @@ export const EXERCISE_GUIDES = {
     mistakes: ["Slouching in the seat", "Not working hard enough — max effort", "Poor posture"],
   },
   // ─── Endurance regime exercises ───────────────────────────────────────────
-  "DB Bench Press": {
-    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
-    steps: [
-      "Lie on bench with dumbbells. Press up, lower with control.",
-    ],
-    cues: ["Same as Dumbbell Bench Press", "High reps in endurance context — chase the burn", "Control every rep"],
-    mistakes: ["Sacrificing form for reps", "Bouncing at the bottom", "Uneven pressing"],
-  },
   "DB Shoulder Press": {
     muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps"] },
     steps: [
