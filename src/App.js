@@ -65,17 +65,7 @@ export default function GymRoutine() {
 
   const toggleDay = (day) => setSelectedDays(p => p.includes(day) ? p.filter(d => d !== day) : p.length < 4 ? [...p, day] : p);
 
-  const getExName = (sid, idx) => {
-    const key = `${sid}-${idx}`;
-    if (swaps[key]) return swaps[key];
-    const session = ALL_SESSIONS[regime]?.[sid];
-    if (!session) return "";
-    const ex = session.exercises[idx];
-    if (!ex) return "";
-    const { getSessionWithAge: _ } = require ? { getSessionWithAge: null } : {};
-    return ex.name;
-  };
-
+ 
   // ── Log helpers ──
   const startLog = (sid) => {
     const session = getSessionWithAge(regime, sid, ageClass);
