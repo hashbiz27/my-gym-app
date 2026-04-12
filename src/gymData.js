@@ -1128,7 +1128,2502 @@ export const EXERCISE_GUIDES = {
     cues: ["Wide grip shifts emphasis to the outer lats — width builder", "Pull to your upper chest, not behind your neck", "Control the return — don't let the weight yank you up"],
     mistakes: ["Pulling behind the neck — shoulder injury risk", "Leaning back too far", "Grip too wide — if your wrists hurt, narrow slightly"],
   },
+  // ─── Strength regime exercises ──────────────────────────────────────────────
+  "Deadlift": {
+    muscles: { primary: ["Glutes", "Hamstrings", "Erectors", "Quads"], secondary: ["Lats", "Traps", "Forearms", "Core"] },
+    steps: [
+      "Stand with feet hip-width, bar over mid-foot.",
+      "Hinge down, grip just outside knees. Lift chest, brace core.",
+      "Drive through the floor — hips and shoulders rise together.",
+      "Lock out by squeezing glutes. Lower by hinging hips first.",
+    ],
+    cues: ["Push the floor away, don't pull the bar", "Bar stays glued to your body", "Big breath and brace before every rep"],
+    mistakes: ["Rounding the lower back", "Hips shooting up first", "Jerking the bar off the floor"],
+  },
+  "Barbell Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps", "Erectors", "Rear delts"] },
+    steps: [
+      "Stand with feet shoulder-width, bar hanging at arm's length.",
+      "Hinge forward to about 45 degrees, slight knee bend.",
+      "Row the bar to your lower chest, elbows driving back.",
+      "Lower under control.",
+    ],
+    cues: ["Flat back throughout", "Pull to your belly, not your chest", "Squeeze shoulder blades at the top"],
+    mistakes: ["Rounding the back", "Standing too upright", "Using momentum to swing"],
+  },
+  "Cable Row (close grip)": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit at the cable row, feet on the platform, V-handle attached.",
+      "Pull the handle to your lower stomach, elbows close to your body.",
+      "Squeeze at the end, then extend forward with control.",
+    ],
+    cues: ["Close grip hits the lats harder than wide grip", "Minimal body lean", "Let shoulders stretch forward at the start for full ROM"],
+    mistakes: ["Rocking excessively", "Pulling to the chest instead of the stomach", "Rushing the eccentric"],
+  },
+  "DB Hammer Curl": {
+    muscles: { primary: ["Brachialis", "Biceps"], secondary: ["Forearms"] },
+    steps: [
+      "Stand with dumbbells at your sides, palms facing your body.",
+      "Curl the dumbbells up keeping palms neutral (facing each other).",
+      "Squeeze at the top, lower under control.",
+    ],
+    cues: ["Neutral grip targets the brachialis — builds arm thickness", "Elbows pinned to your sides", "No swinging"],
+    mistakes: ["Swinging the body for momentum", "Turning the wrists during the curl", "Using too much weight and losing form"],
+  },
+  "Shrugs": {
+    muscles: { primary: ["Upper traps"], secondary: ["Levator scapulae"] },
+    steps: [
+      "Hold a barbell or dumbbells at arm's length, arms straight.",
+      "Shrug your shoulders straight up toward your ears.",
+      "Hold at the top for a beat, then lower slowly.",
+    ],
+    cues: ["Straight up and down — don't roll your shoulders", "Hold the squeeze at the top", "Heavy weight is fine — traps respond to load"],
+    mistakes: ["Rolling shoulders forward or back — injury risk", "Bending the elbows to cheat", "Not holding the contraction at the top"],
+  },
+  "Pause Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core", "Erectors"] },
+    steps: [
+      "Set up as a normal back squat. Descend to the bottom position.",
+      "Pause for 2 full seconds at the bottom — no bouncing.",
+      "Drive up explosively from the dead stop.",
+    ],
+    cues: ["Stay tight during the pause — don't relax", "Breathe and brace before descending", "Builds strength out of the hole"],
+    mistakes: ["Not pausing long enough — count to 2 honestly", "Relaxing at the bottom and losing tightness", "Using the same weight as regular squats — go lighter"],
+  },
+  "Good Morning": {
+    muscles: { primary: ["Hamstrings", "Erectors"], secondary: ["Glutes"] },
+    steps: [
+      "Bar on upper back as for a squat. Feet hip-width.",
+      "Hinge forward at the hips with a slight knee bend.",
+      "Go until your torso is roughly parallel to the floor.",
+      "Drive hips forward to stand up.",
+    ],
+    cues: ["Think of it as an RDL with the bar on your back", "Slight knee bend — not a squat", "Keep your back flat throughout"],
+    mistakes: ["Rounding the lower back — most dangerous error", "Going too heavy before mastering the movement", "Squatting instead of hinging"],
+  },
+  "Hip Thrust (heavy)": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Upper back on bench, heavy barbell across hip crease with pad.",
+      "Feet flat, shoulder-width, shins vertical at the top.",
+      "Drive hips up hard — squeeze glutes at lockout.",
+      "Lower with a 2-second negative.",
+    ],
+    cues: ["Tuck your chin, look forward", "Posterior pelvic tilt at the top", "This is for max glute load — go heavy"],
+    mistakes: ["Hyperextending the back instead of squeezing glutes", "Feet too far away — hamstrings dominate", "Not using a bar pad — painful and distracting"],
+  },
+  "Pendlay Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps", "Erectors"] },
+    steps: [
+      "Bar on the floor. Hinge to a flat back, grip outside knees.",
+      "Explosively row the bar to your lower chest.",
+      "Lower the bar back to the floor — dead stop each rep.",
+    ],
+    cues: ["Each rep starts from the floor — no bounce", "Flat back, torso close to parallel", "Explosive pull, controlled lower"],
+    mistakes: ["Torso rising during the pull", "Not returning to a dead stop", "Rounding the back"],
+  },
+  "Rack Pull": {
+    muscles: { primary: ["Erectors", "Traps", "Glutes"], secondary: ["Hamstrings", "Forearms"] },
+    steps: [
+      "Set the bar in a rack at knee height or just below.",
+      "Grip and set up as for a deadlift — flat back, braced core.",
+      "Pull to lockout, squeezing at the top.",
+      "Lower to the pins under control.",
+    ],
+    cues: ["Partial range — you can go heavier than a full deadlift", "Great for lockout strength", "Keep the bar close to your body"],
+    mistakes: ["Rounding the upper back under heavy load", "Hitching the bar up with hip flexion", "Dropping the bar instead of lowering"],
+  },
+  "Lat Pulldown (heavy)": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit at the pulldown, thighs secured. Grip slightly wider than shoulders.",
+      "Pull the bar to your upper chest with a slight lean back.",
+      "Squeeze your lats, then return slowly.",
+    ],
+    cues: ["Go heavy — this is a strength movement, not a pump exercise", "Controlled negative despite the load", "Slight lean, not a full recline"],
+    mistakes: ["Leaning way back to cheat the weight", "Pulling behind the neck", "Losing the eccentric control"],
+  },
+  "Band-Assisted Pull-Up": {
+    muscles: { primary: ["Lats", "Teres major"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Loop a band over the pull-up bar and place one foot or knee in the loop.",
+      "Hang with arms fully extended.",
+      "Pull up until your chin clears the bar.",
+      "Lower under control to full extension.",
+    ],
+    cues: ["Use the thinnest band you can manage with good form", "Full dead hang at the bottom", "Same technique as a regular pull-up"],
+    mistakes: ["Using too thick a band — progress by going thinner", "Kipping or swinging", "Not going to full extension at the bottom"],
+  },
+  "Seated Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Sit at the cable row or machine row station.",
+      "Pull the handle toward your stomach, squeezing shoulder blades.",
+      "Extend arms forward with control.",
+    ],
+    cues: ["Sit tall — chest up", "Pull to belly level", "Controlled stretch at the start"],
+    mistakes: ["Excessive body lean", "Rounding the back", "Rushing through reps"],
+  },
+  "Chest-Supported Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Lie face down on an incline bench, dumbbells or handles hanging below.",
+      "Row both weights up, squeezing shoulder blades together.",
+      "Lower to full extension.",
+    ],
+    cues: ["Chest stays on the pad — zero momentum", "Great for isolating the back without lower back fatigue", "Let shoulders protract at the bottom"],
+    mistakes: ["Lifting chest off the pad to cheat", "Shrugging instead of rowing", "Going too heavy and losing contraction"],
+  },
+  "Barbell Curl": {
+    muscles: { primary: ["Biceps"], secondary: ["Forearms", "Brachialis"] },
+    steps: [
+      "Stand with a barbell, shoulder-width underhand grip.",
+      "Curl the bar up keeping elbows pinned to your sides.",
+      "Squeeze at the top, lower under control.",
+    ],
+    cues: ["Upper arms don't move — only forearms", "No body English", "Straight bar or EZ bar — EZ is easier on wrists"],
+    mistakes: ["Swinging the torso to generate momentum", "Elbows drifting forward", "Half reps at the top"],
+  },
+  "DB Shrug": {
+    muscles: { primary: ["Upper traps"], secondary: ["Levator scapulae"] },
+    steps: [
+      "Stand holding dumbbells at your sides.",
+      "Shrug straight up toward your ears.",
+      "Hold the contraction, then lower slowly.",
+    ],
+    cues: ["Straight up and down — no rolling", "Dumbbells allow a slightly more natural path than a barbell", "Heavy is fine — traps are strong"],
+    mistakes: ["Rolling shoulders", "Bending elbows", "Rushing through reps without squeezing"],
+  },
+  "Machine Shrug": {
+    muscles: { primary: ["Upper traps"], secondary: ["Levator scapulae"] },
+    steps: [
+      "Stand in the shrug machine, handles at your sides.",
+      "Shrug straight up.",
+      "Hold at the top, lower slowly.",
+    ],
+    cues: ["Machine guides the path — focus on the squeeze", "Go heavy", "Hold the contraction for 1–2 seconds"],
+    mistakes: ["Not using full range", "Going too fast", "Rolling shoulders"],
+  },
+  "Low-Bar Squat": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings"], secondary: ["Erectors", "Core"] },
+    steps: [
+      "Bar sits across your rear delts, lower than a high-bar squat.",
+      "Wider stance, toes out. More forward lean is normal.",
+      "Squat to parallel, then drive up.",
+    ],
+    cues: ["More hip-dominant than high bar — you can typically lift more", "Wrist flexibility matters — work on it", "Chest up as much as possible despite the lean"],
+    mistakes: ["Bar sliding down your back — squeeze your rear delts tight", "Excessive forward lean turning it into a good morning", "Wrist pain — try a wider grip or thumb-over grip"],
+  },
+  "Safety Bar Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core", "Upper back"] },
+    steps: [
+      "The safety bar sits on your traps with handles in front.",
+      "Grip the handles, unrack, and squat as normal.",
+      "The bar tries to pitch you forward — fight it by staying upright.",
+    ],
+    cues: ["Easier on the shoulders than a straight bar", "Builds upper back strength due to the forward pull", "Great for anyone with shoulder mobility issues"],
+    mistakes: ["Letting the bar tip you forward", "Not bracing hard enough — the bar amplifies any weakness", "Going too deep before you're used to the balance"],
+  },
+  "Box Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Set a box at parallel depth behind you. Bar on back.",
+      "Squat back and sit on the box — brief pause.",
+      "Drive up explosively off the box.",
+    ],
+    cues: ["Sit back onto the box, don't plop down", "Brief pause — not a rest, stay braced", "Teaches you to squat to consistent depth"],
+    mistakes: ["Crashing onto the box — sit with control", "Relaxing on the box and losing tension", "Rocking forward to stand up instead of driving through the legs"],
+  },
+  "Barbell RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Erectors", "Forearms"] },
+    steps: [
+      "Same movement as the Romanian Deadlift — bar at hip height, hinge at hips.",
+      "Lower until deep hamstring stretch, then drive hips forward.",
+    ],
+    cues: ["Identical to Romanian Deadlift", "Bar slides down your thighs", "Squeeze glutes at the top"],
+    mistakes: ["Rounding the lower back", "Bending knees too much", "Hyperextending at the top"],
+  },
+  "45° Back Extension": {
+    muscles: { primary: ["Erectors", "Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Position yourself face down on the 45-degree back extension bench.",
+      "Cross arms over chest or behind head.",
+      "Lower your torso until you feel a stretch, then extend back up.",
+    ],
+    cues: ["Squeeze glutes at the top — don't hyperextend", "Slow and controlled", "Add a weight plate for progression"],
+    mistakes: ["Hyperextending at the top — stop when your body is straight", "Going too fast — this is about control", "Rounding excessively at the bottom"],
+  },
+  "Barbell Glute Bridge": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Lie on the floor, barbell across hip crease.",
+      "Knees bent, feet flat.",
+      "Drive hips up, squeeze glutes at the top.",
+      "Lower back down.",
+    ],
+    cues: ["Like a hip thrust but on the floor — less range of motion", "Pelvic tilt at the top", "Good for very heavy loads"],
+    mistakes: ["Hyperextending the back", "Pushing through toes instead of heels", "Not squeezing at the top"],
+  },
+  "Rear-Foot-Elevated RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Erectors", "Core"] },
+    steps: [
+      "Rear foot elevated on a bench behind you.",
+      "Hinge forward at the hips, lowering a dumbbell toward the floor.",
+      "Drive hips forward to return to standing.",
+    ],
+    cues: ["Single-leg hip hinge — very challenging for balance", "Keep hips square — don't rotate", "Go lighter than you think"],
+    mistakes: ["Rounding the back", "Rotating the hips", "Losing balance — use a wall for support initially"],
+  },
+  "Step-Up (loaded)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Hold dumbbells or a barbell. Step onto a box with one foot.",
+      "Drive through the top foot to stand up.",
+      "Lower back down under control.",
+    ],
+    cues: ["All the work comes from the top leg", "Don't push off the ground foot", "Heavier load than regular step-ups"],
+    mistakes: ["Using the bottom foot to push off", "Leaning forward excessively", "Box too high for controlled form"],
+  },
+  "Stiff-Leg Deadlift": {
+    muscles: { primary: ["Hamstrings", "Erectors"], secondary: ["Glutes"] },
+    steps: [
+      "Stand with barbell at hip height. Legs stay nearly straight.",
+      "Hinge forward, lowering bar toward the floor.",
+      "Go until hamstring stretch limits you, then stand up.",
+    ],
+    cues: ["Straighter legs than an RDL — more hamstring emphasis", "Back stays flat", "Bar stays close to legs"],
+    mistakes: ["Rounding the back", "Locking knees completely — slight softness is fine", "Going too heavy before hamstring flexibility allows it"],
+  },
+  "DB RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Erectors"] },
+    steps: [
+      "Hold dumbbells in front of thighs.",
+      "Hinge at hips, lowering dumbbells along your legs.",
+      "Drive hips forward to stand.",
+    ],
+    cues: ["Same as Dumbbell RDL — identical movement", "DBs allow more natural wrist angle", "Great for lighter loads or home training"],
+    mistakes: ["Rounding the back", "Bending knees too much", "Not hinging deep enough"],
+  },
+  "Leg Press (heavy)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings"] },
+    steps: [
+      "Sit in the leg press. Feet shoulder-width, mid-platform.",
+      "Lower until knees reach about 90 degrees.",
+      "Press through your whole foot.",
+    ],
+    cues: ["Go heavy — this is a strength substitute for squats", "Back stays pressed into the pad", "Don't lock knees at the top"],
+    mistakes: ["Going too deep and lower back rounding", "Locking out knees", "Pushing through toes only"],
+  },
+  "French Press": {
+    muscles: { primary: ["Triceps (all heads)"], secondary: [] },
+    steps: [
+      "Lie on a bench holding an EZ bar or dumbbells above your chest.",
+      "Lower the weight toward your forehead by bending at the elbows.",
+      "Extend back up to the start.",
+    ],
+    cues: ["Also called skull crushers", "Elbows stay pointing at the ceiling", "Go slightly behind your head for more long head stretch"],
+    mistakes: ["Elbows flaring wide", "Dropping the weight too fast toward your face", "Not getting full extension at the top"],
+  },
+  "Tricep Dips (weighted)": {
+    muscles: { primary: ["Triceps", "Chest", "Front delts"], secondary: [] },
+    steps: [
+      "Grip parallel bars, hang with arms extended. Add weight via belt or DB between feet.",
+      "Lower until upper arms are parallel to the floor.",
+      "Press back up to full extension.",
+    ],
+    cues: ["Slight forward lean for more chest, upright for more triceps", "Full lockout at the top", "Controlled descent — don't drop"],
+    mistakes: ["Going too deep — stresses the shoulder", "Flaring elbows excessively", "Swinging the weight"],
+  },
+  "Push Press": {
+    muscles: { primary: ["Front delts", "Triceps"], secondary: ["Quads", "Core"] },
+    steps: [
+      "Bar on front delts, feet hip-width.",
+      "Dip slightly by bending knees, then drive up explosively.",
+      "Use the leg drive to push the bar overhead. Lock out.",
+    ],
+    cues: ["Short, sharp dip — not a squat", "Leg drive initiates, arms finish", "Great for getting more weight overhead than strict press"],
+    mistakes: ["Dipping too deep — loses power", "Pressing before the drive finishes", "Not locking out overhead"],
+  },
+  "Seated BB Press": {
+    muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps"] },
+    steps: [
+      "Sit on a bench with back support, barbell at shoulder height.",
+      "Press the bar overhead to lockout.",
+      "Lower back to shoulder height.",
+    ],
+    cues: ["Seated removes the leg drive — pure pressing strength", "Keep your back against the pad", "Full lockout at the top"],
+    mistakes: ["Arching excessively off the pad", "Pressing the bar forward instead of straight up", "Not using full range"],
+  },
+  "Incline BB Press": {
+    muscles: { primary: ["Upper chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Bench at 30–45 degrees. Unrack bar with grip slightly wider than shoulders.",
+      "Lower to upper chest, press up.",
+    ],
+    cues: ["Same as Incline Barbell Press", "Shoulder blades retracted", "Touch upper chest"],
+    mistakes: ["Bench too steep", "Bar drifting forward", "Bouncing off chest"],
+  },
+  "Cable Fly": {
+    muscles: { primary: ["Chest"], secondary: ["Front delts"] },
+    steps: [
+      "Stand between two cable pulleys set at mid-height.",
+      "Arms extended with slight elbow bend, bring handles together in front.",
+      "Open arms wide for a stretch, then squeeze back together.",
+    ],
+    cues: ["Squeeze at the midpoint — peak contraction", "Constant tension from the cables", "Slight forward lean"],
+    mistakes: ["Bending elbows too much — it's a fly, not a press", "Standing too far forward or back", "Going too heavy"],
+  },
+  "DB Bench Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Sit on bench, kick dumbbells up as you lie back.",
+      "Press up, lower with control, elbows at 45 degrees.",
+    ],
+    cues: ["Same as Dumbbell Bench Press", "Greater ROM than barbell", "Squeeze shoulder blades"],
+    mistakes: ["Uneven pressing", "Elbows flaring to 90 degrees", "Dropping too fast"],
+  },
+  "Smith Machine Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Position bench so bar path hits mid-chest.",
+      "Grip, twist to unrack, lower to chest, press up.",
+    ],
+    cues: ["Same as Smith Machine Bench Press", "Fixed path — focus on pressing force", "Good for going to failure safely"],
+    mistakes: ["Wrong bench position", "Not retracting shoulder blades", "Relying on Smith only — use free weights too"],
+  },
+  // ─── Power regime exercises ───────────────────────────────────────────────
+  "Medicine Ball Chest Pass": {
+    muscles: { primary: ["Chest", "Front delts", "Triceps"], secondary: ["Core"] },
+    steps: [
+      "Stand facing a wall, med ball at chest height.",
+      "Explosively push the ball into the wall.",
+      "Catch the rebound and immediately repeat.",
+    ],
+    cues: ["Maximum velocity on every rep", "Drive from the chest, not the arms", "Catch and throw in one smooth motion"],
+    mistakes: ["Lobbing instead of throwing explosively", "Standing too far from the wall", "Not catching properly — risk of face impact"],
+  },
+  "Bench Press (speed)": {
+    muscles: { primary: ["Chest", "Front delts", "Triceps"], secondary: [] },
+    steps: [
+      "Load 50–60% of your max. Set up as for a normal bench press.",
+      "Lower the bar under control to your chest.",
+      "Press up as fast as humanly possible.",
+    ],
+    cues: ["Speed is the stimulus — not the weight", "Compensatory acceleration — push harder as the bar moves", "Controlled down, explosive up"],
+    mistakes: ["Going too heavy — defeats the purpose", "Not accelerating through the full range", "Bouncing off the chest"],
+  },
+  "Explosive Pull-Up": {
+    muscles: { primary: ["Lats", "Biceps"], secondary: ["Rear delts", "Core"] },
+    steps: [
+      "Hang from the bar, arms fully extended.",
+      "Pull up as fast and explosively as possible.",
+      "Lower slowly — 3 second negative.",
+    ],
+    cues: ["Try to pull yourself above the bar, not just to it", "Fast up, slow down", "If possible, release the bar briefly at the top"],
+    mistakes: ["Kipping instead of pulling explosively", "Dropping too fast on the negative", "Not going to full extension at the bottom"],
+  },
+  "Barbell Row (explosive)": {
+    muscles: { primary: ["Lats", "Traps", "Rhomboids"], secondary: ["Biceps", "Erectors"] },
+    steps: [
+      "Hinge forward, bar hanging at arm's length.",
+      "Explosively row the bar to your lower chest.",
+      "Lower with control.",
+    ],
+    cues: ["Pull hard and fast — think about driving elbows through the ceiling", "Speed is the goal, not max weight", "Flat back throughout"],
+    mistakes: ["Using too much weight and losing explosiveness", "Rounding the back", "Standing up during the pull"],
+  },
+  "Box Jump": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Stand facing a box, feet hip-width.",
+      "Swing arms and jump onto the box.",
+      "Land softly with both feet, knees bent.",
+      "Stand up, step down — don't jump down.",
+    ],
+    cues: ["Land soft — absorb with your knees", "Step down, don't jump down — saves your joints", "Swing your arms to generate more height"],
+    mistakes: ["Landing with stiff legs", "Jumping down — high impact on joints", "Using a box that's too high and landing in a deep squat"],
+  },
+  "Power Clean (from hang)": {
+    muscles: { primary: ["Glutes", "Hamstrings", "Traps", "Quads"], secondary: ["Shoulders", "Core", "Forearms"] },
+    steps: [
+      "Bar at hip height, overhand grip just outside knees.",
+      "Hinge to just above the knees — this is the hang position.",
+      "Explosively extend hips and shrug, then pull yourself under the bar.",
+      "Catch the bar on your front delts in a quarter squat. Stand up.",
+    ],
+    cues: ["The power comes from the hip extension, not the arms", "Fast elbows — whip them under the bar", "If unsure, use the DB version instead"],
+    mistakes: ["Pulling with the arms instead of driving with hips", "Not getting under the bar — catching it too high", "Wrist flexibility limiting the catch position"],
+  },
+  "Jump Squat": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Bar on back with 20–30% of your squat max.",
+      "Squat down to about parallel.",
+      "Explode up and leave the ground.",
+      "Land softly and absorb into the next rep.",
+    ],
+    cues: ["Light weight — speed is the stimulus", "Land with soft knees every time", "Arms stay on the bar — don't let it bounce on your back"],
+    mistakes: ["Going too heavy — can't generate speed", "Landing with stiff legs", "Bar bouncing off your back on landing"],
+  },
+  "Trap Bar Deadlift (speed)": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings"], secondary: ["Erectors", "Traps"] },
+    steps: [
+      "Stand in trap bar, about 60% of max.",
+      "Set up with flat back and tight brace.",
+      "Pull as fast as possible to lockout.",
+      "Lower with control and reset.",
+    ],
+    cues: ["Accelerate through the entire pull", "Think about jumping with the bar", "Reset between reps — each one is a fresh effort"],
+    mistakes: ["Going too heavy for speed work", "Losing back position in the rush", "Not resetting between reps"],
+  },
+  "Broad Jump": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Stand with feet hip-width.",
+      "Swing arms back, hinge slightly, then explode forward and up.",
+      "Land with soft knees, absorb the impact.",
+    ],
+    cues: ["Drive both forward AND up — 45-degree takeoff angle", "Arm swing generates significant extra distance", "Stick the landing before the next rep"],
+    mistakes: ["Jumping too flat — no height", "Landing with straight legs", "Not using the arm swing"],
+  },
+  "Med Ball Rotational Throw": {
+    muscles: { primary: ["Obliques", "Core", "Hips"], secondary: ["Shoulders", "Chest"] },
+    steps: [
+      "Stand sideways to a wall, med ball at hip height.",
+      "Rotate explosively from the hips, throwing the ball into the wall.",
+      "Catch the rebound and repeat.",
+    ],
+    cues: ["Power comes from the hips, not the arms", "Feet pivot during the throw", "Like a golf swing or baseball bat swing"],
+    mistakes: ["All arms, no hip rotation", "Not pivoting the feet", "Standing too far from the wall"],
+  },
+  "Push Jerk": {
+    muscles: { primary: ["Front delts", "Triceps", "Quads"], secondary: ["Core"] },
+    steps: [
+      "Bar on front delts. Dip by bending knees.",
+      "Drive up explosively and push yourself UNDER the bar.",
+      "Catch overhead with a slight knee bend, then stand up.",
+    ],
+    cues: ["Faster and more technical than push press", "You move under the bar, not just push it up", "Lock out aggressively"],
+    mistakes: ["Pressing instead of jerking — you should catch with straight arms", "Dipping forward instead of straight down", "Not committing to getting under the bar"],
+  },
+  "Plyo Push-Up": {
+    muscles: { primary: ["Chest", "Triceps", "Front delts"], secondary: ["Core"] },
+    steps: [
+      "Start in a push-up position.",
+      "Lower to the bottom, then push up explosively so hands leave the ground.",
+      "Land softly and immediately go into the next rep.",
+    ],
+    cues: ["Hands should clear the ground on every rep", "Land with soft elbows to absorb", "Quality over quantity"],
+    mistakes: ["Not generating enough force to leave the ground", "Landing with stiff arms — wrist injury risk", "Saggy hips — maintain a straight body line"],
+  },
+  "Lat Pulldown (explosive)": {
+    muscles: { primary: ["Lats", "Biceps"], secondary: ["Rear delts"] },
+    steps: [
+      "Sit at the pulldown machine, grip slightly wider than shoulders.",
+      "Pull the bar down as fast as possible to your upper chest.",
+      "Return slowly — 3 second negative.",
+    ],
+    cues: ["Explosive concentric, slow eccentric", "Imagine ripping the bar down", "Moderate weight — speed is the priority"],
+    mistakes: ["Going too heavy and losing speed", "Leaning way back to cheat", "Fast on both directions — the slow return is critical"],
+  },
+  "Depth Jump": {
+    muscles: { primary: ["Quads", "Calves", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Stand on a box. Step off (don't jump off).",
+      "The moment you land, jump up as high as possible.",
+      "Minimal ground contact time — react instantly.",
+    ],
+    cues: ["Reactive power — you're training the stretch reflex", "Think about the ground being hot — spend as little time on it as possible", "Step off, don't jump off the box"],
+    mistakes: ["Jumping off the box instead of stepping", "Spending too long on the ground before jumping", "Box too high — start at 40cm"],
+  },
+  "Single-Leg Hop": {
+    muscles: { primary: ["Calves", "Quads"], secondary: ["Glutes", "Core"] },
+    steps: [
+      "Stand on one leg.",
+      "Hop forward or in place with minimal ground contact.",
+      "Stay on the same leg for all reps, then switch.",
+    ],
+    cues: ["Stiff ankle — spring off the ball of your foot", "Minimal knee bend", "Quick, reactive contacts"],
+    mistakes: ["Too much knee bend — this is an ankle exercise", "Losing balance between hops", "Landing flat-footed"],
+  },
+  "Barbell Hip Thrust (explosive)": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Set up as for a normal hip thrust — back on bench, bar across hips.",
+      "Drive hips up as fast as possible.",
+      "Control the descent, then explode again.",
+    ],
+    cues: ["Speed is the stimulus — not max weight", "Squeeze glutes hard at the top", "Fast up, controlled down"],
+    mistakes: ["Going too heavy and losing speed", "Hyperextending the back", "Bouncing instead of controlled explosive reps"],
+  },
+  "Sprint (treadmill/track)": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings", "Calves"], secondary: ["Core", "Hip flexors"] },
+    steps: [
+      "Warm up thoroughly — 5–10 min easy jogging.",
+      "Sprint at maximum effort for 6–8 seconds.",
+      "Rest 2 minutes between sprints.",
+    ],
+    cues: ["Full effort — nothing held back", "Drive knees high, pump arms hard", "Short duration means full recovery between reps"],
+    mistakes: ["Not warming up enough — hamstring injury risk", "Sprinting too long — 6–8 seconds is plenty", "Not resting enough between efforts"],
+  },
+  "Lateral Bound": {
+    muscles: { primary: ["Glutes", "Quads", "Adductors"], secondary: ["Core", "Calves"] },
+    steps: [
+      "Stand on one leg.",
+      "Jump laterally as far as possible, landing on the other leg.",
+      "Stick the landing, then bound back.",
+    ],
+    cues: ["Push off the outside of your foot", "Stick each landing before bounding back", "Great for lateral power and knee stability"],
+    mistakes: ["Not sticking the landing — control matters", "Jumping too far and losing balance", "Knees caving in on landing"],
+  },
+  "Ankle Hops": {
+    muscles: { primary: ["Calves"], secondary: ["Quads"] },
+    steps: [
+      "Stand tall, feet together.",
+      "Hop up and down using only your ankles — minimal knee bend.",
+      "Stay on the balls of your feet throughout.",
+    ],
+    cues: ["Stiff ankles — think pogo stick", "Quick ground contacts", "Develops tendon stiffness and reactive strength"],
+    mistakes: ["Bending knees too much", "Landing flat-footed", "Going too slow — these should be fast"],
+  },
+  "Clap Push-Up": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Front delts", "Core"] },
+    steps: [
+      "Start in push-up position.",
+      "Lower, then push up explosively.",
+      "Clap hands in the air, then land softly.",
+    ],
+    cues: ["Need enough airtime to clap and get hands back down", "Land with soft elbows", "Quality reps — stop when you can't get enough height"],
+    mistakes: ["Landing with stiff arms — wrist injury", "Hips sagging", "Clapping too late and face-planting"],
+  },
+  "Band Press": {
+    muscles: { primary: ["Chest", "Triceps", "Front delts"], secondary: [] },
+    steps: [
+      "Anchor a band behind you at chest height.",
+      "Press forward explosively against the band resistance.",
+      "Return slowly.",
+    ],
+    cues: ["Band increases resistance as you press — accommodating resistance", "Great for developing pressing speed", "Full extension each rep"],
+    mistakes: ["Band too light or too heavy", "Not getting full extension", "Letting the band snap you back — control it"],
+  },
+  "DB Speed Press": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Front delts"] },
+    steps: [
+      "Lie on a flat bench with moderate dumbbells.",
+      "Press up as fast as possible.",
+      "Lower under control, then explode up again.",
+    ],
+    cues: ["50–60% of your normal DB press weight", "Compensatory acceleration — push harder through the whole range", "Fast up, slow down"],
+    mistakes: ["Going too heavy for speed work", "Losing control of the dumbbells", "Not enough acceleration"],
+  },
+  "Band-Resisted Press": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Front delts"] },
+    steps: [
+      "Set up for bench press with bands looped over the bar and anchored below.",
+      "Press up — the bands add resistance at the top.",
+      "Control the descent.",
+    ],
+    cues: ["Forces you to accelerate through the whole range", "Top of the press is hardest — push through it", "Great for developing lockout strength"],
+    mistakes: ["Bands too tight — can't control the bar", "Not accelerating aggressively enough", "Bands poorly anchored — safety risk"],
+  },
+  "Jumping Pull-Up": {
+    muscles: { primary: ["Lats", "Biceps"], secondary: ["Core"] },
+    steps: [
+      "Stand under a bar you can reach with a small jump.",
+      "Jump up and grab the bar, immediately pulling yourself over.",
+      "Lower slowly, drop, and repeat.",
+    ],
+    cues: ["The jump gives you momentum — focus on a fast pull at the top", "Slow negative on the way down", "Great for building toward strict pull-ups"],
+    mistakes: ["All jump, no pull — make the upper body work", "Dropping too fast from the top", "Bar too high — you should barely need to jump"],
+  },
+  "Band Pull-Up": {
+    muscles: { primary: ["Lats", "Biceps"], secondary: ["Rear delts"] },
+    steps: [
+      "Loop a resistance band over the bar.",
+      "Place foot or knee in the band and hang.",
+      "Pull up with the band assisting at the bottom.",
+    ],
+    cues: ["Band helps most at the bottom where you're weakest", "Work toward thinner bands over time", "Full dead hang at the bottom"],
+    mistakes: ["Relying too much on the band", "Kipping", "Not going to full extension"],
+  },
+  "Band Pulldown": {
+    muscles: { primary: ["Lats"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Attach a band high, grip both ends.",
+      "Pull down to your chest, squeezing lats.",
+      "Return slowly.",
+    ],
+    cues: ["Great for home training or warm-ups", "Variable resistance — hardest at the bottom", "Focus on the lat squeeze"],
+    mistakes: ["Using a band that's too light", "Pulling with arms instead of lats", "Rushing through reps"],
+  },
+  "Seal Row": {
+    muscles: { primary: ["Lats", "Rhomboids", "Traps"], secondary: ["Biceps"] },
+    steps: [
+      "Lie face down on an elevated bench (plates under the bench legs).",
+      "Dumbbells or barbell hanging below, row up.",
+      "Squeeze at the top, lower to full extension.",
+    ],
+    cues: ["Zero momentum — pure back contraction", "Chest stays flat on the bench", "Great for isolating the back"],
+    mistakes: ["Bench not high enough — weights hit the floor", "Lifting chest off the bench", "Going too heavy and losing contraction"],
+  },
+  "Band Rotational Press": {
+    muscles: { primary: ["Chest", "Core", "Obliques"], secondary: ["Triceps", "Front delts"] },
+    steps: [
+      "Anchor a band at chest height to your side.",
+      "Press forward while rotating your torso.",
+      "Return under control.",
+    ],
+    cues: ["Rotation comes from the hips and core", "Press and rotate simultaneously", "Great for rotational power development"],
+    mistakes: ["All arms, no rotation", "Not bracing the core", "Band too light to challenge rotation"],
+  },
+  "Cable Woodchop": {
+    muscles: { primary: ["Obliques", "Core"], secondary: ["Shoulders"] },
+    steps: [
+      "Cable at high position. Grip with both hands.",
+      "Rotate from high to low across your body in a chopping motion.",
+      "Control the return.",
+    ],
+    cues: ["Power comes from hip rotation", "Arms stay relatively straight — they're just levers", "Exhale forcefully during the chop"],
+    mistakes: ["Pulling with arms instead of rotating", "Moving too fast on the return", "Standing too close to the cable"],
+  },
+  "Cable Press": {
+    muscles: { primary: ["Chest", "Front delts", "Triceps"], secondary: [] },
+    steps: [
+      "Cable at chest height behind you.",
+      "Press forward to full arm extension.",
+      "Return slowly.",
+    ],
+    cues: ["Constant cable tension throughout", "Unilateral version builds anti-rotation strength", "Great for finishing chest workouts"],
+    mistakes: ["Leaning too far forward", "Not getting full extension", "Going too heavy"],
+  },
+  "Single-Arm DB Press": {
+    muscles: { primary: ["Chest", "Front delts", "Triceps"], secondary: ["Core"] },
+    steps: [
+      "Lie on a bench with one dumbbell.",
+      "Press up to full extension.",
+      "Lower under control.",
+    ],
+    cues: ["Core has to work hard to prevent rotation", "Great for finding and fixing imbalances", "Brace against the bench with your free hand if needed"],
+    mistakes: ["Rotating off the bench", "Not bracing properly", "Going too heavy initially"],
+  },
+  "DB Push Press": {
+    muscles: { primary: ["Front delts", "Triceps"], secondary: ["Quads", "Core"] },
+    steps: [
+      "Dumbbells at shoulder height.",
+      "Dip and drive with legs, press overhead.",
+      "Lock out, then lower to shoulders.",
+    ],
+    cues: ["Use leg drive to get heavier DBs overhead", "Short, sharp dip", "Lock out aggressively"],
+    mistakes: ["Dipping too deep", "Pressing before the drive finishes", "Dumbbells drifting forward"],
+  },
+  "DB Split Jerk": {
+    muscles: { primary: ["Front delts", "Triceps", "Quads"], secondary: ["Core"] },
+    steps: [
+      "Dumbbells at shoulder height.",
+      "Dip and drive, split one foot forward and one back as you press overhead.",
+      "Lock out overhead, then bring feet together.",
+    ],
+    cues: ["Split stance catches the weight in a strong position", "Lock out aggressively as you split", "Practice the footwork with light weight first"],
+    mistakes: ["Not splitting wide enough", "Pressing instead of catching — should be a jerk", "Losing balance in the split"],
+  },
+  "Incline Plyo Push-Up": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Core", "Front delts"] },
+    steps: [
+      "Hands on a bench or elevated surface in push-up position.",
+      "Lower, then push up explosively so hands leave the surface.",
+      "Land softly and repeat.",
+    ],
+    cues: ["Easier than floor plyo push-ups — good progression", "The incline reduces bodyweight load", "Focus on explosive intent"],
+    mistakes: ["Not generating enough force to leave the surface", "Landing with stiff arms", "Surface too high — should still be challenging"],
+  },
+  "DB Hang Power Clean": {
+    muscles: { primary: ["Glutes", "Hamstrings", "Traps"], secondary: ["Shoulders", "Core"] },
+    steps: [
+      "Stand with dumbbells at hip height.",
+      "Hinge to just above the knees.",
+      "Explosively extend hips, shrug, and flip the DBs to your shoulders.",
+    ],
+    cues: ["Easier to learn than barbell cleans", "Hip drive is everything — arms are just hooks", "Catch on front delts with elbows high"],
+    mistakes: ["Curling the weights instead of using hip drive", "Not finishing the hip extension", "Catching with elbows low"],
+  },
+  "Kettlebell Swing": {
+    muscles: { primary: ["Glutes", "Hamstrings"], secondary: ["Core", "Shoulders", "Erectors"] },
+    steps: [
+      "Stand with feet wider than shoulders, KB on the floor slightly ahead.",
+      "Hike the KB back between your legs.",
+      "Drive hips forward explosively to swing the KB to chest height.",
+      "Let it swing back between legs and repeat.",
+    ],
+    cues: ["It's a hip hinge, not a squat — power comes from the hips", "Arms are ropes — don't pull with them", "Squeeze glutes hard at the top"],
+    mistakes: ["Squatting the swing instead of hinging", "Pulling with arms", "Hyperextending the back at the top"],
+  },
+  "Squat Jump (BW)": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Stand with feet shoulder-width.",
+      "Squat to about parallel.",
+      "Jump up as high as possible.",
+      "Land softly, absorb into the next squat.",
+    ],
+    cues: ["No external load — focus on max height", "Use arm swing for extra height", "Soft landing every rep"],
+    mistakes: ["Landing with stiff legs", "Not squatting deep enough", "Rushing — reset between reps"],
+  },
+  "Trap Bar Jump": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core", "Traps"] },
+    steps: [
+      "Stand inside a trap bar with light weight.",
+      "Squat slightly, then jump explosively.",
+      "Land softly and absorb.",
+    ],
+    cues: ["Very light load — 20–30% of deadlift max", "Neutral grip makes landing easier", "Explosive intent on every rep"],
+    mistakes: ["Going too heavy — can't leave the ground properly", "Poor landing mechanics", "Not resetting between reps"],
+  },
+  "Speed Conventional DL": {
+    muscles: { primary: ["Glutes", "Hamstrings", "Quads", "Erectors"], secondary: ["Core", "Traps"] },
+    steps: [
+      "Set up as for a conventional deadlift at 50–60% of max.",
+      "Pull as fast as possible to lockout.",
+      "Lower with control and reset.",
+    ],
+    cues: ["Speed is the goal — not grinding reps", "Accelerate through the entire pull", "Reset fully between reps"],
+    mistakes: ["Going too heavy for speed", "Losing position in the rush", "Not resetting"],
+  },
+  "KB Deadlift": {
+    muscles: { primary: ["Glutes", "Hamstrings", "Quads"], secondary: ["Core", "Erectors"] },
+    steps: [
+      "Kettlebell on the floor between your feet.",
+      "Hinge down, grip the handle, flat back.",
+      "Drive through the floor to stand up.",
+    ],
+    cues: ["Great for learning the deadlift pattern", "Same movement as barbell — just smaller", "Squeeze glutes at the top"],
+    mistakes: ["Rounding the back", "Squatting instead of hinging", "Not bracing the core"],
+  },
+  "Standing Long Jump": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Same as broad jump — stand, swing arms, jump forward for max distance.",
+      "Land with soft knees.",
+    ],
+    cues: ["Identical to broad jump", "45-degree takeoff angle", "Arm swing is critical"],
+    mistakes: ["Jumping flat", "Stiff landing", "No arm swing"],
+  },
+  "Bounding": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core", "Hip flexors"] },
+    steps: [
+      "Run with exaggerated strides — driving knees high and pushing off hard.",
+      "Each stride should cover maximum distance.",
+      "Land on one foot and immediately drive into the next bound.",
+    ],
+    cues: ["Think of running in slow motion with huge strides", "Drive the knee up high", "Spend minimal time on the ground"],
+    mistakes: ["Bounds too short — really exaggerate", "Landing heavily instead of springing", "Not driving the knee"],
+  },
+  "Drop Jump": {
+    muscles: { primary: ["Quads", "Calves"], secondary: ["Glutes"] },
+    steps: [
+      "Step off a box, land, and immediately jump as high as possible.",
+    ],
+    cues: ["Same as depth jump — reactive power training", "Minimal ground contact time", "Step off, don't jump off"],
+    mistakes: ["Jumping off the box", "Too much time on the ground", "Box too high"],
+  },
+  "Hurdle Hop": {
+    muscles: { primary: ["Quads", "Calves", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Set up low hurdles in a line.",
+      "Jump over each one with both feet, minimal ground contact.",
+    ],
+    cues: ["Continuous hops — don't pause between hurdles", "Quick ground contacts", "Knees drive up to clear the hurdles"],
+    mistakes: ["Pausing between hurdles", "Landing flat-footed", "Hurdles too high initially"],
+  },
+  "Ankle Hop": {
+    muscles: { primary: ["Calves"], secondary: [] },
+    steps: [
+      "Stand tall. Hop using only ankle flexion — minimal knee bend.",
+    ],
+    cues: ["Same as Ankle Hops — pogo stick motion", "Quick, stiff contacts", "Develops reactive ankle stiffness"],
+    mistakes: ["Bending knees", "Going too slow", "Landing flat-footed"],
+  },
+  "Side Hop": {
+    muscles: { primary: ["Calves", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Hop side to side over a line or small obstacle.",
+      "Minimal ground contact time.",
+    ],
+    cues: ["Quick feet — like a skier", "Stay on the balls of your feet", "Great for lateral ankle stability"],
+    mistakes: ["Hopping too wide and losing balance", "Landing flat", "Going too slow"],
+  },
+  "Lateral Hurdle Jump": {
+    muscles: { primary: ["Glutes", "Quads", "Adductors"], secondary: ["Core", "Calves"] },
+    steps: [
+      "Stand beside a hurdle.",
+      "Jump laterally over it, land on both feet.",
+      "Jump back immediately.",
+    ],
+    cues: ["Drive laterally off the outside foot", "Soft landings", "Continuous reps — no pausing"],
+    mistakes: ["Not jumping high enough to clear the hurdle", "Pausing between jumps", "Landing off balance"],
+  },
+  "Vertical Jump": {
+    muscles: { primary: ["Quads", "Glutes", "Calves"], secondary: ["Core"] },
+    steps: [
+      "Stand with feet shoulder-width.",
+      "Dip and swing arms, then jump as high as possible.",
+      "Land softly.",
+    ],
+    cues: ["Full arm swing for maximum height", "Drive through the balls of your feet", "Reach for the ceiling"],
+    mistakes: ["No arm swing", "Stiff landing", "Not squatting deep enough in the countermovement"],
+  },
+  "Stationary Bike Sprint": {
+    muscles: { primary: ["Quads", "Glutes", "Hamstrings"], secondary: ["Calves", "Core"] },
+    steps: [
+      "Set resistance moderately high.",
+      "Sprint all-out for 6–8 seconds.",
+      "Rest 2 minutes, repeat.",
+    ],
+    cues: ["Maximum effort — RPE 10", "Low impact alternative to running sprints", "Great for developing leg power without joint stress"],
+    mistakes: ["Resistance too low — spinning without load", "Sprinting too long — keep it under 10 seconds", "Not enough rest between efforts"],
+  },
+  "Assault Bike Sprint": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Arms", "Core"] },
+    steps: [
+      "Sit on the assault bike.",
+      "Sprint all-out for 6–8 seconds using both arms and legs.",
+      "Rest, repeat.",
+    ],
+    cues: ["Arms and legs work together — total body", "Air resistance increases with speed", "Max effort, short duration"],
+    mistakes: ["Going too long — stay under 10 seconds for power", "Arms not contributing", "Not enough recovery between sets"],
+  },
+  "Jump Rope": {
+    muscles: { primary: ["Calves"], secondary: ["Shoulders", "Forearms", "Core"] },
+    steps: [
+      "Hold rope handles at hip height, elbows close.",
+      "Jump just high enough to clear the rope.",
+      "Stay on the balls of your feet.",
+    ],
+    cues: ["Wrists turn the rope, not your arms", "Small jumps — efficiency matters", "Great warm-up and conditioning tool"],
+    mistakes: ["Jumping too high", "Using arms instead of wrists", "Landing flat-footed"],
+  },
+  "Pogos": {
+    muscles: { primary: ["Calves"], secondary: ["Quads"] },
+    steps: [
+      "Stand tall, hop rapidly in place with stiff ankles.",
+      "Minimal knee bend — all the work is in the calves.",
+    ],
+    cues: ["Same concept as ankle hops", "Rapid ground contacts", "Builds reactive calf strength and tendon stiffness"],
+    mistakes: ["Bending knees too much", "Going too slow", "Not staying on balls of feet"],
+  },
+  "KB Swing": {
+    muscles: { primary: ["Glutes", "Hamstrings"], secondary: ["Core", "Shoulders"] },
+    steps: [
+      "Same as Kettlebell Swing — hike, hinge, drive hips.",
+    ],
+    cues: ["Hip hinge power movement", "Arms are ropes", "Squeeze glutes at the top"],
+    mistakes: ["Squatting instead of hinging", "Pulling with arms", "Hyperextending"],
+  },
+  "Box Step-Down": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Stand on a box on one leg.",
+      "Slowly lower the other foot toward the ground — 3 seconds down.",
+      "Lightly tap the floor, then stand back up.",
+    ],
+    cues: ["Control the descent — that's the exercise", "Standing leg does all the work", "Builds single-leg control for landing"],
+    mistakes: ["Dropping too fast", "Using the lower foot to push off", "Leaning excessively"],
+  },
+  "Mini Band Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hip abductors"] },
+    steps: [
+      "Place a mini band above your knees.",
+      "Squat with explosive intent — drive up fast.",
+      "Push knees out against the band throughout.",
+    ],
+    cues: ["The band forces glute activation", "Explosive intent even though it's low load", "Safe alternative to jump squats"],
+    mistakes: ["Letting knees cave in", "Not pushing out against the band", "Going too slow — this is a power substitute"],
+  },
+  "Push-Up to Shoulder Tap": {
+    muscles: { primary: ["Chest", "Triceps", "Core"], secondary: ["Front delts"] },
+    steps: [
+      "Do a push-up.",
+      "At the top, lift one hand and tap the opposite shoulder.",
+      "Place hand back down, do another push-up, tap other side.",
+    ],
+    cues: ["Anti-rotation — don't let hips twist during the tap", "Core stays braced throughout", "Removes impact stress of plyo push-ups"],
+    mistakes: ["Hips rotating during the tap", "Rushing through reps", "Not doing a full push-up before the tap"],
+  },
+  "Step-Up (fast pace)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Calves", "Core"] },
+    steps: [
+      "Step onto a box briskly with one foot.",
+      "Drive up quickly, step down, repeat.",
+    ],
+    cues: ["Faster pace than normal step-ups — explosive intent", "Drive through the top foot", "Replaces box jumps for joint-friendly power training"],
+    mistakes: ["Pushing off the ground foot", "Going so fast form breaks down", "Box too high for quick reps"],
+  },
+  "Seated Battle Ropes / Arm Ergometer": {
+    muscles: { primary: ["Shoulders", "Arms"], secondary: ["Core"] },
+    steps: [
+      "Sit in a chair or on a box with battle ropes or arm ergometer.",
+      "Work arms vigorously for the prescribed duration.",
+    ],
+    cues: ["Seated removes spinal loading", "Same cardio stimulus as standing battle ropes", "Great for those with back issues"],
+    mistakes: ["Slouching in the seat", "Not working hard enough — max effort", "Poor posture"],
+  },
+  // ─── Endurance regime exercises ───────────────────────────────────────────
+  "DB Bench Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Lie on bench with dumbbells. Press up, lower with control.",
+    ],
+    cues: ["Same as Dumbbell Bench Press", "High reps in endurance context — chase the burn", "Control every rep"],
+    mistakes: ["Sacrificing form for reps", "Bouncing at the bottom", "Uneven pressing"],
+  },
+  "DB Shoulder Press": {
+    muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps"] },
+    steps: [
+      "Seated or standing, dumbbells at shoulder height.",
+      "Press overhead to lockout.",
+      "Lower to shoulders.",
+    ],
+    cues: ["Same as Seated DB Shoulder Press", "In endurance context — high reps, short rest", "Full lockout each rep"],
+    mistakes: ["Arching the back", "Pressing unevenly", "Cutting range short"],
+  },
+  "Push-Up": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Front delts", "Core"] },
+    steps: [
+      "Hands slightly wider than shoulders, body straight from head to heels.",
+      "Lower until chest nearly touches the floor.",
+      "Push up to full extension.",
+    ],
+    cues: ["Body stays rigid — no hip sag or pike", "Elbows at about 45 degrees, not flared", "Full range of motion every rep"],
+    mistakes: ["Sagging hips", "Not touching the bottom", "Flaring elbows to 90 degrees"],
+  },
+  "Machine Shoulder Press": {
+    muscles: { primary: ["Front delts", "Lateral delts"], secondary: ["Triceps"] },
+    steps: [
+      "Adjust seat so handles are at shoulder height.",
+      "Press up to full extension.",
+      "Lower under control.",
+    ],
+    cues: ["Machine guides the path — focus on pressing", "Safe for high reps", "Don't lock out aggressively"],
+    mistakes: ["Seat too low — shoulders stressed", "Rushing reps", "Not using full ROM"],
+  },
+  "Pike Push-Up": {
+    muscles: { primary: ["Front delts", "Triceps"], secondary: ["Upper chest"] },
+    steps: [
+      "Start in a downward dog position — hips high, hands and feet on floor.",
+      "Bend elbows to lower your head toward the floor.",
+      "Press back up.",
+    ],
+    cues: ["The more vertical your torso, the more it targets shoulders", "Feet closer to hands = harder", "Great overhead press substitute without weights"],
+    mistakes: ["Not piking enough — becomes a regular push-up", "Flaring elbows", "Head hitting the floor too hard"],
+  },
+  "Bodyweight Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Stand with feet shoulder-width.",
+      "Squat to parallel or below.",
+      "Stand back up.",
+    ],
+    cues: ["Arms forward for balance", "Knees track over toes", "Full depth if mobility allows"],
+    mistakes: ["Knees caving in", "Heels lifting", "Not going deep enough"],
+  },
+  "Air Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Same as bodyweight squat.",
+    ],
+    cues: ["Another name for bodyweight squat", "High reps — great for endurance", "Keep it controlled"],
+    mistakes: ["Same as bodyweight squat — watch knees and depth"],
+  },
+  "Plank": {
+    muscles: { primary: ["Core", "Rectus abdominis"], secondary: ["Shoulders", "Glutes"] },
+    steps: [
+      "Forearms on the floor, body straight from head to heels.",
+      "Hold the position — don't let hips sag or pike.",
+    ],
+    cues: ["Squeeze glutes and brace abs — don't just hang there", "Breathe — don't hold your breath", "Look at the floor to keep neck neutral"],
+    mistakes: ["Hips sagging — most common error", "Hips piking up", "Holding breath"],
+  },
+  "Dead Bug": {
+    muscles: { primary: ["Core", "Deep stabilisers"], secondary: [] },
+    steps: [
+      "Lie on your back, arms extended toward ceiling, knees bent at 90 degrees.",
+      "Lower opposite arm and leg toward the floor simultaneously.",
+      "Return to start, then switch sides.",
+    ],
+    cues: ["Lower back STAYS on the floor the entire time", "Slow and controlled — 2 seconds out, 2 seconds back", "Breathe out as you extend"],
+    mistakes: ["Lower back arching off the floor — reduce range if this happens", "Going too fast", "Not coordinating opposite arm/leg"],
+  },
+  "Ab Wheel": {
+    muscles: { primary: ["Core", "Lats"], secondary: ["Shoulders"] },
+    steps: [
+      "Kneel with ab wheel in front of you.",
+      "Roll forward as far as you can while keeping a flat back.",
+      "Pull back to the start using your core.",
+    ],
+    cues: ["Tuck your pelvis — posterior pelvic tilt throughout", "Go only as far as you can control", "Squeeze abs to pull back, not your hip flexors"],
+    mistakes: ["Lower back arching — go shorter", "Collapsing at the bottom", "Pulling back with hips instead of core"],
+  },
+  "Battle Ropes": {
+    muscles: { primary: ["Shoulders", "Arms", "Core"], secondary: ["Legs"] },
+    steps: [
+      "Hold one end of the rope in each hand.",
+      "Create waves by alternating arm slams or doing double slams.",
+      "Maintain for the prescribed time.",
+    ],
+    cues: ["Full body effort — use legs and core too", "Keep the waves going to the end of the rope", "Don't just use your arms — generate force from the ground up"],
+    mistakes: ["Only using arms — involve the whole body", "Standing too close to the anchor", "Letting the waves die out halfway"],
+  },
+  "Mountain Climber": {
+    muscles: { primary: ["Core", "Hip flexors"], secondary: ["Shoulders", "Quads"] },
+    steps: [
+      "Start in a push-up position.",
+      "Drive one knee toward your chest, then switch.",
+      "Alternate rapidly.",
+    ],
+    cues: ["Hips stay level — don't bounce up and down", "Drive the knees forward, not just up", "Keep a strong plank throughout"],
+    mistakes: ["Hips piking up", "Going too slow to get a cardio effect", "Feet not returning fully between reps"],
+  },
+  "Walking Lunge": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Step forward into a lunge, then drive through to step into the next lunge.",
+    ],
+    cues: ["Same as Walking Lunges", "Continuous forward movement", "Keep torso upright"],
+    mistakes: ["Steps too short", "Leaning forward", "Back knee slamming the ground"],
+  },
+  "Farmer's Carry": {
+    muscles: { primary: ["Grip", "Core", "Traps"], secondary: ["Shoulders", "Legs"] },
+    steps: [
+      "Pick up heavy dumbbells or kettlebells.",
+      "Walk with upright posture for the prescribed distance.",
+    ],
+    cues: ["Shoulders back and down", "Core braced — walk like the weight isn't there", "Go as heavy as you can while maintaining posture"],
+    mistakes: ["Leaning to one side", "Shrugging shoulders up", "Taking too-small steps"],
+  },
+  "Farmers Carry": {
+    muscles: { primary: ["Grip", "Core", "Traps"], secondary: ["Shoulders", "Legs"] },
+    steps: [
+      "Same as Farmer's Carry — heavy weights, walk with upright posture.",
+    ],
+    cues: ["Shoulders back, core braced", "Heavy is better", "Maintain perfect posture throughout"],
+    mistakes: ["Leaning", "Shrugging", "Short steps"],
+  },
+  "Single-Leg RDL (DB)": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Core", "Erectors"] },
+    steps: [
+      "Stand on one leg holding a dumbbell in the opposite hand.",
+      "Hinge forward, extending the free leg behind you.",
+      "Lower until torso is roughly parallel, then stand back up.",
+    ],
+    cues: ["Hips stay square — don't rotate", "Reach the DB toward the floor", "Balance leg has a slight knee bend"],
+    mistakes: ["Rotating the hips open", "Rounding the back", "Rushing — balance takes time"],
+  },
+  "DB Chest Press": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
+    steps: [
+      "Lie on bench, press dumbbells up from shoulder level.",
+    ],
+    cues: ["Same as Dumbbell Bench Press", "Control each rep", "Full range of motion"],
+    mistakes: ["Bouncing", "Uneven pressing", "Elbows flaring"],
+  },
+  "Resistance Band Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps"] },
+    steps: [
+      "Anchor a band in front of you at chest height.",
+      "Pull toward your stomach, squeezing shoulder blades.",
+      "Return slowly.",
+    ],
+    cues: ["Great for home training or high-rep endurance work", "Squeeze at the end", "Constant tension"],
+    mistakes: ["Band too light", "Rounding shoulders forward", "Rushing through reps"],
+  },
+  "DB Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Same as Dumbbell Row — one hand on bench, row DB to hip.",
+    ],
+    cues: ["Pull to the hip", "Keep torso parallel", "Full stretch at the bottom"],
+    mistakes: ["Twisting torso", "Rowing to chest instead of hip", "Short range of motion"],
+  },
+  "Push-Up (weighted vest)": {
+    muscles: { primary: ["Chest", "Triceps"], secondary: ["Front delts", "Core"] },
+    steps: [
+      "Wear a weighted vest. Perform push-ups as normal.",
+    ],
+    cues: ["Same form as regular push-ups — just heavier", "Adjust vest weight to hit your rep target", "Great for progressive overload without a bench"],
+    mistakes: ["Sagging hips under the extra weight", "Not using full range", "Vest shifting during the movement"],
+  },
+  "Goblet Squat + Press": {
+    muscles: { primary: ["Quads", "Glutes", "Shoulders"], secondary: ["Core", "Triceps"] },
+    steps: [
+      "Hold a KB or DB at chest height. Squat down.",
+      "Stand up, then press the weight overhead.",
+      "Lower to chest, squat again.",
+    ],
+    cues: ["Full body movement — great for conditioning", "Squat deep, press fully", "Keep core braced throughout the transition"],
+    mistakes: ["Not squatting deep enough", "Pressing before fully standing", "Losing core tension between squat and press"],
+  },
+  "Renegade Row": {
+    muscles: { primary: ["Lats", "Core"], secondary: ["Biceps", "Shoulders"] },
+    steps: [
+      "Start in a push-up position with hands on dumbbells.",
+      "Row one DB to your hip while balancing on the other.",
+      "Lower, then row the other side.",
+    ],
+    cues: ["Anti-rotation — hips stay square to the floor", "Wide foot stance helps balance", "Don't rotate to row heavier — stay flat"],
+    mistakes: ["Hips rotating with the row", "Feet too close together — lose balance", "Going too heavy and losing plank position"],
+  },
+  "Thruster": {
+    muscles: { primary: ["Quads", "Glutes", "Shoulders"], secondary: ["Triceps", "Core"] },
+    steps: [
+      "Hold dumbbells or barbell at shoulder height.",
+      "Squat to parallel, then drive up and press overhead in one fluid motion.",
+    ],
+    cues: ["The squat powers the press — use momentum", "One continuous movement, not squat then press", "Great conditioning exercise"],
+    mistakes: ["Pausing between the squat and press", "Not squatting deep enough", "Pressing before the legs finish driving"],
+  },
+  "DB Squat to Press": {
+    muscles: { primary: ["Quads", "Glutes", "Shoulders"], secondary: ["Triceps", "Core"] },
+    steps: [
+      "Same as Thruster — squat with DBs at shoulders, stand and press overhead.",
+    ],
+    cues: ["Fluid movement — squat flows into press", "Great for total body endurance", "Controlled speed"],
+    mistakes: ["Separating the squat and press", "Not pressing fully overhead", "Losing core tension"],
+  },
+  "Single-Arm Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "One hand on support, row DB or cable to hip with the other.",
+    ],
+    cues: ["Same as Dumbbell Row", "Pull to hip, not chest", "Full stretch and squeeze"],
+    mistakes: ["Twisting torso", "Short range of motion", "Too heavy"],
+  },
+  "Row Machine": {
+    muscles: { primary: ["Legs", "Back", "Arms"], secondary: ["Core"] },
+    steps: [
+      "Strap feet in, grip the handle.",
+      "Drive with legs, lean back slightly, pull handle to lower chest.",
+      "Return arms, lean forward, bend knees — fluid cycle.",
+    ],
+    cues: ["Legs-back-arms on the drive, arms-back-legs on the recovery", "Power comes from the legs — 60% legs, 20% back, 20% arms", "Smooth, rhythmic strokes"],
+    mistakes: ["Pulling with arms first", "Bending knees before arms are extended on recovery", "Hunching over"],
+  },
+  "Ski Erg": {
+    muscles: { primary: ["Lats", "Triceps", "Core"], secondary: ["Shoulders"] },
+    steps: [
+      "Stand at the ski erg, grip handles overhead.",
+      "Pull down forcefully, hinging slightly at the hips.",
+      "Return arms overhead and repeat.",
+    ],
+    cues: ["Drive through the pull — explosive", "Hinge at the hips for more power", "Great upper body and core cardio"],
+    mistakes: ["All arms, no body", "Standing too upright — slight hinge adds power", "Going too slow"],
+  },
+  "Assault Bike / Row Erg": {
+    muscles: { primary: ["Legs", "Arms"], secondary: ["Core"] },
+    steps: [
+      "Sit on the assault bike or row erg.",
+      "Work at maximum effort for the prescribed duration.",
+    ],
+    cues: ["Total body output — arms and legs together", "All-out effort for conditioning", "Air/water resistance scales with your effort"],
+    mistakes: ["Holding back — this should be max effort", "Poor posture on the rower", "Not using arms on the bike"],
+  },
+  "Elliptical": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Arms", "Core"] },
+    steps: [
+      "Stand on the pedals, grip handles.",
+      "Stride smoothly, using arms and legs together.",
+    ],
+    cues: ["Low impact — great for high-volume conditioning", "Push and pull with arms", "Adjust resistance for challenge"],
+    mistakes: ["Leaning on the handles — stand upright", "Going too easy — increase resistance", "Slouching"],
+  },
+  "Stationary Bike": {
+    muscles: { primary: ["Quads", "Hamstrings", "Glutes"], secondary: ["Calves"] },
+    steps: [
+      "Adjust seat height — slight bend at bottom of pedal stroke.",
+      "Pedal at prescribed cadence and resistance.",
+    ],
+    cues: ["Great low-impact conditioning", "Adjust resistance to match your target effort", "Keep upper body relaxed"],
+    mistakes: ["Seat too high or low", "Bouncing in the saddle — too little resistance", "Hunching over"],
+  },
+  "TRX Row / Inverted Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts", "Core"] },
+    steps: [
+      "Hold TRX handles or hang under a bar, body straight.",
+      "Pull your chest to the handles/bar.",
+      "Lower under control.",
+    ],
+    cues: ["The more horizontal your body, the harder it is", "Squeeze shoulder blades at the top", "Keep body rigid — don't sag at the hips"],
+    mistakes: ["Sagging hips", "Not going to full extension", "Body not staying straight"],
+  },
+  "Ab Circuit": {
+    muscles: { primary: ["Core"], secondary: [] },
+    steps: [
+      "Perform 3–4 ab exercises back-to-back with minimal rest.",
+      "Common options: crunches, leg raises, russian twists, planks.",
+    ],
+    cues: ["Quality over speed — feel each rep", "Breathe out on the contraction", "Cycle through different movements to hit all areas"],
+    mistakes: ["Rushing through with poor form", "Only doing crunches — vary the movements", "Holding breath"],
+  },
+  // ─── Stability regime exercises ───────────────────────────────────────────
+  "Pallof Press": {
+    muscles: { primary: ["Core", "Obliques"], secondary: ["Shoulders"] },
+    steps: [
+      "Stand sideways to a cable or band at chest height.",
+      "Hold the handle at your chest, then press straight out.",
+      "Hold with arms extended — resist the rotation.",
+      "Return to chest.",
+    ],
+    cues: ["The exercise is resisting the pull — anti-rotation", "Arms extended is the hard part — hold it", "Stand tall, don't lean"],
+    mistakes: ["Rotating toward the cable", "Pressing too fast — slow and controlled", "Standing too close to the anchor"],
+  },
+  "Band Pallof Press": {
+    muscles: { primary: ["Core", "Obliques"], secondary: ["Shoulders"] },
+    steps: [
+      "Same as Pallof Press but with a resistance band.",
+    ],
+    cues: ["Band version is great for home training", "Same anti-rotation principle", "Step further from anchor to increase resistance"],
+    mistakes: ["Band too light", "Rotating toward the band", "Rushing through reps"],
+  },
+  "Half-Kneeling Pallof": {
+    muscles: { primary: ["Core", "Obliques", "Hip stabilisers"], secondary: ["Shoulders"] },
+    steps: [
+      "Kneel with the inside knee down, outside knee up.",
+      "Press the cable or band straight out from your chest.",
+      "Hold and resist the rotation.",
+    ],
+    cues: ["Half-kneeling adds hip stability demand", "Squeeze the down-side glute", "Don't lean or rotate"],
+    mistakes: ["Leaning toward the cable", "Not engaging the glute", "Losing upright posture"],
+  },
+  "Copenhagen Plank": {
+    muscles: { primary: ["Adductors", "Obliques"], secondary: ["Core"] },
+    steps: [
+      "Side plank position with top leg on a bench, bottom leg hanging.",
+      "Lift hips and hold — bottom leg hangs free or rests on bench.",
+    ],
+    cues: ["Top inner thigh does the work", "Great for groin injury prevention", "Keep hips stacked — don't rotate"],
+    mistakes: ["Hips rotating forward or back", "Bench too high — start low", "Not holding long enough to feel the adductors"],
+  },
+  "Side Plank": {
+    muscles: { primary: ["Obliques", "Core"], secondary: ["Shoulders", "Glutes"] },
+    steps: [
+      "Lie on your side, forearm on the floor, feet stacked.",
+      "Lift hips until body is straight from head to heels.",
+      "Hold for prescribed time.",
+    ],
+    cues: ["Don't let hips sag", "Stack shoulders — top shoulder directly over bottom", "Breathe normally"],
+    mistakes: ["Hips sagging", "Rotating forward or back", "Holding breath"],
+  },
+  "Glute Bridge (single leg)": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Lie on back, one foot flat on floor, other leg extended or held up.",
+      "Drive through the planted foot to lift hips.",
+      "Squeeze glute at the top, lower slowly.",
+    ],
+    cues: ["Keep hips level — don't let one side drop", "All the work on one glute", "Pause at the top"],
+    mistakes: ["Hips tilting to one side", "Pushing through toes", "Hyperextending the back"],
+  },
+  "Hip Thrust (SL)": {
+    muscles: { primary: ["Glutes"], secondary: ["Hamstrings", "Core"] },
+    steps: [
+      "Set up as for a hip thrust, but one foot on the floor, other leg extended.",
+      "Drive hips up on one leg.",
+      "Lower and repeat.",
+    ],
+    cues: ["Single-leg hip thrust — very challenging", "Keep hips level", "Great for fixing glute imbalances"],
+    mistakes: ["Hips rotating", "Using the back instead of the glute", "Not going through full range"],
+  },
+  "Bottoms-Up KB Press": {
+    muscles: { primary: ["Shoulders", "Grip", "Rotator cuff"], secondary: ["Triceps", "Core"] },
+    steps: [
+      "Hold a kettlebell upside down by the handle at shoulder height.",
+      "Press overhead while keeping the KB balanced.",
+      "Lower under control.",
+    ],
+    cues: ["The instability forces incredible shoulder stabilisation", "Crush the handle — grip hard", "Go light — this is harder than it looks"],
+    mistakes: ["Going too heavy — KB will flip", "Loose grip — squeeze hard", "Not controlling the descent"],
+  },
+  "Band External Rotation": {
+    muscles: { primary: ["Rotator cuff (infraspinatus, teres minor)"], secondary: [] },
+    steps: [
+      "Stand with elbow bent 90 degrees, band anchored at elbow height.",
+      "Rotate your forearm outward, keeping elbow pinned to your side.",
+      "Return slowly.",
+    ],
+    cues: ["Slow and controlled — this is a small muscle", "Elbow stays at your side throughout", "Essential for shoulder health"],
+    mistakes: ["Moving the elbow away from your side", "Using too much resistance", "Going too fast"],
+  },
+  "Cable External Rotation": {
+    muscles: { primary: ["Rotator cuff"], secondary: [] },
+    steps: [
+      "Same as Band External Rotation but with a cable.",
+    ],
+    cues: ["Cable provides constant tension", "Light weight, high reps", "Elbow stays pinned"],
+    mistakes: ["Going too heavy", "Elbow drifting", "Rushing"],
+  },
+  "Light DB ER": {
+    muscles: { primary: ["Rotator cuff"], secondary: [] },
+    steps: [
+      "Lie on your side with a light dumbbell.",
+      "Elbow at 90 degrees on your side. Rotate forearm up toward ceiling.",
+      "Lower slowly.",
+    ],
+    cues: ["Very light weight — 1–3kg", "Slow and controlled", "Great pre-hab exercise"],
+    mistakes: ["Too heavy", "Rolling the body to help", "Going too fast"],
+  },
+  "TRX Y-T-W": {
+    muscles: { primary: ["Rear delts", "Rotator cuff", "Traps"], secondary: ["Rhomboids"] },
+    steps: [
+      "Hold TRX handles, lean back with body straight.",
+      "Pull into a Y position (arms overhead), T (arms out), W (arms bent back).",
+      "Do all three positions as one set.",
+    ],
+    cues: ["8 reps of each position", "Squeeze shoulder blades on every rep", "Adjust body angle to control difficulty"],
+    mistakes: ["Going too horizontal — too hard to maintain form", "Rushing through positions", "Not squeezing the shoulder blades"],
+  },
+  "DB Y-T-W (prone)": {
+    muscles: { primary: ["Rear delts", "Traps", "Rotator cuff"], secondary: ["Rhomboids"] },
+    steps: [
+      "Lie face down on an incline bench with light dumbbells.",
+      "Raise arms into Y, T, then W positions.",
+    ],
+    cues: ["Very light weight — 1–3kg per hand", "Squeeze shoulder blades on every rep", "Great for shoulder health and posture"],
+    mistakes: ["Going too heavy", "Lifting with momentum", "Not differentiating the three positions"],
+  },
+  "Band Y-T-W": {
+    muscles: { primary: ["Rear delts", "Traps", "Rotator cuff"], secondary: [] },
+    steps: [
+      "Anchor a band at chest height. Perform Y, T, and W pulls.",
+    ],
+    cues: ["Same positions as TRX/DB version", "Light resistance, high quality", "Focus on scapular control"],
+    mistakes: ["Band too heavy", "Rushing", "Poor scapular control"],
+  },
+  "Push-Up to T-Rotation": {
+    muscles: { primary: ["Chest", "Core", "Obliques"], secondary: ["Shoulders", "Triceps"] },
+    steps: [
+      "Do a push-up. At the top, rotate into a side plank, extending top arm to ceiling.",
+      "Return to push-up position. Repeat on the other side.",
+    ],
+    cues: ["Smooth transition from push-up to rotation", "Stack hips in the side plank", "Core stays braced throughout"],
+    mistakes: ["Not rotating fully", "Hips sagging during the push-up", "Rushing the transition"],
+  },
+  "Side Plank + Row": {
+    muscles: { primary: ["Obliques", "Lats"], secondary: ["Core", "Biceps"] },
+    steps: [
+      "Side plank position with top hand on a cable or dumbbell.",
+      "Row the weight toward your hip while maintaining the side plank.",
+    ],
+    cues: ["Anti-rotation meets rowing — full body stability", "Don't rotate toward the row", "Keep hips stacked"],
+    mistakes: ["Rotating toward the weight", "Hips dropping", "Going too heavy and losing plank position"],
+  },
+  "Cable Push-Pull": {
+    muscles: { primary: ["Chest", "Back", "Core"], secondary: ["Shoulders"] },
+    steps: [
+      "Stand between two cables. Push with one arm while pulling with the other.",
+      "Switch directions.",
+    ],
+    cues: ["Simultaneous push and pull — total body stability", "Core has to resist rotation", "Great for functional strength"],
+    mistakes: ["Rotating the torso", "Not controlling both movements", "Going too heavy"],
+  },
+  "Single-Arm Cable Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Core"] },
+    steps: [
+      "Stand facing a cable. Pull one handle to your hip.",
+      "Pause at the end, then return slowly.",
+    ],
+    cues: ["Anti-rotation — don't let your body twist", "Pause at peak contraction", "Great for finding side-to-side imbalances"],
+    mistakes: ["Rotating toward the pulling arm", "Rushing through reps", "Not pausing at the contraction"],
+  },
+  "Single-Arm DB Row": {
+    muscles: { primary: ["Lats", "Rhomboids"], secondary: ["Biceps", "Rear delts"] },
+    steps: [
+      "Same as Dumbbell Row — one hand on bench, row with the other.",
+    ],
+    cues: ["Pull to hip", "Keep torso parallel", "Full stretch at the bottom"],
+    mistakes: ["Twisting torso", "Rowing to chest", "Short ROM"],
+  },
+  "TRX Row (single arm)": {
+    muscles: { primary: ["Lats", "Core"], secondary: ["Biceps", "Obliques"] },
+    steps: [
+      "Hold one TRX handle, lean back.",
+      "Row yourself up with one arm while maintaining body alignment.",
+    ],
+    cues: ["Huge core demand — resist rotation", "Adjust body angle for difficulty", "Free hand can be at your side or behind your back"],
+    mistakes: ["Rotating toward the pulling arm", "Body not staying straight", "Leaning back too far for your strength level"],
+  },
+  "Quadruped Reach": {
+    muscles: { primary: ["Core", "Glutes"], secondary: ["Shoulders"] },
+    steps: [
+      "Start on all fours — hands under shoulders, knees under hips.",
+      "Extend opposite arm and leg simultaneously.",
+      "Hold for 2 seconds, return, switch sides.",
+    ],
+    cues: ["Same concept as Bird Dog", "Don't let hips rotate or shift", "Slow and controlled"],
+    mistakes: ["Hips shifting to one side", "Arching the back", "Rushing"],
+  },
+  "Bird Dog": {
+    muscles: { primary: ["Core", "Glutes", "Erectors"], secondary: [] },
+    steps: [
+      "On all fours. Extend opposite arm and leg.",
+      "Hold 2–3 seconds. Return and switch.",
+    ],
+    cues: ["Hips stay level — don't rotate", "Reach long — extend fully", "Excellent for low-back health"],
+    mistakes: ["Hips rotating", "Arching the back", "Going too fast"],
+  },
+  "Superman Hold": {
+    muscles: { primary: ["Erectors", "Glutes"], secondary: ["Shoulders"] },
+    steps: [
+      "Lie face down. Lift arms, chest, and legs off the floor simultaneously.",
+      "Hold for prescribed time.",
+    ],
+    cues: ["Squeeze glutes and upper back", "Don't hyperextend the neck — look at the floor", "Breathe normally"],
+    mistakes: ["Cranking the neck up", "Not squeezing glutes", "Holding breath"],
+  },
+  "Hollow Body Hold": {
+    muscles: { primary: ["Core", "Hip flexors"], secondary: [] },
+    steps: [
+      "Lie on your back. Raise arms overhead and legs off the floor.",
+      "Press your lower back into the floor and hold.",
+    ],
+    cues: ["Lower back must stay on the floor", "The closer your limbs are to the floor, the harder it is", "Tuck chin slightly"],
+    mistakes: ["Lower back arching — bend knees to make it easier", "Holding breath", "Letting limbs drop to the floor"],
+  },
+  "Single-Leg Squat (pistol assist)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core", "Hip stabilisers"] },
+    steps: [
+      "Hold a TRX or rail for support. Stand on one leg.",
+      "Squat as low as you can on one leg, other leg extended forward.",
+      "Drive back up using the working leg.",
+    ],
+    cues: ["Use support as little as possible — it's a guide, not a crutch", "Work toward unassisted over time", "Knee tracks over toes"],
+    mistakes: ["Relying too much on the support", "Knee caving in", "Not going deep enough"],
+  },
+  "Supported Single-Leg Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Same as pistol assist — hold TRX or rail throughout the full range.",
+    ],
+    cues: ["More support than a pistol assist — use throughout", "Focus on control and depth", "Great for building single-leg strength safely"],
+    mistakes: ["Pulling too much with arms", "Knee caving in", "Not controlling the descent"],
+  },
+  "Lateral Band Walk": {
+    muscles: { primary: ["Glute medius", "Hip abductors"], secondary: [] },
+    steps: [
+      "Band above knees or ankles. Quarter squat position.",
+      "Step laterally, maintaining tension on the band.",
+      "Don't let feet come together — constant tension.",
+    ],
+    cues: ["Stay low — quarter squat throughout", "Push knees out against the band", "Great for warming up and glute activation"],
+    mistakes: ["Standing too upright", "Letting the trail foot snap back — controlled steps", "Band too low (ankles) before building strength"],
+  },
+  "Clamshell": {
+    muscles: { primary: ["Glute medius"], secondary: ["Hip rotators"] },
+    steps: [
+      "Lie on your side, knees bent at 45 degrees, feet together.",
+      "Open your top knee like a clamshell, keeping feet together.",
+      "Lower slowly.",
+    ],
+    cues: ["Don't roll your hips back — they stay stacked", "Squeeze the glute at the top", "Add a band for more resistance"],
+    mistakes: ["Rolling hips backward to open further", "Lifting the feet apart", "Going too fast"],
+  },
+  "Hip Abduction Machine": {
+    muscles: { primary: ["Glute medius", "Hip abductors"], secondary: [] },
+    steps: [
+      "Sit in the machine, pads on the outside of your knees.",
+      "Push your legs apart against the resistance.",
+      "Return slowly.",
+    ],
+    cues: ["Squeeze at the end range", "Controlled return — don't let the weight slam", "Great for targeting the hip abductors directly"],
+    mistakes: ["Slamming the weight on the return", "Leaning forward to cheat", "Going too heavy and losing control"],
+  },
+  "Hip Adduction Machine": {
+    muscles: { primary: ["Adductors"], secondary: [] },
+    steps: [
+      "Sit in the machine, pads on the inside of your knees.",
+      "Squeeze your legs together against the resistance.",
+      "Return slowly.",
+    ],
+    cues: ["Squeeze at the midpoint", "Controlled in both directions", "Good for groin strength and injury prevention"],
+    mistakes: ["Slamming weight shut", "Going too heavy", "Rushing through reps"],
+  },
+  "Terminal Knee Extension": {
+    muscles: { primary: ["Quads (VMO)"], secondary: [] },
+    steps: [
+      "Anchor a band behind your knee. Stand facing the anchor.",
+      "Start with a slight knee bend and extend to full lockout against the band.",
+    ],
+    cues: ["Targets the VMO — the inner quad near the kneecap", "Excellent for knee health and rehab", "Full extension each rep"],
+    mistakes: ["Band too light to challenge", "Not reaching full knee extension", "Going too fast"],
+  },
+  "Leg Extension (light)": {
+    muscles: { primary: ["Quads"], secondary: [] },
+    steps: [
+      "Sit in the leg extension machine.",
+      "Extend your legs to full lockout with light weight.",
+      "Lower slowly.",
+    ],
+    cues: ["Light weight, focused contraction", "Great for VMO and knee stability", "Slow eccentric — 3 seconds down"],
+    mistakes: ["Going too heavy — this is for control, not strength", "Kicking the weight up", "Not reaching full extension"],
+  },
+  "Seated Knee Press": {
+    muscles: { primary: ["Quads"], secondary: [] },
+    steps: [
+      "Sit with a band around your knees.",
+      "Press knees apart, then press one knee straight forward against band resistance.",
+    ],
+    cues: ["Builds knee tracking control", "Light resistance, focused movement", "Great for knee rehab"],
+    mistakes: ["Too much resistance", "Jerky movements", "Not focusing on the knee tracking"],
+  },
+  "Single-Leg Calf Raise": {
+    muscles: { primary: ["Gastrocnemius", "Soleus"], secondary: [] },
+    steps: [
+      "Stand on one foot on the edge of a step.",
+      "Lower heel for a deep stretch, then rise as high as possible.",
+      "Slow tempo — 3 seconds up, 3 seconds down.",
+    ],
+    cues: ["Much harder than bilateral — start with bodyweight", "Full range every rep", "Hold something for balance"],
+    mistakes: ["Going too fast", "Not using full range", "Bouncing at the bottom"],
+  },
+  "Balance Board Squat": {
+    muscles: { primary: ["Quads", "Core"], secondary: ["Ankles", "Glutes"] },
+    steps: [
+      "Stand on a balance board or wobble board.",
+      "Perform slow bodyweight squats while maintaining balance.",
+    ],
+    cues: ["Proprioception training — your ankles and knees learn to stabilise", "Go slowly — speed is not the point", "Start shallow, go deeper as balance improves"],
+    mistakes: ["Going too deep before stability is established", "Rushing", "Not engaging core"],
+  },
+  "Bosu Squat": {
+    muscles: { primary: ["Quads", "Core"], secondary: ["Ankles", "Glutes"] },
+    steps: [
+      "Stand on the flat or dome side of a Bosu ball.",
+      "Perform bodyweight squats.",
+    ],
+    cues: ["Similar to balance board — unstable surface builds proprioception", "Slower than regular squats", "Flat side up is harder"],
+    mistakes: ["Going too deep and losing balance", "Rushing", "Not engaging core"],
+  },
+  "Single-Leg Stand": {
+    muscles: { primary: ["Ankles", "Core"], secondary: ["Glutes", "Hip stabilisers"] },
+    steps: [
+      "Stand on one leg. Hold for prescribed time.",
+      "Close eyes for added difficulty.",
+    ],
+    cues: ["Sounds simple — try it with eyes closed", "Great for balance and proprioception", "Engage your core and glute"],
+    mistakes: ["Locking the standing knee — keep a slight bend", "Looking down — look forward", "Not engaging the glute"],
+  },
+  "Reverse Step-Up": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Stand on a box. Step one foot backward off the box.",
+      "Lower slowly until your foot touches the ground.",
+      "Drive through the top foot to stand back up.",
+    ],
+    cues: ["Control the descent — that's the exercise", "Same concept as slow eccentric step-up", "Great for knee stability"],
+    mistakes: ["Dropping too fast", "Using the lower foot to push off", "Not controlling the descent"],
+  },
+  "Box Step": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Step onto a box with one foot, stand up, step down.",
+    ],
+    cues: ["Basic step-up pattern", "Drive through the top foot", "Controlled up and down"],
+    mistakes: ["Pushing off the ground foot", "Box too high", "Rushing"],
+  },
+  "Turkish Get-Up": {
+    muscles: { primary: ["Core", "Shoulders", "Glutes", "Quads"], secondary: ["Everything else"] },
+    steps: [
+      "Lie on your back holding a KB or DB overhead with one arm.",
+      "Roll to elbow, then to hand, bridge hips up, sweep leg through to kneel.",
+      "Stand up, then reverse the entire sequence.",
+    ],
+    cues: ["Each step is deliberate — don't rush any transition", "Eyes on the weight the entire time", "Start light — this is complex"],
+    mistakes: ["Rushing through steps", "Losing eye contact with the weight", "Going too heavy before mastering the pattern"],
+  },
+  "Segmented TGU": {
+    muscles: { primary: ["Core", "Shoulders"], secondary: ["Glutes", "Quads"] },
+    steps: [
+      "Same as Turkish Get-Up but pause 3–5 seconds at each position.",
+    ],
+    cues: ["The pauses build stability at each stage", "Even lighter than regular TGU", "Focus on perfect positions"],
+    mistakes: ["Not holding each position long enough", "Losing alignment", "Going too heavy"],
+  },
+  "Half Get-Up": {
+    muscles: { primary: ["Core", "Shoulders"], secondary: ["Obliques"] },
+    steps: [
+      "Same start as TGU — lie down, press weight up.",
+      "Roll to elbow, then to hand, bridge hips up.",
+      "Reverse back down. Stop here — no standing.",
+    ],
+    cues: ["First half of the TGU — builds the foundation", "Great starting point before attempting full TGUs", "Weight stays locked out overhead"],
+    mistakes: ["Weight drifting out of alignment", "Hips not bridging high enough", "Rushing the transitions"],
+  },
+  "Windmill": {
+    muscles: { primary: ["Obliques", "Core", "Shoulders"], secondary: ["Hamstrings", "Hips"] },
+    steps: [
+      "Hold a KB or DB overhead with one arm.",
+      "Push your hip out to the side of the weight.",
+      "Reach your free hand down your front leg toward the floor.",
+      "Return to standing.",
+    ],
+    cues: ["Eyes stay on the weight overhead the entire time", "It's a hip hinge to the side, not a bend", "Go light — this requires flexibility"],
+    mistakes: ["Losing sight of the weight", "Bending instead of hinging", "Going too heavy"],
+  },
+  "Bear Crawl": {
+    muscles: { primary: ["Core", "Shoulders", "Quads"], secondary: ["Hip flexors"] },
+    steps: [
+      "Start on all fours, knees hovering just off the ground.",
+      "Move forward — opposite hand and foot advance together.",
+      "Keep knees close to the floor throughout.",
+    ],
+    cues: ["Knees stay 2–3 inches off the ground", "Small steps — don't rush", "Incredible core exercise despite looking simple"],
+    mistakes: ["Hips rising too high", "Steps too big", "Knees touching the floor"],
+  },
+  "Commando Crawl": {
+    muscles: { primary: ["Core", "Shoulders", "Arms"], secondary: ["Chest"] },
+    steps: [
+      "Start in a low plank on forearms.",
+      "Crawl forward using elbows and toes.",
+    ],
+    cues: ["Stay low — belly nearly touches the ground", "Military-style crawl", "Great for core endurance"],
+    mistakes: ["Hips rising too high", "Not using arms and legs together", "Going too fast"],
+  },
+  "Inchworm": {
+    muscles: { primary: ["Core", "Hamstrings", "Shoulders"], secondary: [] },
+    steps: [
+      "Stand tall. Bend forward and walk hands out to a plank.",
+      "Walk feet toward hands. Stand up. Repeat.",
+    ],
+    cues: ["Great warm-up movement", "Legs as straight as hamstrings allow", "Walk hands out slowly"],
+    mistakes: ["Bending knees too much", "Rushing", "Not reaching full plank position"],
+  },
+  "Hollow Body Rock": {
+    muscles: { primary: ["Core"], secondary: ["Hip flexors"] },
+    steps: [
+      "Get into a hollow body hold position.",
+      "Rock gently forward and back while maintaining the position.",
+    ],
+    cues: ["Lower back stays on the floor the entire time", "Rock is small and controlled", "Don't break the hollow position"],
+    mistakes: ["Breaking the hollow — back arching", "Rocking too aggressively", "Legs or arms dropping"],
+  },
+  "Hollow Hold": {
+    muscles: { primary: ["Core"], secondary: ["Hip flexors"] },
+    steps: [
+      "Same as Hollow Body Hold — lie on back, arms overhead, legs raised, lower back pressed to floor.",
+    ],
+    cues: ["Lower back MUST stay on the floor", "Tuck chin, look at toes", "Modify by bending knees if needed"],
+    mistakes: ["Back arching", "Holding breath", "Limbs too close to floor before you're ready"],
+  },
+  "Ab Mat Crunch": {
+    muscles: { primary: ["Rectus abdominis"], secondary: [] },
+    steps: [
+      "Lie back over an ab mat, arms overhead.",
+      "Crunch up, reaching forward.",
+    ],
+    cues: ["The ab mat extends your range of motion", "Full stretch at the bottom, full crunch at the top", "Controlled speed"],
+    mistakes: ["Using momentum to swing up", "Pulling on neck", "Not using full range the mat provides"],
+  },
+  "Cable Chop (high to low)": {
+    muscles: { primary: ["Obliques", "Core"], secondary: ["Shoulders"] },
+    steps: [
+      "Cable set high. Grip with both hands.",
+      "Chop diagonally from high to low across your body.",
+      "Control the return.",
+    ],
+    cues: ["Rotation comes from hips and core, not arms", "Same as Cable Woodchop", "Exhale on the chop"],
+    mistakes: ["Pulling with arms", "Not rotating from the hips", "Going too fast on return"],
+  },
+  "Band Chop": {
+    muscles: { primary: ["Obliques", "Core"], secondary: ["Shoulders"] },
+    steps: [
+      "Band anchored high. Same chopping motion as cable version.",
+    ],
+    cues: ["Same as cable chop — band version for home training", "Hip rotation drives the movement", "Exhale on the chop"],
+    mistakes: ["All arms", "Not enough resistance", "Rushing"],
+  },
+  "Med Ball Slam": {
+    muscles: { primary: ["Lats", "Core", "Shoulders"], secondary: ["Quads"] },
+    steps: [
+      "Hold a slam ball overhead.",
+      "Slam it into the ground as hard as possible.",
+      "Squat down to pick it up and repeat.",
+    ],
+    cues: ["Full body power — use everything", "Slam with anger — max force", "Great for stress relief and conditioning"],
+    mistakes: ["Not using the whole body — engage legs and core", "Using a bouncy ball — use a dead ball/slam ball", "Not slamming hard enough"],
+  },
+  "Loaded Carry (overhead)": {
+    muscles: { primary: ["Shoulders", "Core", "Traps"], secondary: ["Triceps"] },
+    steps: [
+      "Press a KB or DB overhead with one arm. Lock out.",
+      "Walk with the weight overhead, maintaining perfect posture.",
+    ],
+    cues: ["Arm fully locked — bicep by your ear", "Core braced hard to prevent lateral lean", "Fixes shoulder stability like nothing else"],
+    mistakes: ["Arm not locked out — elbow fully extended", "Leaning to the opposite side", "Walking too fast"],
+  },
+  "Waiter Carry": {
+    muscles: { primary: ["Shoulders", "Core"], secondary: ["Traps", "Rotator cuff"] },
+    steps: [
+      "Hold a KB bottoms-up or plate flat on your palm overhead.",
+      "Walk with arm extended overhead.",
+    ],
+    cues: ["Like carrying a tray of drinks — the instability is the exercise", "Core braces against the asymmetric load", "Go light"],
+    mistakes: ["Weight tipping over", "Leaning away from the weight", "Going too heavy"],
+  },
+  "Shoulder Carry": {
+    muscles: { primary: ["Core", "Shoulders"], secondary: ["Traps"] },
+    steps: [
+      "Hold a KB or DB at shoulder height (rack position) with one arm.",
+      "Walk for prescribed distance.",
+    ],
+    cues: ["Core fights the asymmetric load", "Stay upright — don't lean away", "Switch sides each set"],
+    mistakes: ["Leaning away from the weight", "Elbow dropping", "Walking too fast"],
+  },
+  "Suitcase Carry": {
+    muscles: { primary: ["Obliques", "Core", "Grip"], secondary: ["Traps"] },
+    steps: [
+      "Hold a heavy dumbbell or KB in one hand at your side.",
+      "Walk with perfect upright posture — no leaning.",
+    ],
+    cues: ["Your body wants to lean — don't let it", "Like carrying a heavy suitcase with perfect posture", "Obliques work overtime"],
+    mistakes: ["Leaning toward the weight", "Shrugging the loaded shoulder", "Weight too light to challenge the core"],
+  },
+  "KB Carry": {
+    muscles: { primary: ["Core", "Grip", "Shoulders"], secondary: ["Traps"] },
+    steps: [
+      "Hold KBs in various positions — overhead, rack, or farmer's.",
+      "Walk for prescribed distance.",
+    ],
+    cues: ["Different positions challenge different muscles", "Maintain perfect posture regardless of carry type", "Core stays braced"],
+    mistakes: ["Losing posture", "Walking too fast", "Not varying carry positions"],
+  },
+  "Cable Single-Leg RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Stand facing a low cable. Single-leg hinge forward.",
+      "Let the cable pull you into the stretch, then drive hips forward.",
+    ],
+    cues: ["Cable provides constant tension through the range", "Great for balance and hamstring control", "Keep hips square"],
+    mistakes: ["Rotating the hips", "Rounding the back", "Pulling with the arms instead of hinging"],
+  },
+  "Assisted SL RDL": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Hold a support with one hand. Single-leg RDL with the other hand holding a DB.",
+    ],
+    cues: ["The support helps with balance while you build strength", "Same hip hinge pattern", "Work toward unassisted over time"],
+    mistakes: ["Relying too much on the support", "Not hinging deep enough", "Rotating hips"],
+  },
+  "Split Squat": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Staggered stance — one foot forward, one back.",
+      "Lower straight down until back knee nearly touches the floor.",
+      "Drive through front foot to stand.",
+    ],
+    cues: ["Like a lunge but stationary — feet don't move", "Torso stays upright", "Front shin roughly vertical"],
+    mistakes: ["Leaning forward", "Front knee shooting past toes excessively", "Back knee slamming the floor"],
+  },
+  "Step-Up (DB)": {
+    muscles: { primary: ["Quads", "Glutes"], secondary: ["Core"] },
+    steps: [
+      "Hold DBs at sides. Step onto a box, drive through top foot, stand up.",
+      "Step down under control.",
+    ],
+    cues: ["Same as regular step-ups with dumbbell load", "All work from the top leg", "Don't push off the bottom foot"],
+    mistakes: ["Pushing off ground foot", "Leaning forward", "Box too high"],
+  },
+  "DB Swing": {
+    muscles: { primary: ["Glutes", "Hamstrings"], secondary: ["Core", "Shoulders"] },
+    steps: [
+      "Same as KB swing but holding one DB with both hands.",
+      "Hinge, hike, drive hips, swing to chest height.",
+    ],
+    cues: ["Same hip hinge pattern as KB swing", "Power from the hips", "Good substitute when no KBs available"],
+    mistakes: ["Squatting instead of hinging", "Using arms", "Hyperextending"],
+  },
+  "Machine Fly": {
+    muscles: { primary: ["Chest"], secondary: ["Front delts"] },
+    steps: [
+      "Sit in the pec deck machine, grip handles with arms open.",
+      "Squeeze handles together in front of your chest.",
+      "Return slowly.",
+    ],
+    cues: ["Squeeze hard at the midpoint — peak chest contraction", "Controlled opening — don't let the weight yank your arms back", "Slight bend in elbows"],
+    mistakes: ["Going too heavy and losing the squeeze", "Opening too wide — shoulder injury risk", "Rushing"],
+  },
+  "Cable Crossover": {
+    muscles: { primary: ["Chest"], secondary: ["Front delts"] },
+    steps: [
+      "Stand between two cable pulleys set high.",
+      "Bring handles together in front of you in a downward arc.",
+      "Squeeze chest at the bottom, return slowly.",
+    ],
+    cues: ["Cross your hands slightly at the bottom for peak contraction", "Slight forward lean", "Constant cable tension throughout"],
+    mistakes: ["Using too much weight and turning it into a press", "Standing too upright", "Not crossing at the bottom"],
+  },
+  // ─── Flexibility regime exercises ─────────────────────────────────────────
+  "World's Greatest Stretch": {
+    muscles: { primary: ["Hip flexors", "Hamstrings", "T-spine"], secondary: ["Quads", "Shoulders"] },
+    steps: [
+      "Lunge forward with your right foot.",
+      "Place left hand on the ground, rotate right arm to the ceiling.",
+      "Hold, then switch sides.",
+    ],
+    cues: ["Covers hips, hamstrings, and thoracic spine in one move", "5 slow reps per side", "Breathe into each rotation"],
+    mistakes: ["Rushing through it", "Not rotating fully", "Back knee crashing to the floor"],
+  },
+  "Cat-Cow Flow": {
+    muscles: { primary: ["Spine", "Core"], secondary: [] },
+    steps: [
+      "On all fours. Inhale — drop belly, lift head (cow).",
+      "Exhale — round back, tuck chin (cat).",
+      "Flow between the two positions.",
+    ],
+    cues: ["Match movement to breath", "Move through the entire spine", "Excellent warm-up for any session"],
+    mistakes: ["Moving too fast", "Only moving from the lower back — articulate the whole spine", "Holding breath"],
+  },
+  "Cat-Cow": {
+    muscles: { primary: ["Spine", "Core"], secondary: [] },
+    steps: [
+      "Same as Cat-Cow Flow.",
+    ],
+    cues: ["Inhale cow, exhale cat", "Full spinal movement", "Great warm-up"],
+    mistakes: ["Rushing", "Partial range", "Not breathing with the movement"],
+  },
+  "Hip 90/90 Flow": {
+    muscles: { primary: ["Hip rotators", "Glutes"], secondary: [] },
+    steps: [
+      "Sit on floor with both legs bent at 90 degrees — one in front, one behind.",
+      "Rotate your legs to switch which leg is in front.",
+      "Flow back and forth.",
+    ],
+    cues: ["Great for hip internal and external rotation", "Keep torso upright", "Go slowly through the transition"],
+    mistakes: ["Leaning back to compensate for tight hips", "Lifting off the ground during transition", "Rushing"],
+  },
+  "Thread the Needle": {
+    muscles: { primary: ["T-spine", "Shoulders"], secondary: ["Core"] },
+    steps: [
+      "On all fours. Reach one arm under your body, rotating your thoracic spine.",
+      "Return and reach that same arm toward the ceiling.",
+    ],
+    cues: ["Full rotation in both directions", "Follow your hand with your eyes", "Breathe into the stretch"],
+    mistakes: ["Only going in one direction", "Moving from the lower back instead of T-spine", "Rushing"],
+  },
+  "Leg Swing (front/back)": {
+    muscles: { primary: ["Hip flexors", "Hamstrings"], secondary: ["Glutes"] },
+    steps: [
+      "Stand on one leg, hold support.",
+      "Swing the free leg forward and back in a controlled arc.",
+      "Increase range each rep.",
+    ],
+    cues: ["Dynamic stretch — no holding", "Keep the swinging leg straight", "Great before squats or running"],
+    mistakes: ["Rotating the torso", "Swinging too aggressively", "Bending the swinging leg"],
+  },
+  "Deep Squat Hold + Reach": {
+    muscles: { primary: ["Hips", "Ankles", "T-spine"], secondary: ["Core"] },
+    steps: [
+      "Squat to the bottom and hold.",
+      "Rotate one arm toward the ceiling, then the other.",
+    ],
+    cues: ["Use elbows to push knees out", "Add thoracic rotation for extra mobility", "Hold for 30–45 seconds total"],
+    mistakes: ["Heels lifting — elevate them if needed", "Rounding the back excessively", "Not rotating"],
+  },
+  "Kneeling Hip Flexor Stretch": {
+    muscles: { primary: ["Hip flexors", "Quads"], secondary: [] },
+    steps: [
+      "Kneel with one foot forward, back knee on the floor.",
+      "Push hips forward gently.",
+      "Hold for 60 seconds per side.",
+    ],
+    cues: ["Squeeze the back-side glute for a deeper stretch", "Posterior pelvic tilt — tuck your tailbone", "Don't lean forward — stay upright"],
+    mistakes: ["Arching the lower back", "Leaning forward instead of pushing hips forward", "Not holding long enough"],
+  },
+  "Seated Hamstring Stretch": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Sit with one leg extended. Other foot against inner thigh.",
+      "Hinge forward from the hips toward the extended foot.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Flex the foot of the extended leg", "Hinge from the hips, not the waist", "Don't round your upper back — lead with the chest"],
+    mistakes: ["Rounding the back to reach further", "Bouncing", "Not holding long enough"],
+  },
+  "Pigeon Pose": {
+    muscles: { primary: ["Glutes", "Hip rotators"], secondary: ["Hip flexors"] },
+    steps: [
+      "From a lunge, bring your front shin across your body on the floor.",
+      "Back leg extends behind you.",
+      "Fold forward over the front leg and hold.",
+    ],
+    cues: ["Front shin doesn't need to be parallel — work toward it", "Hold for 60–90 seconds", "Breathe and relax into it"],
+    mistakes: ["Forcing the shin parallel when hips aren't ready", "Leaning to one side", "Not relaxing into the stretch"],
+  },
+  "Couch Stretch": {
+    muscles: { primary: ["Quads", "Hip flexors"], secondary: [] },
+    steps: [
+      "Kneel with your back foot elevated against a wall behind you.",
+      "Front foot forward in a lunge position.",
+      "Push hips forward and upright.",
+    ],
+    cues: ["Intense quad and hip flexor stretch", "Squeeze the back glute for stability", "Hold for 60 seconds per side"],
+    mistakes: ["Arching the lower back instead of squeezing the glute", "Not pressing hips forward enough", "Giving up too early — it's supposed to be intense"],
+  },
+  "Adductor Stretch (wide squat)": {
+    muscles: { primary: ["Adductors", "Groin"], secondary: ["Hips"] },
+    steps: [
+      "Stand in a wide stance. Squat down, elbows inside your knees.",
+      "Use your elbows to push your knees outward.",
+      "Hold for 45–60 seconds.",
+    ],
+    cues: ["Chest stays up", "Push knees out gently with elbows", "Great for inner thigh flexibility"],
+    mistakes: ["Rounding the back", "Not pushing knees out enough", "Bouncing"],
+  },
+  "Calf + Ankle Stretch": {
+    muscles: { primary: ["Calves", "Ankle"], secondary: [] },
+    steps: [
+      "Wall calf stretch — foot behind you, heel on floor, lean into wall.",
+      "Follow with slow ankle circles in both directions.",
+    ],
+    cues: ["Straight back leg for gastrocnemius, bent for soleus", "Ankle circles improve mobility", "45 seconds per side"],
+    mistakes: ["Not pressing the heel down", "Rushing through ankle circles", "Forgetting to stretch both gastrocnemius and soleus"],
+  },
+  "Doorway Chest Stretch": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: [] },
+    steps: [
+      "Stand in a doorway, arm at 90 degrees against the frame.",
+      "Step through gently until you feel the chest stretch.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Change arm height to target different portions of the pecs", "Don't lean too aggressively", "Breathe into the stretch"],
+    mistakes: ["Pushing too hard and straining the shoulder", "Not holding long enough", "Arm too high or too low"],
+  },
+  "Sleeper Stretch": {
+    muscles: { primary: ["Posterior shoulder capsule"], secondary: ["Rotator cuff"] },
+    steps: [
+      "Lie on your side with bottom arm extended at 90 degrees.",
+      "Use your top hand to gently push the bottom forearm toward the floor.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Very gentle — don't force this stretch", "Targets the back of the shoulder", "Important for overhead athletes and desk workers"],
+    mistakes: ["Pushing too hard — can irritate the shoulder", "Rolling off the shoulder", "Bouncing"],
+  },
+  "Thoracic Extension over Foam Roller": {
+    muscles: { primary: ["T-spine"], secondary: ["Chest"] },
+    steps: [
+      "Place a foam roller under your upper back (T4–T8 area).",
+      "Hands behind head, let your upper back extend over the roller.",
+      "Hold for 30–45 seconds, then reposition higher or lower.",
+    ],
+    cues: ["Only extend through the thoracic spine — not the lower back", "Arms behind head acts as a counterweight", "Breathe and relax into the extension"],
+    mistakes: ["Extending the lower back instead of the upper", "Rolling too fast — hold the positions", "Roller on the neck — stay on the upper back"],
+  },
+  "Lat Stretch (overhead grip)": {
+    muscles: { primary: ["Lats"], secondary: ["Teres major", "Obliques"] },
+    steps: [
+      "Grip a bar or rack overhead. Sit your hips back and down.",
+      "Let your chest drop toward the floor.",
+      "Hold for 45 seconds.",
+    ],
+    cues: ["You should feel a deep stretch along the side of your back", "Relax into it — let gravity do the work", "Shift your hips to one side to emphasise each lat"],
+    mistakes: ["Not sitting back enough", "Shrugging shoulders", "Rushing"],
+  },
+  "Neck Flexion/Extension Flow": {
+    muscles: { primary: ["Neck"], secondary: [] },
+    steps: [
+      "Slowly look down (chin to chest), then up (look at ceiling).",
+      "Flow between the two positions.",
+    ],
+    cues: ["Extremely slow — never force range", "10 reps each direction", "Stop immediately if any pain or dizziness"],
+    mistakes: ["Going too fast", "Forcing range", "Cranking the neck"],
+  },
+  "Child's Pose to Cobra Flow": {
+    muscles: { primary: ["Spine", "Hip flexors", "Chest"], secondary: ["Shoulders"] },
+    steps: [
+      "Start in child's pose — hips on heels, arms extended.",
+      "Flow forward into cobra — hips to floor, chest up.",
+      "Return to child's pose.",
+    ],
+    cues: ["Breathe through each transition", "Smooth, wave-like movement through the spine", "Great spinal mobility drill"],
+    mistakes: ["Jumping between positions instead of flowing", "Holding breath", "Forcing cobra position too aggressively"],
+  },
+  "Supine Spinal Twist": {
+    muscles: { primary: ["Spine", "Obliques"], secondary: ["Chest", "Glutes"] },
+    steps: [
+      "Lie on your back, arms out. Pull one knee across your body.",
+      "Keep both shoulders on the floor.",
+      "Hold for 60–90 seconds per side.",
+    ],
+    cues: ["Let gravity do the work — relax into it", "Both shoulders stay on the floor", "Look away from the knee for more stretch"],
+    mistakes: ["Shoulders lifting off the floor", "Forcing the knee down too aggressively", "Not holding long enough"],
+  },
+  "Full Splits Progression": {
+    muscles: { primary: ["Hamstrings", "Hip flexors", "Adductors"], secondary: [] },
+    steps: [
+      "Slide into the split position slowly — go to YOUR edge.",
+      "Support yourself with hands or blocks.",
+      "Hold at your maximum comfortable depth for 60 seconds.",
+    ],
+    cues: ["Never bounce or force it", "Use blocks or hands for support as needed", "Consistency over weeks is what gets you there"],
+    mistakes: ["Bouncing — risk of muscle tear", "Going too deep too fast", "Comparing yourself to others — flexibility is individual"],
+  },
+  "Pancake Stretch": {
+    muscles: { primary: ["Adductors", "Hamstrings"], secondary: ["Spine"] },
+    steps: [
+      "Sit with legs spread wide. Fold forward from the hips.",
+      "Aim to get your chest toward the floor.",
+      "Hold for 60–90 seconds.",
+    ],
+    cues: ["Lead with the chest, not the head", "Hinge from the hips", "Very challenging — progress is slow but real"],
+    mistakes: ["Rounding the back to get lower — hinge from hips", "Bouncing", "Giving up too soon — this takes months"],
+  },
+  "Loaded Progressive Stretch": {
+    muscles: { primary: ["Hamstrings", "Hip flexors"], secondary: [] },
+    steps: [
+      "Hold a light plate or DB and use it for gravity-assisted stretching.",
+      "Get into a hamstring or hip flexor stretch, let the weight gently deepen it.",
+      "Hold for 45 seconds.",
+    ],
+    cues: ["Very gentle weight — 3–10kg", "The weight assists gravity, not forces the stretch", "Breathe and relax into it"],
+    mistakes: ["Weight too heavy — should be gentle assistance only", "Forcing the stretch", "Bouncing"],
+  },
+  "PNF Hamstring": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Lie on your back, leg extended toward ceiling (use a band or partner).",
+      "Contract the hamstring against resistance for 5 seconds.",
+      "Relax, then gently push the stretch deeper.",
+      "Repeat 3 cycles.",
+    ],
+    cues: ["Contract-relax method — the gold standard for flexibility", "5 second contraction, then go deeper on the relaxation", "3 cycles per side"],
+    mistakes: ["Contracting too hard — 50–70% effort is enough", "Not relaxing fully between contractions", "Rushing through cycles"],
+  },
+  "Savasana / Breathing": {
+    muscles: { primary: [], secondary: [] },
+    steps: [
+      "Lie flat on your back, arms at sides, eyes closed.",
+      "Breathe deeply into your belly — 4 seconds in, 6 seconds out.",
+      "Hold for 5 minutes.",
+    ],
+    cues: ["Complete relaxation — scan your body and release tension", "Diaphragmatic breathing — belly rises, not chest", "Great way to end any session"],
+    mistakes: ["Chest breathing instead of belly breathing", "Fidgeting — commit to stillness", "Cutting it short"],
+  },
+  "Hip Flexor + Twist": {
+    muscles: { primary: ["Hip flexors", "T-spine"], secondary: [] },
+    steps: [
+      "Deep lunge position. Rotate your torso toward the front knee.",
+      "Reach the arm up toward the ceiling.",
+      "Hold, then switch sides.",
+    ],
+    cues: ["Combines hip flexor stretch with thoracic rotation", "Similar to World's Greatest Stretch", "Hold each side 30 seconds"],
+    mistakes: ["Not rotating enough", "Back knee not down", "Rushing"],
+  },
+  "Deep Lunge Flow": {
+    muscles: { primary: ["Hip flexors", "Quads", "Hamstrings"], secondary: [] },
+    steps: [
+      "Flow between deep lunge positions — forward, side, back.",
+      "Move slowly and with control.",
+    ],
+    cues: ["Dynamic stretching through multiple planes", "Great warm-up for lower body", "Controlled speed throughout"],
+    mistakes: ["Moving too fast", "Not going deep enough into each lunge", "Losing balance"],
+  },
+  "Spine Wave": {
+    muscles: { primary: ["Spine"], secondary: ["Core"] },
+    steps: [
+      "On all fours, create a wave-like motion through your spine.",
+      "Start from the pelvis and roll through to the head.",
+    ],
+    cues: ["Fluid, wave-like motion — like a cat stretching", "Articulate each vertebra", "Breathe with the movement"],
+    mistakes: ["Moving as one block instead of articulating", "Going too fast", "Not engaging the full spine"],
+  },
+  "Segmental Roll": {
+    muscles: { primary: ["Spine", "Core"], secondary: [] },
+    steps: [
+      "Lie on your back. Roll to your side by initiating with your head, then shoulders, then hips.",
+      "Reverse the order to roll back.",
+    ],
+    cues: ["The roll should flow through each spinal segment", "Very slow — each segment follows the previous", "Great for spinal awareness"],
+    mistakes: ["Rolling as one unit instead of segmentally", "Going too fast", "Skipping segments"],
+  },
+  "Seated Hip Rotation": {
+    muscles: { primary: ["Hip rotators"], secondary: [] },
+    steps: [
+      "Sit on the floor with knees bent. Rotate knees side to side.",
+    ],
+    cues: ["Similar to 90/90 but simpler", "Smooth, controlled rotations", "Good for hip warm-up"],
+    mistakes: ["Forcing range", "Rushing", "Leaning back excessively"],
+  },
+  "Open Book": {
+    muscles: { primary: ["T-spine"], secondary: ["Chest"] },
+    steps: [
+      "Lie on your side, knees stacked and bent. Arms extended in front.",
+      "Open your top arm to the other side like a book opening.",
+      "Follow with your eyes. Return slowly.",
+    ],
+    cues: ["Great thoracic rotation drill", "Keep knees together — only the upper body rotates", "Breathe into the rotation"],
+    mistakes: ["Knees separating", "Forcing the rotation", "Not following with the eyes"],
+  },
+  "Seated Rotation": {
+    muscles: { primary: ["T-spine", "Obliques"], secondary: [] },
+    steps: [
+      "Sit upright, legs crossed or extended.",
+      "Rotate your torso to one side, using your hand on your knee for leverage.",
+      "Hold, then rotate to the other side.",
+    ],
+    cues: ["Rotate from the thoracic spine, not the lower back", "Sit tall throughout", "Gentle leverage — don't force it"],
+    mistakes: ["Rounding the back", "Forcing with the arms", "Rotating from the lumbar spine"],
+  },
+  "Standing Hip Flexor": {
+    muscles: { primary: ["Hip flexors"], secondary: [] },
+    steps: [
+      "Stand in a staggered stance. Push hips forward on the back leg.",
+    ],
+    cues: ["Similar to kneeling version but standing", "Squeeze the back glute for a deeper stretch", "Tuck the tailbone"],
+    mistakes: ["Arching the lower back", "Not pushing hips far enough forward", "Not squeezing the glute"],
+  },
+  "Straight-Leg Raise": {
+    muscles: { primary: ["Hamstrings"], secondary: ["Hip flexors"] },
+    steps: [
+      "Lie on your back. Raise one straight leg toward the ceiling.",
+      "Hold at the top and switch.",
+    ],
+    cues: ["Active flexibility drill", "Go only as high as you can with a straight leg", "Excellent for hamstring mobility"],
+    mistakes: ["Bending the knee to go higher", "Jerking the leg up", "Lower back arching off the floor"],
+  },
+  "Goblet Squat Hold": {
+    muscles: { primary: ["Hips", "Ankles"], secondary: ["Core"] },
+    steps: [
+      "Hold a KB or DB at your chest. Squat to the bottom and hold.",
+    ],
+    cues: ["The weight acts as a counterbalance", "Use elbows to push knees out", "Hold for 30–45 seconds"],
+    mistakes: ["Not going deep enough", "Heels lifting", "Rounding the back"],
+  },
+  "Squat to Stand": {
+    muscles: { primary: ["Hamstrings", "Hips"], secondary: ["Core"] },
+    steps: [
+      "Bend forward, grab your toes.",
+      "Squat your hips down while holding your toes.",
+      "Lift your chest, then stand up.",
+    ],
+    cues: ["Combines hamstring stretch with squat mobility", "Great warm-up drill", "Smooth transition between positions"],
+    mistakes: ["Letting go of toes", "Not lifting chest in the squat", "Rushing"],
+  },
+  "Lying Hamstring Stretch": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Lie on your back. Use a strap or hands to pull one straight leg toward you.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Keep the stretching leg straight", "Don't pull too aggressively — ease into it", "Other leg stays flat on the floor"],
+    mistakes: ["Bending the stretching knee", "Pulling too hard", "Lifting the other leg"],
+  },
+  "Supine Pigeon": {
+    muscles: { primary: ["Glutes", "Hip rotators"], secondary: [] },
+    steps: [
+      "Lie on back. Cross one ankle over the opposite knee.",
+      "Pull the bottom leg toward your chest.",
+      "Hold for 60 seconds per side.",
+    ],
+    cues: ["Also called Figure-4 stretch — lying down version", "Keep head on the floor", "Relax into it"],
+    mistakes: ["Not pulling enough to feel the stretch", "Head lifting off the floor", "Rushing"],
+  },
+  "Figure-4 Stretch": {
+    muscles: { primary: ["Glutes", "Hip rotators"], secondary: [] },
+    steps: [
+      "Same as Supine Pigeon — cross ankle over knee, pull toward chest.",
+    ],
+    cues: ["Lying version of pigeon pose", "Great for tight hips and glutes", "Hold 60 seconds"],
+    mistakes: ["Not pulling enough", "Forcing it", "Rushing"],
+  },
+  "Kneeling Quad Stretch": {
+    muscles: { primary: ["Quads", "Hip flexors"], secondary: [] },
+    steps: [
+      "Kneel with one foot forward. Reach back and grab the back foot.",
+      "Pull heel toward glute.",
+      "Hold for 60 seconds per side.",
+    ],
+    cues: ["Squeeze the back glute for a deeper stretch", "Stay upright", "Use a wall or support if balance is difficult"],
+    mistakes: ["Arching the lower back", "Leaning forward", "Pulling too aggressively on the ankle"],
+  },
+  "Prone Quad Stretch": {
+    muscles: { primary: ["Quads"], secondary: [] },
+    steps: [
+      "Lie face down. Reach back and pull one heel toward your glute.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Simpler than kneeling version", "Squeeze glute on the stretching side", "Don't force the heel down — let it come over time"],
+    mistakes: ["Arching the back to compensate", "Pulling too hard", "Not relaxing"],
+  },
+  "Butterfly Stretch": {
+    muscles: { primary: ["Adductors", "Groin"], secondary: ["Hips"] },
+    steps: [
+      "Sit with soles of feet together, knees out to sides.",
+      "Gently press knees toward the floor.",
+      "Hold for 45–60 seconds.",
+    ],
+    cues: ["Don't bounce your knees — gentle, sustained pressure", "Sit tall — don't round your back", "Closer feet to body = more intense"],
+    mistakes: ["Bouncing knees aggressively", "Rounding the back", "Forcing knees to the floor"],
+  },
+  "Side Lunge Hold": {
+    muscles: { primary: ["Adductors", "Glutes"], secondary: ["Quads"] },
+    steps: [
+      "Step wide to one side and sink into a lateral lunge.",
+      "Hold at the bottom. Straight leg should feel the stretch.",
+    ],
+    cues: ["Sit back into the lunge — like a single-leg squat to the side", "Heel stays flat on the bent leg", "Great for inner thigh flexibility"],
+    mistakes: ["Bending knee past toes excessively", "Heel lifting", "Not going low enough"],
+  },
+  "Downward Dog": {
+    muscles: { primary: ["Calves", "Hamstrings", "Shoulders"], secondary: ["Core"] },
+    steps: [
+      "Start on all fours. Push hips up and back into an inverted V.",
+      "Press heels toward the floor, push through the hands.",
+      "Hold or pedal feet.",
+    ],
+    cues: ["Classic yoga position — full posterior chain stretch", "Head between arms, ears in line with biceps", "Pedal feet to dynamically stretch each calf"],
+    mistakes: ["Rounding the back — push hips up and back", "Not pressing through the hands", "Head hanging — keep it aligned"],
+  },
+  "Standing Calf Stretch": {
+    muscles: { primary: ["Gastrocnemius", "Soleus"], secondary: [] },
+    steps: [
+      "Stand facing a wall, one foot behind you.",
+      "Press back heel into floor, lean forward.",
+      "Straight back leg = gastrocnemius. Bent back knee = soleus.",
+    ],
+    cues: ["Do both versions — straight leg AND bent knee", "Hold each for 30–45 seconds", "Simple but effective"],
+    mistakes: ["Not pressing the heel down fully", "Only doing one version", "Bouncing"],
+  },
+  "Cable Chest Stretch": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: [] },
+    steps: [
+      "Hold a cable column or upright with one hand at shoulder height.",
+      "Turn your body away to feel a chest stretch.",
+      "Hold for 45 seconds per side.",
+    ],
+    cues: ["Similar to doorway stretch but using a cable column", "Vary hand height to target different chest fibres", "Gentle — don't overstretch"],
+    mistakes: ["Turning too aggressively", "Shrugging the shoulder", "Bouncing"],
+  },
+  "Band Chest Stretch": {
+    muscles: { primary: ["Chest", "Front delts"], secondary: [] },
+    steps: [
+      "Hold a band behind you with both hands.",
+      "Lift the band overhead and behind, stretching the chest.",
+    ],
+    cues: ["Similar to band pass-throughs", "Go only as far as comfortable", "Great for chest and shoulder flexibility"],
+    mistakes: ["Band too tight — should be comfortable", "Forcing range", "Jerking the movement"],
+  },
+  "Cross-Body Shoulder Stretch": {
+    muscles: { primary: ["Posterior delt", "Shoulder"], secondary: [] },
+    steps: [
+      "Pull one arm across your chest with the other hand.",
+      "Hold for 30–45 seconds per side.",
+    ],
+    cues: ["Keep the stretching arm straight", "Don't shrug — keep the shoulder down", "Common stretch — effective when done properly"],
+    mistakes: ["Shrugging the shoulder up", "Bending the arm", "Not holding long enough"],
+  },
+  "Child's Pose": {
+    muscles: { primary: ["Lats", "Lower back"], secondary: ["Hips", "Shoulders"] },
+    steps: [
+      "Kneel and sit back on your heels, arms extended forward on the floor.",
+      "Let your forehead rest on the ground.",
+      "Hold for 30–60 seconds.",
+    ],
+    cues: ["Breathe deeply into your lower back", "Walk hands to one side for a lat stretch", "Classic resting/stretching pose"],
+    mistakes: ["Not sitting back on heels", "Tensing up instead of relaxing", "Rushing through it"],
+  },
+  "Seated T-Spine Rotation": {
+    muscles: { primary: ["T-spine"], secondary: ["Obliques"] },
+    steps: [
+      "Sit upright in a chair or on the floor.",
+      "Rotate your torso, using your hands on your knees for leverage.",
+    ],
+    cues: ["Rotate from the thoracic spine, not lumbar", "Sit tall throughout", "Great for desk workers"],
+    mistakes: ["Rotating from the lower back", "Slouching", "Forcing the rotation"],
+  },
+  "Banded Lat Stretch": {
+    muscles: { primary: ["Lats"], secondary: ["Teres major"] },
+    steps: [
+      "Attach a band to a high point. Grip the band and step back.",
+      "Let the band pull your arm overhead, stretching the lat.",
+    ],
+    cues: ["The band provides traction — decompresses the shoulder", "Sit your hips back for more stretch", "Hold 45 seconds per side"],
+    mistakes: ["Band too strong — should be gentle pull", "Shrugging", "Not relaxing into it"],
+  },
+  "Neck Side Bend": {
+    muscles: { primary: ["Neck", "Upper traps"], secondary: [] },
+    steps: [
+      "Tilt your ear toward your shoulder.",
+      "Hold for 30 seconds per side.",
+    ],
+    cues: ["Gentle — never force neck stretches", "Can use hand for gentle assist", "Keep the opposite shoulder down"],
+    mistakes: ["Pulling too hard on the head", "Raising the opposite shoulder", "Jerking"],
+  },
+  "Levator Scap Stretch": {
+    muscles: { primary: ["Levator scapulae", "Neck"], secondary: [] },
+    steps: [
+      "Look down toward one armpit.",
+      "Use hand on the back of your head for gentle assist.",
+      "Hold 30 seconds per side.",
+    ],
+    cues: ["Targets that tight spot between neck and shoulder blade", "Very gentle pressure — don't force", "Great for desk workers"],
+    mistakes: ["Pulling too hard", "Looking straight down instead of toward the armpit", "Rushing"],
+  },
+  "Prayer Stretch": {
+    muscles: { primary: ["Lats", "Lower back"], secondary: [] },
+    steps: [
+      "Kneel on the floor, arms extended forward.",
+      "Sit hips back and let your chest sink toward the floor.",
+    ],
+    cues: ["Similar to child's pose but with more forward reach", "Breathe into the stretch", "Walk hands to each side for lateral stretch"],
+    mistakes: ["Not reaching far enough forward", "Not sitting back on heels", "Tensing up"],
+  },
+  "Seal Stretch": {
+    muscles: { primary: ["Abs", "Hip flexors"], secondary: ["Spine"] },
+    steps: [
+      "Lie face down. Press up with arms straight, hips on the floor.",
+      "Hold with arms locked and head looking forward.",
+    ],
+    cues: ["Like cobra but with straight arms — more extension", "Don't force — go only as far as comfortable", "Great for opening up the front of the body"],
+    mistakes: ["Hips lifting off the floor", "Forcing extension in the lower back", "Neck cranking back"],
+  },
+  "Seated Spinal Twist": {
+    muscles: { primary: ["Spine", "Obliques"], secondary: [] },
+    steps: [
+      "Sit with legs extended. Cross one foot over the other knee.",
+      "Rotate toward the bent knee using opposite elbow for leverage.",
+      "Hold 45–60 seconds per side.",
+    ],
+    cues: ["Sit tall throughout", "Gentle leverage — don't crank it", "Breathe into the rotation"],
+    mistakes: ["Rounding the back", "Forcing the rotation", "Holding breath"],
+  },
+  "Lying Figure-4": {
+    muscles: { primary: ["Glutes", "Hip rotators"], secondary: [] },
+    steps: [
+      "Same as Supine Pigeon / Figure-4 Stretch.",
+    ],
+    cues: ["Cross ankle over knee, pull toward chest", "Hold 60 seconds", "Relax into it"],
+    mistakes: ["Not pulling enough", "Head lifting", "Rushing"],
+  },
+  "Half Split": {
+    muscles: { primary: ["Hamstrings"], secondary: ["Hip flexors"] },
+    steps: [
+      "From a kneeling position, extend the front leg straight.",
+      "Hinge forward from the hips over the straight leg.",
+      "Hold for 60 seconds per side.",
+    ],
+    cues: ["Half of a full split — great progression", "Flex the front foot", "Hinge from hips, not waist"],
+    mistakes: ["Rounding the back", "Bending the front knee", "Bouncing"],
+  },
+  "Wide-Leg Fold": {
+    muscles: { primary: ["Hamstrings", "Adductors"], secondary: [] },
+    steps: [
+      "Stand with feet wide apart.",
+      "Fold forward from the hips.",
+      "Let your head hang and relax into the stretch.",
+    ],
+    cues: ["Gravity does the work — just relax", "Hands on the floor or holding elbows", "Great for hamstrings and inner thighs"],
+    mistakes: ["Rounding excessively — hinge from hips", "Bouncing", "Forcing depth"],
+  },
+  "Wide-Leg Forward Fold": {
+    muscles: { primary: ["Hamstrings", "Adductors"], secondary: [] },
+    steps: [
+      "Same as Wide-Leg Fold.",
+    ],
+    cues: ["Relax and breathe", "Let gravity deepen the stretch", "Hold for 60 seconds"],
+    mistakes: ["Forcing it", "Bouncing", "Rounding through the lower back"],
+  },
+  "Seated Straddle": {
+    muscles: { primary: ["Adductors", "Hamstrings"], secondary: [] },
+    steps: [
+      "Sit with legs spread wide.",
+      "Fold forward from the hips.",
+    ],
+    cues: ["Same as Pancake Stretch — seated version", "Lead with the chest", "Hold for 60–90 seconds"],
+    mistakes: ["Rounding the back", "Not hinging from hips", "Bouncing"],
+  },
+  "DB Romanian Stretch": {
+    muscles: { primary: ["Hamstrings", "Glutes"], secondary: [] },
+    steps: [
+      "Hold light DBs. Perform a very slow RDL, holding the bottom for 45 seconds.",
+    ],
+    cues: ["The weight provides gentle gravity assist", "Very light — 3–5kg per hand", "Focus on the stretch, not the lift"],
+    mistakes: ["Going too heavy", "Not holding long enough", "Rounding the back"],
+  },
+  "Pulley Hip Flexor": {
+    muscles: { primary: ["Hip flexors"], secondary: [] },
+    steps: [
+      "Attach a cable to your ankle. Face away from the machine.",
+      "Step into a lunge position — the cable gently pulls your hip into flexor stretch.",
+    ],
+    cues: ["Cable provides gentle traction", "Squeeze the glute for a deeper stretch", "Light cable weight — this is a stretch, not strength"],
+    mistakes: ["Cable too heavy", "Not squeezing the glute", "Arching the lower back"],
+  },
+  "Partner Hamstring": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Lie on back. Partner raises your straight leg toward the ceiling.",
+      "Contract against partner for 5 seconds, then relax as they push deeper.",
+    ],
+    cues: ["PNF with a partner — very effective", "Communication is key — say 'stop' at your edge", "3 cycles of contract-relax"],
+    mistakes: ["Partner pushing too aggressively", "Not communicating limits", "Contracting too hard"],
+  },
+  "Rope Stretch": {
+    muscles: { primary: ["Hamstrings"], secondary: [] },
+    steps: [
+      "Lie on back with a rope or strap looped around one foot.",
+      "Pull the straight leg toward you.",
+    ],
+    cues: ["Same as lying hamstring stretch but with a rope", "Can add PNF contract-relax", "Hold 45 seconds per side"],
+    mistakes: ["Bending the knee", "Pulling too aggressively", "Not relaxing into it"],
+  },
+  "Meditation": {
+    muscles: { primary: [], secondary: [] },
+    steps: [
+      "Sit or lie comfortably. Close your eyes.",
+      "Focus on your breath. Let thoughts pass without engagement.",
+      "5–10 minutes.",
+    ],
+    cues: ["Not about thinking nothing — about not engaging with thoughts", "Great for recovery and stress management", "Consistent practice is more important than duration"],
+    mistakes: ["Getting frustrated with wandering thoughts — that's normal", "Trying too hard to clear your mind", "Cutting it short"],
+  },
+  "Progressive Muscle Relaxation": {
+    muscles: { primary: [], secondary: [] },
+    steps: [
+      "Lie down. Tense each muscle group for 5 seconds, then release.",
+      "Start from your toes and work up to your face.",
+    ],
+    cues: ["The contrast between tension and release teaches your body to relax", "5 seconds tension, 10 seconds release", "Great before bed"],
+    mistakes: ["Tensing too hard — 50–70% effort", "Rushing through body parts", "Not releasing fully"],
+  },
+  "Barbell Push Press": {
+    muscles: { primary: ["Front delts", "Triceps"], secondary: ["Quads", "Core"] },
+    steps: [
+      "Bar on front delts. Dip by bending knees, then drive up explosively.",
+      "Use leg drive to push the bar overhead. Lock out.",
+    ],
+    cues: ["Same as Push Press — barbell version", "Short, sharp dip", "Leg drive initiates, arms finish"],
+    mistakes: ["Dipping too deep", "Pressing before the drive finishes", "Not locking out"],
+  },
+  "Lateral Flexion": {
+    muscles: { primary: ["Obliques"], secondary: ["Core"] },
+    steps: [
+      "Stand with a KB or DB in one hand.",
+      "Lean to the weighted side, then use your obliques to pull back upright.",
+    ],
+    cues: ["Controlled lean — don't just flop to the side", "Squeeze the opposite oblique to return", "Great for oblique strength"],
+    mistakes: ["Leaning forward or back instead of directly to the side", "Going too fast", "Using too much weight"],
+  },
+  "Side Bend + Reach": {
+    muscles: { primary: ["Obliques", "Lats"], secondary: ["Core"] },
+    steps: [
+      "Stand tall, one arm overhead.",
+      "Lean to the opposite side, reaching overhead.",
+      "Return to upright.",
+    ],
+    cues: ["Combines lateral flexion with an overhead reach for a deeper stretch", "Hold at the end range", "Breathe into the stretch"],
+    mistakes: ["Rotating instead of bending laterally", "Not reaching far enough", "Rushing"],
+  },
+
 };
+
+// ─── Session map ──────────────────────────────────────────────────────────────
 
 export const ALL_SESSIONS = {
   hypertrophy: HYPERTROPHY_SESSIONS,
