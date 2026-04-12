@@ -137,7 +137,23 @@ export default function GymRoutine() {
               <button key={v} onClick={() => setView(v)} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: (view === v || (v === "routine" && view === "log")) ? "#fff" : "transparent", color: (view === v || (v === "routine" && view === "log")) ? "#111" : "#888", border: `1px solid ${(view === v || (v === "routine" && view === "log")) ? "#fff" : "#555"}`, borderRadius: 2 }}>{v}</button>
             ))}
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
-            <button onClick={() => { setStep(1); setView("routine"); }} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
+            <button onClick={() => {
+  setRegime(null);
+  setAgeClass(null);
+  setWeightClass(null);
+  setSelectedDays([]);
+  setActiveSession(null);
+  setSwaps({});
+  setView("routine");
+  setStep(1);
+  LS.set("gym_step", 1);
+  LS.set("gym_session", null);
+  LS.set("gym_regime", null);
+  LS.set("gym_age", null);
+  LS.set("gym_wc", null);
+  LS.set("gym_days", []);
+  LS.set("gym_swaps", {});
+}} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
           </div>
         )}
       </div>
