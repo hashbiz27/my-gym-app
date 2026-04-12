@@ -605,6 +605,18 @@ export default function GymRoutine() {
                     )}
                     {showGuide[key] && guide && (
                       <div style={{ paddingLeft: 22, marginTop: 8, background: "#f9faf7", border: "1px solid #e8f0e0", borderRadius: 3, padding: "10px 14px" }}>
+                        {guide.images && (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+                            <div>
+                              <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginBottom: 4 }}>Start</div>
+                              <img src={guide.images.start} alt={`${displayName} — start position`} style={{ width: "100%", borderRadius: 3, border: "1px solid #e0e0e0", display: "block" }} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginBottom: 4 }}>Finish</div>
+                              <img src={guide.images.finish} alt={`${displayName} — finish position`} style={{ width: "100%", borderRadius: 3, border: "1px solid #e0e0e0", display: "block" }} />
+                            </div>
+                          </div>
+                        )}
                         <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginBottom: 6 }}>Muscles</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
                           {guide.muscles.primary.map(m => <span key={m} style={{ fontSize: 10, fontWeight: 700, background: "#e8f5e9", color: "#1b5e20", padding: "2px 7px", borderRadius: 2 }}>{m}</span>)}

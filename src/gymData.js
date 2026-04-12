@@ -391,6 +391,7 @@ export const FLEXIBILITY_SESSIONS = {
 
 export const EXERCISE_GUIDES = {
   "Barbell Bench Press": {
+    images: { start: "/images/exercises/barbell-bench-press-start.jpg", finish: "/images/exercises/barbell-bench-press-finish.jpg" },
     muscles: { primary: ["Chest", "Front delts"], secondary: ["Triceps"] },
     steps: [
       "Lie flat on the bench, eyes under the bar. Feet flat on the floor.",
