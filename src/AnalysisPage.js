@@ -13,11 +13,6 @@ const fmt = (d) => {
   return dt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 };
 
-const shortFmt = (d) => {
-  const dt = new Date(d + "T00:00:00");
-  return dt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-};
-
 // Get all unique exercise names across all logged workouts
 function getAllExerciseNames(logs) {
   const names = new Set();
