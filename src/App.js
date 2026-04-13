@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AGE_CLASSES, WEIGHT_CLASSES, DAYS_OF_WEEK,
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
@@ -58,6 +58,17 @@ export default function GymRoutine() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showLogAlts, setShowLogAlts] = useState({});
   const [showHistAlts, setShowHistAlts] = useState({});
+  // Dark mode
+  const [dark, setDark] = useState(() => LS.get("gym_dark", false));
+  // Bodyweight log
+  const [bwLog, setBwLog] = useState(() => LS.get("gym_bw", {}));
+  const [bwInput, setBwInput] = useState("");
+  // Rest timer
+  const [restTimer, setRestTimer] = useState(null); // { secs, total, exName }
+  const restRef = useRef(null);
+
+  useEffect(() => { LS.set("gym_dark", dark); }, [dark]);
+  useEffect(() => { LS.set("gym_bw", bwLog); }, [bwLog]);
 
   useEffect(() => { LS.set("gym_regime", regime); }, [regime]);
   useEffect(() => { LS.set("gym_age", ageClass); }, [ageClass]);
@@ -69,11 +80,70 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_log", workoutLog); }, [workoutLog]);
   useEffect(() => { LS.set("gym_activeLog", activeLog); }, [activeLog]);
 
+  // Rest timer tick
+  useEffect(() => {
+    if (!restTimer) { clearInterval(restRef.current); return; }
+    clearInterval(restRef.current);
+    restRef.current = setInterval(() => {
+      setRestTimer(p => {
+        if (!p || p.secs <= 1) { clearInterval(restRef.current); return null; }
+        return { ...p, secs: p.secs - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(restRef.current);
+  }, [restTimer?.total, restTimer === null]);
+
+  // Parse rest string like "2–3 min", "90s", "60s" → seconds
+  const parseRest = (restStr) => {
+    if (!restStr) return 90;
+    if (restStr.includes("min")) {
+      const nums = restStr.match(/[\d.]+/g);
+      if (!nums) return 90;
+      const avg = nums.reduce((a, b) => a + parseFloat(b), 0) / nums.length;
+      return Math.round(avg * 60);
+    }
+    const s = restStr.match(/(\d+)s/);
+    return s ? parseInt(s[1]) : 90;
+  };
+
+  const startRestTimer = useCallback((restStr, exName) => {
+    const secs = parseRest(restStr);
+    setRestTimer({ secs, total: secs, exName });
+  }, []);
+
+  // Bodyweight
+  const logBodyweight = () => {
+    if (!bwInput) return;
+    const date = todayStr();
+    setBwLog(p => ({ ...p, [date]: parseFloat(bwInput) }));
+    setBwInput("");
+  };
+
+  // Notes on active log
+  const updateNote = (val) => setActiveLog(p => ({ ...p, note: val }));
+
+  // Update log date
+  const updateLogDate = (logKey, newDate) =>
+    setWorkoutLog(p => ({ ...p, [logKey]: { ...p[logKey], date: newDate } }));
+
   const regimeCfg = regime ? REGIMES[regime] : null;
   const ageProfile = ageClass ? AGE_PROFILES[ageClass] : null;
   const assignedSessions = selectedDays.slice(0, 4).map((day, i) => ({ day, sessionId: regimeCfg?.sessionOrder[i] }));
 
   const toggleDay = (day) => setSelectedDays(p => p.includes(day) ? p.filter(d => d !== day) : p.length < 4 ? [...p, day] : p);
+
+  // Dark mode theme
+  const T = dark ? {
+    bg: "#0f0f0f", card: "#1a1a1a", cardBorder: "#2a2a2a", text: "#f0f0f0",
+    textSec: "#999", textMuted: "#666", input: "#222", inputBorder: "#333",
+    header: "#000", headerText: "#f0f0f0", altBg: "#111", altBorder: "#2a2a2a",
+    pill: "#1a1a1a", pillBorder: "#333", doneGreen: "#1a3a1a", doneText: "#4caf50",
+  } : {
+    bg: "#f8f7f4", card: "#fff", cardBorder: "#e5e5e5", text: "#1a1a1a",
+    textSec: "#555", textMuted: "#aaa", input: "#fff", inputBorder: "#e0e0e0",
+    header: "#111", headerText: "#f8f7f4", altBg: "#fafafa", altBorder: "#efefef",
+    pill: "#fff", pillBorder: "#ddd", doneGreen: "#f1f8f1", doneText: "#1b5e20",
+  };
 
  
   // ── Log helpers ──
@@ -94,8 +164,14 @@ export default function GymRoutine() {
   const updateSet = (exKey, setIdx, field, val) =>
     setActiveLog(p => ({ ...p, sets: { ...p.sets, [exKey]: p.sets[exKey].map((s, i) => i === setIdx ? { ...s, [field]: val } : s) } }));
 
-  const toggleDone = (exKey, setIdx) =>
-    setActiveLog(p => ({ ...p, sets: { ...p.sets, [exKey]: p.sets[exKey].map((s, i) => i === setIdx ? { ...s, done: !s.done } : s) } }));
+  const toggleDone = (exKey, setIdx, restStr, exName) => {
+    setActiveLog(p => {
+      const newSets = p.sets[exKey].map((s, i) => i === setIdx ? { ...s, done: !s.done } : s);
+      const justDone = newSets[setIdx].done;
+      if (justDone) startRestTimer(restStr, exName);
+      return { ...p, sets: { ...p.sets, [exKey]: newSets } };
+    });
+  };
 
   const addSet = (exKey) =>
     setActiveLog(p => { const prev = p.sets[exKey] || []; const last = prev[prev.length - 1] || { weight: "", reps: "" }; return { ...p, sets: { ...p.sets, [exKey]: [...prev, { weight: last.weight, reps: last.reps, done: false }] } }; });
@@ -151,11 +227,6 @@ export default function GymRoutine() {
     setShowHistAlts({});
   };
 
-  // Correct the date on a saved history entry
-  const updateLogDate = (logKey, newDate) => {
-    setWorkoutLog(p => ({ ...p, [logKey]: { ...p[logKey], date: newDate } }));
-  };
-
   // ── Stats ──
   const pct = (log) => { const all = Object.values(log.sets || {}).flat(); return all.length ? Math.round(all.filter(s => s.done).length / all.length * 100) : 0; };
   const vol = (log) => Math.round(Object.values(log.sets || {}).flat().filter(s => s.done && s.weight && s.reps).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0));
@@ -163,36 +234,30 @@ export default function GymRoutine() {
 
   // ─── Shared header ────────────────────────────────────────────────────────
   const Header = () => (
-    <div style={{ background: "#111", color: "#f8f7f4", padding: "22px 20px 16px" }}>
+    <div style={{ background: T.header, color: T.headerText, padding: "22px 20px 16px" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div style={{ fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "#666", marginBottom: 4 }}>Training Platform</div>
-        <h1 style={{ fontSize: "clamp(18px, 4vw, 26px)", fontWeight: 700, margin: "0 0 3px", letterSpacing: "-0.5px" }}>
-          {regimeCfg ? `${regimeCfg.icon} ${regimeCfg.label}` : "Choose Your Programme"}
-        </h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <h1 style={{ fontSize: "clamp(18px, 4vw, 26px)", fontWeight: 700, margin: "0 0 3px", letterSpacing: "-0.5px" }}>
+            {regimeCfg ? `${regimeCfg.icon} ${regimeCfg.label}` : "Choose Your Programme"}
+          </h1>
+          <button onClick={() => setDark(d => !d)} style={{ background: "none", border: "1px solid #444", borderRadius: 2, color: "#888", cursor: "pointer", padding: "4px 10px", fontSize: 13, marginTop: 2 }}>
+            {dark ? "☀️" : "🌙"}
+          </button>
+        </div>
         {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {selectedDays.length} days/week</p>}
         {step >= 4 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-            {["routine", "history", "analysis"].map(v => (
+            {["routine", "history", "analysis", "body"].map(v => (
               <button key={v} onClick={() => setView(v)} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: (view === v || (v === "routine" && view === "log")) ? "#fff" : "transparent", color: (view === v || (v === "routine" && view === "log")) ? "#111" : "#888", border: `1px solid ${(view === v || (v === "routine" && view === "log")) ? "#fff" : "#555"}`, borderRadius: 2 }}>{v}</button>
             ))}
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
             <button onClick={() => {
-  setRegime(null);
-  setAgeClass(null);
-  setWeightClass(null);
-  setSelectedDays([]);
-  setActiveSession(null);
-  setSwaps({});
-  setView("routine");
-  setStep(1);
-  LS.set("gym_step", 1);
-  LS.set("gym_session", null);
-  LS.set("gym_regime", null);
-  LS.set("gym_age", null);
-  LS.set("gym_wc", null);
-  LS.set("gym_days", []);
-  LS.set("gym_swaps", {});
-}} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
+              setRegime(null); setAgeClass(null); setWeightClass(null); setSelectedDays([]);
+              setActiveSession(null); setSwaps({}); setView("routine"); setStep(1);
+              LS.set("gym_step", 1); LS.set("gym_session", null); LS.set("gym_regime", null);
+              LS.set("gym_age", null); LS.set("gym_wc", null); LS.set("gym_days", []); LS.set("gym_swaps", {});
+            }} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
           </div>
         )}
       </div>
@@ -200,11 +265,11 @@ export default function GymRoutine() {
   );
 
   const inner = { maxWidth: 720, margin: "0 auto", padding: "0 16px 56px" };
-  const card = { background: "#fff", border: "1px solid #e5e5e5" };
+  const card = { background: T.card, border: `1px solid ${T.cardBorder}` };
 
   // ─── Step 1: Regime ───────────────────────────────────────────────────────
   if (step === 1) return (
-    <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+    <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
         <SLabel>Step 1 of 4 — Choose your goal</SLabel>
@@ -230,7 +295,7 @@ export default function GymRoutine() {
 
   // ─── Step 2: Age ──────────────────────────────────────────────────────────
   if (step === 2) return (
-    <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+    <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
         <SLabel>Step 2 of 4 — Your age group</SLabel>
@@ -270,7 +335,7 @@ export default function GymRoutine() {
 
   // ─── Step 3: Weight class ─────────────────────────────────────────────────
   if (step === 3) return (
-    <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+    <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
         <SLabel>Step 3 of 4 — Your weight class</SLabel>
@@ -291,7 +356,7 @@ export default function GymRoutine() {
     const count = selectedDays.length;
     const min = regimeCfg?.daysMin || 3;
     return (
-      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
         <div style={inner}>
           <SLabel>Step 4 of 4 — Training days</SLabel>
@@ -335,7 +400,7 @@ export default function GymRoutine() {
     const doneSets = allSets.filter(s => s.done).length;
     const totalSets = allSets.length;
     return (
-      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <div style={{ background: "#111", color: "#f8f7f4", padding: "20px 20px 14px" }}>
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
@@ -406,31 +471,66 @@ export default function GymRoutine() {
                   <div style={{ textAlign: "right", fontSize: 12, color: "#aaa" }}>{ex.sets} × {ex.reps}<br />{ex.rest}</div>
                 </div>
                 <div style={{ padding: "8px 14px" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 32px 26px", gap: 5, marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: "#ccc" }}>#</span>
-                    <span style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase", letterSpacing: 1 }}>kg</span>
-                    <span style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase", letterSpacing: 1 }}>reps</span>
-                    <span style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase" }}>✓</span>
+                  <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr auto 32px 26px", gap: 5, marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, color: T.textMuted }}>#</span>
+                    <span style={{ fontSize: 10, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>kg</span>
+                    <span style={{ fontSize: 10, color: T.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>reps</span>
+                    <span style={{ fontSize: 10, color: T.textMuted, textTransform: "uppercase" }}>1RM</span>
+                    <span style={{ fontSize: 10, color: T.textMuted, textTransform: "uppercase" }}>✓</span>
                     <span />
                   </div>
-                  {sets.map((set, setIdx) => (
-                    <div key={setIdx} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 32px 26px", gap: 5, alignItems: "center", marginBottom: 5 }}>
-                      <span style={{ fontSize: 12, color: "#bbb", fontWeight: 700 }}>{setIdx + 1}</span>
-                      <input type="number" inputMode="decimal" placeholder="—" value={set.weight} onChange={e => updateSet(exKey, setIdx, "weight", e.target.value)} style={{ border: "1px solid #e0e0e0", padding: "6px 8px", fontSize: 14, fontFamily: "Georgia, serif", background: set.done ? "#f1f8f1" : "#fff", borderRadius: 2, width: "100%", boxSizing: "border-box" }} />
-                      <input type="number" inputMode="numeric" placeholder="—" value={set.reps} onChange={e => updateSet(exKey, setIdx, "reps", e.target.value)} style={{ border: "1px solid #e0e0e0", padding: "6px 8px", fontSize: 14, fontFamily: "Georgia, serif", background: set.done ? "#f1f8f1" : "#fff", borderRadius: 2, width: "100%", boxSizing: "border-box" }} />
-                      <button onClick={() => toggleDone(exKey, setIdx)} style={{ width: 30, height: 30, border: `2px solid ${set.done ? "#4caf50" : "#ddd"}`, background: set.done ? "#4caf50" : "#fff", cursor: "pointer", borderRadius: 2, color: "#fff", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>{set.done ? "✓" : ""}</button>
-                      <button onClick={() => removeSet(exKey, setIdx)} style={{ width: 24, height: 24, border: "1px solid #eee", background: "#fff", cursor: "pointer", borderRadius: 2, fontSize: 14, color: "#ccc", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
-                    </div>
-                  ))}
-                  <button onClick={() => addSet(exKey)} style={{ marginTop: 3, fontSize: 12, color: "#888", background: "none", border: "1px dashed #ddd", cursor: "pointer", padding: "5px", borderRadius: 2, width: "100%", fontFamily: "Georgia, serif" }}>+ add set</button>
+                  {sets.map((set, setIdx) => {
+                    const w = parseFloat(set.weight) || 0;
+                    const r = parseInt(set.reps) || 0;
+                    const orm = (set.done && w && r) ? Math.round(w * (1 + r / 30)) : null;
+                    return (
+                      <div key={setIdx} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr auto 32px 26px", gap: 5, alignItems: "center", marginBottom: 5 }}>
+                        <span style={{ fontSize: 12, color: T.textMuted, fontWeight: 700 }}>{setIdx + 1}</span>
+                        <input type="number" inputMode="decimal" placeholder="—" value={set.weight} onChange={e => updateSet(exKey, setIdx, "weight", e.target.value)} style={{ border: `1px solid ${T.inputBorder}`, padding: "6px 8px", fontSize: 14, fontFamily: "Georgia, serif", background: set.done ? (dark ? "#1a2e1a" : "#f1f8f1") : T.input, color: T.text, borderRadius: 2, width: "100%", boxSizing: "border-box" }} />
+                        <input type="number" inputMode="numeric" placeholder="—" value={set.reps} onChange={e => updateSet(exKey, setIdx, "reps", e.target.value)} style={{ border: `1px solid ${T.inputBorder}`, padding: "6px 8px", fontSize: 14, fontFamily: "Georgia, serif", background: set.done ? (dark ? "#1a2e1a" : "#f1f8f1") : T.input, color: T.text, borderRadius: 2, width: "100%", boxSizing: "border-box" }} />
+                        <span style={{ fontSize: 11, color: orm ? "#4caf50" : T.textMuted, fontWeight: orm ? 700 : 400, minWidth: 36, textAlign: "right" }}>{orm ? `${orm}` : "—"}</span>
+                        <button onClick={() => toggleDone(exKey, setIdx, ex.rest, loggedName)} style={{ width: 30, height: 30, border: `2px solid ${set.done ? "#4caf50" : T.cardBorder}`, background: set.done ? "#4caf50" : T.card, cursor: "pointer", borderRadius: 2, color: "#fff", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>{set.done ? "✓" : ""}</button>
+                        <button onClick={() => removeSet(exKey, setIdx)} style={{ width: 24, height: 24, border: `1px solid ${T.cardBorder}`, background: T.card, cursor: "pointer", borderRadius: 2, fontSize: 14, color: T.textMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                      </div>
+                    );
+                  })}
+                  <button onClick={() => addSet(exKey)} style={{ marginTop: 3, fontSize: 12, color: T.textMuted, background: "none", border: `1px dashed ${T.cardBorder}`, cursor: "pointer", padding: "5px", borderRadius: 2, width: "100%", fontFamily: "Georgia, serif" }}>+ add set</button>
                 </div>
               </div>
             );
           })}
-          <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Btn onClick={finishWorkout} style={{ flex: 1 }}>Finish Workout</Btn>
-            <Btn onClick={() => { setActiveLog(null); setView("routine"); }} variant="secondary">Discard</Btn>
+          {/* Notes */}
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: T.textMuted, marginBottom: 6 }}>Session notes</div>
+            <textarea
+              value={activeLog.note || ""}
+              onChange={e => updateNote(e.target.value)}
+              placeholder="How did it feel? Any PRs, injuries, or observations..."
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${T.inputBorder}`, background: T.input, color: T.text, padding: "10px 12px", fontSize: 13, fontFamily: "Georgia, serif", borderRadius: 2, resize: "vertical" }}
+            />
           </div>
+
+          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Btn onClick={finishWorkout} style={{ flex: 1 }}>Finish Workout</Btn>
+            <Btn onClick={() => { setActiveLog(null); setRestTimer(null); setView("routine"); }} variant="secondary">Discard</Btn>
+          </div>
+
+          {/* Rest timer — fixed bottom bar */}
+          {restTimer && (
+            <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#111", color: "#fff", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 100 }}>
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "#888", marginBottom: 2 }}>Rest — {restTimer.exName}</div>
+                <div style={{ fontSize: 28, fontWeight: 700, fontFamily: "Georgia, serif", color: restTimer.secs <= 10 ? "#ef5350" : "#4caf50" }}>
+                  {Math.floor(restTimer.secs / 60)}:{String(restTimer.secs % 60).padStart(2, "0")}
+                </div>
+                <div style={{ height: 3, background: "#333", borderRadius: 2, marginTop: 6, width: 160 }}>
+                  <div style={{ height: 3, background: "#4caf50", borderRadius: 2, width: `${(restTimer.secs / restTimer.total) * 100}%`, transition: "width 1s linear" }} />
+                </div>
+              </div>
+              <button onClick={() => setRestTimer(null)} style={{ background: "#333", border: "none", color: "#fff", padding: "8px 16px", cursor: "pointer", borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif" }}>Skip</button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -439,9 +539,125 @@ export default function GymRoutine() {
   // ─── Analysis view ────────────────────────────────────────────────────────
   if (view === "analysis") {
     return (
-      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
-        <AnalysisPage workoutLog={workoutLog} />
+        <AnalysisPage workoutLog={workoutLog} bwLog={bwLog} dark={dark} T={T} />
+      </div>
+    );
+  }
+
+  // ─── Body view ────────────────────────────────────────────────────────────
+  if (view === "body") {
+    const bwEntries = Object.entries(bwLog).sort((a, b) => a[0].localeCompare(b[0]));
+    const bwChartData = bwEntries.map(([date, weight]) => ({ date, weight }));
+    const latestBw = bwEntries[bwEntries.length - 1];
+    const firstBw = bwEntries[0];
+    const bwChange = (latestBw && firstBw && latestBw[0] !== firstBw[0])
+      ? (latestBw[1] - firstBw[1]).toFixed(1)
+      : null;
+    return (
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
+        <Header />
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px 56px" }}>
+          <SLabel style={{ color: T.textMuted }}>Log bodyweight</SLabel>
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            <input
+              type="number" inputMode="decimal" placeholder="e.g. 74.5"
+              value={bwInput} onChange={e => setBwInput(e.target.value)}
+              style={{ flex: 1, padding: "10px 12px", border: `1px solid ${T.inputBorder}`, background: T.input, color: T.text, borderRadius: 2, fontSize: 15, fontFamily: "Georgia, serif" }}
+            />
+            <span style={{ padding: "10px 0", fontSize: 13, color: T.textMuted, alignSelf: "center" }}>kg</span>
+            <Btn onClick={logBodyweight} disabled={!bwInput}>Log today</Btn>
+          </div>
+
+          {bwEntries.length > 0 && (
+            <>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+                <div style={{ background: T.card, border: `1px solid ${T.cardBorder}`, padding: "14px 16px", flex: 1, minWidth: 100 }}>
+                  <div style={{ fontSize: 11, color: T.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Current</div>
+                  <div style={{ fontSize: 22, fontWeight: 700 }}>{latestBw[1]}kg</div>
+                  <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{latestBw[0]}</div>
+                </div>
+                {bwChange !== null && (
+                  <div style={{ background: T.card, border: `1px solid ${T.cardBorder}`, padding: "14px 16px", flex: 1, minWidth: 100 }}>
+                    <div style={{ fontSize: 11, color: T.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Change</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: parseFloat(bwChange) < 0 ? "#4caf50" : parseFloat(bwChange) > 0 ? "#ef5350" : T.text }}>
+                      {parseFloat(bwChange) > 0 ? "+" : ""}{bwChange}kg
+                    </div>
+                    <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>since {firstBw[0]}</div>
+                  </div>
+                )}
+                <div style={{ background: T.card, border: `1px solid ${T.cardBorder}`, padding: "14px 16px", flex: 1, minWidth: 100 }}>
+                  <div style={{ fontSize: 11, color: T.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Entries</div>
+                  <div style={{ fontSize: 22, fontWeight: 700 }}>{bwEntries.length}</div>
+                  <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>days logged</div>
+                </div>
+              </div>
+
+              {bwChartData.length > 1 && (
+                <>
+                  <SLabel style={{ color: T.textMuted }}>Weight over time</SLabel>
+                  <div style={{ background: T.card, border: `1px solid ${T.cardBorder}`, padding: "16px", marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>kg</div>
+                    <div style={{ overflowX: "auto" }}>
+                      <svg width={Math.max(300, bwChartData.length * 40)} height={160} style={{ display: "block" }}>
+                        {(() => {
+                          const minW = Math.min(...bwChartData.map(d => d.weight));
+                          const maxW = Math.max(...bwChartData.map(d => d.weight));
+                          const range = maxW - minW || 1;
+                          const pad = { t: 10, b: 30, l: 36, r: 10 };
+                          const W = Math.max(300, bwChartData.length * 40);
+                          const H = 160;
+                          const plotW = W - pad.l - pad.r;
+                          const plotH = H - pad.t - pad.b;
+                          const x = (i) => pad.l + (i / (bwChartData.length - 1)) * plotW;
+                          const y = (w) => pad.t + (1 - (w - minW) / range) * plotH;
+                          const pts = bwChartData.map((d, i) => `${x(i)},${y(d.weight)}`).join(" ");
+                          return (
+                            <>
+                              <polyline points={pts} fill="none" stroke={dark ? "#fff" : "#111"} strokeWidth="2" strokeLinejoin="round" />
+                              {bwChartData.map((d, i) => (
+                                <g key={i}>
+                                  <circle cx={x(i)} cy={y(d.weight)} r={3} fill={dark ? "#fff" : "#111"} />
+                                  {i % Math.ceil(bwChartData.length / 6) === 0 && (
+                                    <text x={x(i)} y={H - 8} textAnchor="middle" fontSize={9} fill={dark ? "#666" : "#aaa"}>{d.date.slice(5)}</text>
+                                  )}
+                                </g>
+                              ))}
+                              {[minW, Math.round((minW + maxW) / 2 * 10) / 10, maxW].map((w, i) => (
+                                <text key={i} x={pad.l - 4} y={y(w) + 4} textAnchor="end" fontSize={9} fill={dark ? "#666" : "#aaa"}>{w}</text>
+              ))}
+                            </>
+                          );
+                        })()}
+                      </svg>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <SLabel style={{ color: T.textMuted }}>History</SLabel>
+              <div style={{ background: T.card, border: `1px solid ${T.cardBorder}` }}>
+                {[...bwEntries].reverse().map(([date, weight], i) => (
+                  <div key={date} style={{ padding: "10px 14px", borderBottom: i < bwEntries.length - 1 ? `1px solid ${T.cardBorder}` : "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: T.textSec }}>{date}</span>
+                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{weight}kg</span>
+                      <button onClick={() => { const n = { ...bwLog }; delete n[date]; setBwLog(n); }} style={{ fontSize: 11, color: "#b91c1c", background: "none", border: "none", cursor: "pointer", padding: 0 }}>×</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {bwEntries.length === 0 && (
+            <div style={{ background: T.card, border: `1px solid ${T.cardBorder}`, padding: "40px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>⚖️</div>
+              <p style={{ color: T.textMuted, fontSize: 14, margin: 0 }}>No bodyweight entries yet. Log your weight above to start tracking.</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -449,12 +665,12 @@ export default function GymRoutine() {
   // ─── History view ─────────────────────────────────────────────────────────
   if (view === "history") {
     return (
-      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
         {/* Delete confirmation modal */}
         {deleteConfirm && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-            <div style={{ background: "#fff", padding: "28px 24px", maxWidth: 380, width: "100%", borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }}>
+            <div style={{ background: T.card || "#fff", padding: "28px 24px", maxWidth: 380, width: "100%", borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }}>
               <div style={{ fontSize: 24, marginBottom: 10 }}>🗑️</div>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Delete this workout?</div>
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 20 }}>
@@ -508,7 +724,13 @@ export default function GymRoutine() {
                 <div style={{ height: 3, background: "#f0f0f0" }}><div style={{ height: 3, background: "#4caf50", width: `${p}%` }} /></div>
                 {/* Expanded content */}
                 {isExpanded && !isEditing && (
-                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5" }}>
+                  <div style={{ padding: "12px 14px", borderTop: `1px solid ${T.cardBorder}` }}>
+                    {log.note && (
+                      <div style={{ marginBottom: 12, padding: "8px 12px", background: T.altBg, border: `1px solid ${T.altBorder}`, borderRadius: 2 }}>
+                        <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: T.textMuted, marginBottom: 4 }}>Notes</div>
+                        <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.6, fontStyle: "italic" }}>{log.note}</div>
+                      </div>
+                    )}
                     {session?.exercises.map((ex, exIdx) => {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const done = ((log.sets || {})[exKey] || []).filter(s => s.done);
@@ -516,9 +738,19 @@ export default function GymRoutine() {
                       const loggedName = log.exerciseNames?.[exKey] || ex.name;
                       return (
                         <div key={exIdx} style={{ marginBottom: 8 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{loggedName}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: T.text }}>{loggedName}</div>
                           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                            {done.map((s, i) => <span key={i} style={{ fontSize: 11, background: "#f5f5f5", border: "1px solid #eee", padding: "3px 8px", borderRadius: 2, color: "#555" }}>Set {i + 1}: {s.weight || "?"}kg × {s.reps || "?"}</span>)}
+                            {done.map((s, i) => {
+                              const w = parseFloat(s.weight) || 0;
+                              const r = parseInt(s.reps) || 0;
+                              const orm = (w && r) ? Math.round(w * (1 + r / 30)) : null;
+                              return (
+                                <span key={i} style={{ fontSize: 11, background: T.altBg, border: `1px solid ${T.altBorder}`, padding: "3px 8px", borderRadius: 2, color: T.textSec }}>
+                                  Set {i + 1}: {s.weight || "?"}kg × {s.reps || "?"}
+                                  {orm && <span style={{ color: "#4caf50", marginLeft: 4 }}>~{orm}kg</span>}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -528,21 +760,7 @@ export default function GymRoutine() {
                 {/* Edit mode */}
                 {isEditing && (
                   <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: "#fafafa" }}>
-                    {/* Date correction */}
-                    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid #efefef" }}>
-                      <div style={{ fontSize: 11, color: "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Workout date</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <input
-                          type="date"
-                          value={log.date}
-                          max={todayStr()}
-                          onChange={e => updateLogDate(key, e.target.value)}
-                          style={{ padding: "7px 10px", border: "1px solid #e0e0e0", borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: "#fff", color: "#111", flex: 1 }}
-                        />
-                        <span style={{ fontSize: 11, color: "#aaa" }}>tap to correct</span>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 11, color: "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Sets — tap a field to update</div>
+                    <div style={{ fontSize: 11, color: "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
                     {session?.exercises.map((ex, exIdx) => {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const sets = (log.sets || {})[exKey] || [];
@@ -616,7 +834,7 @@ export default function GymRoutine() {
   const mobility = MOBILITY_WARMUPS[ageClass]?.[activeSession];
 
   return (
-    <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+    <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px 56px" }}>
         {/* Age profile banner */}
