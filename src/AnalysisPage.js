@@ -272,30 +272,26 @@ export default function AnalysisPage({ workoutLog }) {
 
         <SL>Training frequency — last 16 weeks</SL>
         <Card style={{ padding: "16px 12px" }}>
-          {/* Day labels */}
-          <div style={{ display: "flex", gap: 4, marginBottom: 4, paddingLeft: 2 }}>
-            {["M","T","W","T","F","S","S"].map((d, i) => (
-              <div key={i} style={{ width: 14, fontSize: 9, color: "#ccc", textAlign: "center", letterSpacing: 0 }}>{d}</div>
-            ))}
-          </div>
-          {/* Calendar grid — 7 rows (days) × 16 cols (weeks) */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(16, 14px)", gridTemplateRows: "repeat(7, 14px)", gap: 3 }}>
-            {Array.from({ length: 7 }, (_, di) =>
-              calendar.map((week, wi) => {
-                const day = week[di];
-                return (
-                  <div
-                    key={`${wi}-${di}`}
-                    title={day.trained ? `Trained: ${shortFmt(day.date)}` : day.date}
-                    style={{
-                      width: 14, height: 14, borderRadius: 2,
-                      background: day.future ? "transparent" : day.trained ? "#111" : "#f0f0f0",
-                      border: day.future ? "none" : "1px solid #e8e8e8",
-                    }}
-                  />
-                );
-              })
-            )}
+          {/* Day labels + grid */}
+          <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingTop: 1 }}>
+              {["M","T","W","T","F","S","S"].map((d, i) => (
+                <div key={i} style={{ width: 10, height: 14, fontSize: 9, color: "#ccc", display: "flex", alignItems: "center" }}>{d}</div>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(16, 14px)", gridTemplateRows: "repeat(7, 14px)", gridAutoFlow: "column", gap: 3 }}>
+              {calendar.flat().map((day, idx) => (
+                <div
+                  key={idx}
+                  title={day.trained ? `Trained: ${shortFmt(day.date)}` : day.date}
+                  style={{
+                    width: 14, height: 14, borderRadius: 2,
+                    background: day.future ? "transparent" : day.trained ? "#111" : "#f0f0f0",
+                    border: day.future ? "none" : "1px solid #e8e8e8",
+                  }}
+                />
+              ))}
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
             <div style={{ width: 12, height: 12, background: "#f0f0f0", borderRadius: 2, border: "1px solid #e8e8e8" }} />
