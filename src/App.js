@@ -4,6 +4,7 @@ import {
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
   MOBILITY_WARMUPS, getSessionWithAge, EXERCISE_GUIDES,
 } from "./gymData";
+import AnalysisPage from "./AnalysisPage";
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const LS = {
@@ -137,7 +138,7 @@ export default function GymRoutine() {
         {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {selectedDays.length} days/week</p>}
         {step >= 4 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-            {["routine", "history"].map(v => (
+            {["routine", "history", "analysis"].map(v => (
               <button key={v} onClick={() => setView(v)} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: (view === v || (v === "routine" && view === "log")) ? "#fff" : "transparent", color: (view === v || (v === "routine" && view === "log")) ? "#111" : "#888", border: `1px solid ${(view === v || (v === "routine" && view === "log")) ? "#fff" : "#555"}`, borderRadius: 2 }}>{v}</button>
             ))}
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
@@ -375,6 +376,16 @@ export default function GymRoutine() {
             <Btn onClick={() => { setActiveLog(null); setView("routine"); }} variant="secondary">Discard</Btn>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // ─── Analysis view ────────────────────────────────────────────────────────
+  if (view === "analysis") {
+    return (
+      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
+        <Header />
+        <AnalysisPage workoutLog={workoutLog} />
       </div>
     );
   }
