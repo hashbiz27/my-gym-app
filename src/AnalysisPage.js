@@ -8,8 +8,8 @@ import { ALL_SESSIONS, REGIMES } from "./gymData";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const fmt = (d) => {
-  const dt = new Date(d);
+const shortFmt = (d) => {
+  const dt = new Date(d + "T00:00:00");
   return dt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 };
 
