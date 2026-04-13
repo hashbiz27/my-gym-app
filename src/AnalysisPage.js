@@ -43,7 +43,8 @@ function getExerciseHistory(logs, exName) {
       : Object.entries(log.sets || {}).find(([k]) => {
           const session = ALL_SESSIONS[log.regime]?.[log.sessionId];
           if (!session) return false;
-          const idx = parseInt(k.split("-")[1]);
+          const parts = k.split("-");
+          const idx = parseInt(parts[parts.length - 1]);
           return session.exercises[idx]?.name === exName;
         })?.[1];
 
@@ -86,7 +87,8 @@ function getPersonalBests(logs) {
     Object.entries(log.sets || {}).forEach(([exKey, sets]) => {
       const name = exNames[exKey] || (() => {
         const session = ALL_SESSIONS[log.regime]?.[log.sessionId];
-        const idx = parseInt(exKey.split("-")[1]);
+        const parts = exKey.split("-");
+        const idx = parseInt(parts[parts.length - 1]);
         return session?.exercises[idx]?.name;
       })();
       if (!name) return;
@@ -110,7 +112,8 @@ function getAvgReps(logs) {
     Object.entries(log.sets || {}).forEach(([exKey, sets]) => {
       const name = exNames[exKey] || (() => {
         const session = ALL_SESSIONS[log.regime]?.[log.sessionId];
-        const idx = parseInt(exKey.split("-")[1]);
+        const parts = exKey.split("-");
+        const idx = parseInt(parts[parts.length - 1]);
         return session?.exercises[idx]?.name;
       })();
       if (!name) return;
@@ -275,24 +278,24 @@ export default function AnalysisPage({ workoutLog }) {
               <div key={i} style={{ width: 14, fontSize: 9, color: "#ccc", textAlign: "center", letterSpacing: 0 }}>{d}</div>
             ))}
           </div>
-          {/* Calendar grid — columns = weeks, rows = days */}
-          <div style={{ display: "flex", gap: 3 }}>
-            {calendar.map((week, wi) => (
-              <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {week.map((day, di) => (
+          {/* Calendar grid — 7 rows (days) × 16 cols (weeks) */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(16, 14px)", gridTemplateRows: "repeat(7, 14px)", gap: 3 }}>
+            {Array.from({ length: 7 }, (_, di) =>
+              calendar.map((week, wi) => {
+                const day = week[di];
+                return (
                   <div
-                    key={di}
+                    key={`${wi}-${di}`}
                     title={day.trained ? `Trained: ${shortFmt(day.date)}` : day.date}
                     style={{
                       width: 14, height: 14, borderRadius: 2,
                       background: day.future ? "transparent" : day.trained ? "#111" : "#f0f0f0",
                       border: day.future ? "none" : "1px solid #e8e8e8",
-                      flexShrink: 0,
                     }}
                   />
-                ))}
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
             <div style={{ width: 12, height: 12, background: "#f0f0f0", borderRadius: 2, border: "1px solid #e8e8e8" }} />
