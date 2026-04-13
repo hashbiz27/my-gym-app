@@ -124,18 +124,31 @@ function getSessionDurations(logs) {
 
 function buildCalendar(logs) {
   const trainedDates = new Set(logs.filter(([, l]) => l.finishedAt).map(([, l]) => l.date));
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+
+  // Get today's local date components without any UTC conversion
+  const now = new Date();
+  const todayStr = localDateStr(now);
+
+  // Find the Monday 15 weeks before this week's Monday, using pure local arithmetic
+  const todayDay = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+  const daysToMonday = todayDay === 0 ? 6 : todayDay - 1;
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - daysToMonday);
+  thisMonday.setHours(0, 0, 0, 0);
+
+  const start = new Date(thisMonday);
+  start.setDate(thisMonday.getDate() - 15 * 7);
+
   const weeks = [];
-  const start = new Date(today);
-  start.setDate(start.getDate() - (start.getDay() === 0 ? 6 : start.getDay() - 1) - 15 * 7);
   for (let w = 0; w < 16; w++) {
     const week = [];
     for (let d = 0; d < 7; d++) {
       const dt = new Date(start);
       dt.setDate(start.getDate() + w * 7 + d);
+      dt.setHours(0, 0, 0, 0);
       const str = localDateStr(dt);
-      week.push({ date: str, trained: trainedDates.has(str), future: dt > today });
+      // Compare date strings directly — no UTC conversion involved
+      week.push({ date: str, trained: trainedDates.has(str), future: str > todayStr });
     }
     weeks.push(week);
   }
