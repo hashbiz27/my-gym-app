@@ -72,10 +72,13 @@ export default function GymRoutine() {
     const session = getSessionWithAge(regime, sid, ageClass);
     if (!session) return;
     const sets = {};
+    const exerciseNames = {};
     session.exercises.forEach((ex, i) => {
-      sets[`${sid}-${i}`] = Array.from({ length: parseInt(ex.sets) || 3 }, () => ({ weight: "", reps: "", done: false }));
+      const key = `${sid}-${i}`;
+      sets[key] = Array.from({ length: parseInt(ex.sets) || 3 }, () => ({ weight: "", reps: "", done: false }));
+      exerciseNames[key] = swaps[key] || ex.name;
     });
-    setActiveLog({ regime, sessionId: sid, date: todayStr(), sets, startedAt: new Date().toISOString() });
+    setActiveLog({ regime, sessionId: sid, date: todayStr(), sets, exerciseNames, startedAt: new Date().toISOString() });
     setView("log");
   };
 
@@ -332,12 +335,13 @@ export default function GymRoutine() {
             const exKey = `${sid}-${exIdx}`;
             const sets = activeLog.sets[exKey] || [];
             const allDone = sets.length > 0 && sets.every(s => s.done);
+            const loggedName = activeLog.exerciseNames?.[exKey] || ex.name;
             return (
               <div key={exIdx} style={{ ...card, border: `1px solid ${allDone ? "#a5d6a7" : "#e5e5e5"}`, marginTop: 12 }}>
                 <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #f5f5f5", background: allDone ? "#f1f8f1" : "#fff", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
                   <div>
                     <span style={{ fontSize: 10, color: "#ccc", fontFamily: "monospace", marginRight: 6 }}>{String(exIdx + 1).padStart(2, "0")}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>{ex.name}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>{loggedName}</span>
                     {allDone && <span style={{ marginLeft: 8, fontSize: 10, background: "#a5d6a7", color: "#1b5e20", padding: "2px 6px", borderRadius: 2, fontWeight: 700 }}>done</span>}
                     {ex.note && <div style={{ fontSize: 11, color: "#aaa", paddingLeft: 22, fontStyle: "italic" }}>{ex.note}</div>}
                     {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Target: <strong>{ex.weight[weightClass]}</strong></div>}
@@ -442,9 +446,10 @@ export default function GymRoutine() {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const done = ((log.sets || {})[exKey] || []).filter(s => s.done);
                       if (!done.length) return null;
+                      const loggedName = log.exerciseNames?.[exKey] || ex.name;
                       return (
                         <div key={exIdx} style={{ marginBottom: 8 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{ex.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{loggedName}</div>
                           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                             {done.map((s, i) => <span key={i} style={{ fontSize: 11, background: "#f5f5f5", border: "1px solid #eee", padding: "3px 8px", borderRadius: 2, color: "#555" }}>Set {i + 1}: {s.weight || "?"}kg × {s.reps || "?"}</span>)}
                           </div>
@@ -460,9 +465,10 @@ export default function GymRoutine() {
                     {session?.exercises.map((ex, exIdx) => {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const sets = (log.sets || {})[exKey] || [];
+                      const loggedName = log.exerciseNames?.[exKey] || ex.name;
                       return (
                         <div key={exIdx} style={{ marginBottom: 14 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{ex.name}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{loggedName}</div>
                           <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 32px 26px", gap: 5, marginBottom: 4 }}>
                             <span style={{ fontSize: 10, color: "#ccc" }}>#</span>
                             <span style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase" }}>kg</span>
