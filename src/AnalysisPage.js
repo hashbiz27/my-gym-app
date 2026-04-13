@@ -272,7 +272,7 @@ export default function AnalysisPage({ workoutLog }) {
 
         <SL>Training frequency — last 16 weeks</SL>
         <Card style={{ padding: "16px 12px" }}>
-          {/* Day labels + grid */}
+       {/* Day labels + grid */}
           <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingTop: 1 }}>
               {["M","T","W","T","F","S","S"].map((d, i) => (
