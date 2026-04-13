@@ -157,7 +157,7 @@ function buildCalendar(logs) {
     for (let d = 0; d < 7; d++) {
       const dt = new Date(start);
       dt.setDate(start.getDate() + w * 7 + d);
-      const str = dt.toISOString().slice(0, 10);
+      const str = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
       week.push({ date: str, trained: trainedDates.has(str), future: dt > today });
     }
     weeks.push(week);
