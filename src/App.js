@@ -4,7 +4,6 @@ import {
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
   MOBILITY_WARMUPS, getSessionWithAge, EXERCISE_GUIDES,
 } from "./gymData";
-import AnalysisPage from "./AnalysisPage";
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const LS = {
@@ -48,8 +47,10 @@ export default function GymRoutine() {
   const [activeLog, setActiveLog] = useState(() => LS.get("gym_activeLog", null));
   // History
   const [expandedLog, setExpandedLog] = useState(null);
-  const [editingLog, setEditingLog] = useState(null); // key of log being edited
-  const [deleteConfirm, setDeleteConfirm] = useState(null); // key to confirm delete
+  const [editingLog, setEditingLog] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [showLogAlts, setShowLogAlts] = useState({});
+  const [showHistAlts, setShowHistAlts] = useState({});
 
   useEffect(() => { LS.set("gym_regime", regime); }, [regime]);
   useEffect(() => { LS.set("gym_age", ageClass); }, [ageClass]);
@@ -122,6 +123,27 @@ export default function GymRoutine() {
     setExpandedLog(null);
   };
 
+  // Swap exercise name in the active log
+  const swapLogExercise = (exKey, newName) => {
+    setActiveLog(p => ({
+      ...p,
+      exerciseNames: { ...p.exerciseNames, [exKey]: newName },
+    }));
+    setShowLogAlts({});
+  };
+
+  // Swap exercise name in a saved history entry
+  const swapHistoryExercise = (logKey, exKey, newName) => {
+    setWorkoutLog(p => ({
+      ...p,
+      [logKey]: {
+        ...p[logKey],
+        exerciseNames: { ...p[logKey].exerciseNames, [exKey]: newName },
+      },
+    }));
+    setShowHistAlts({});
+  };
+
   // ── Stats ──
   const pct = (log) => { const all = Object.values(log.sets || {}).flat(); return all.length ? Math.round(all.filter(s => s.done).length / all.length * 100) : 0; };
   const vol = (log) => Math.round(Object.values(log.sets || {}).flat().filter(s => s.done && s.weight && s.reps).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0));
@@ -138,7 +160,7 @@ export default function GymRoutine() {
         {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {selectedDays.length} days/week</p>}
         {step >= 4 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-            {["routine", "history", "analysis"].map(v => (
+            {["routine", "history"].map(v => (
               <button key={v} onClick={() => setView(v)} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: (view === v || (v === "routine" && view === "log")) ? "#fff" : "transparent", color: (view === v || (v === "routine" && view === "log")) ? "#111" : "#888", border: `1px solid ${(view === v || (v === "routine" && view === "log")) ? "#fff" : "#555"}`, borderRadius: 2 }}>{v}</button>
             ))}
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
@@ -346,6 +368,28 @@ export default function GymRoutine() {
                     {allDone && <span style={{ marginLeft: 8, fontSize: 10, background: "#a5d6a7", color: "#1b5e20", padding: "2px 6px", borderRadius: 2, fontWeight: 700 }}>done</span>}
                     {ex.note && <div style={{ fontSize: 11, color: "#aaa", paddingLeft: 22, fontStyle: "italic" }}>{ex.note}</div>}
                     {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Target: <strong>{ex.weight[weightClass]}</strong></div>}
+                    <button
+                      onClick={() => setShowLogAlts(p => ({ ...p, [exKey]: !p[exKey] }))}
+                      style={{ marginLeft: 22, marginTop: 3, fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                    >
+                      {showLogAlts[exKey] ? "hide" : "swap exercise"}
+                    </button>
+                    {showLogAlts[exKey] && (
+                      <div style={{ paddingLeft: 22, marginTop: 6, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {ALL_SESSIONS[regime]?.[sid]?.exercises[exIdx]?.alts?.map(alt => (
+                          <button key={alt} onClick={() => swapLogExercise(exKey, alt)}
+                            style={{ padding: "3px 8px", background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#444" }}>
+                            {alt}
+                          </button>
+                        ))}
+                        {loggedName !== ex.name && (
+                          <button onClick={() => swapLogExercise(exKey, ex.name)}
+                            style={{ padding: "3px 8px", background: "#fff0f0", border: "1px solid #f5c6c6", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#a33" }}>
+                            restore
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div style={{ textAlign: "right", fontSize: 12, color: "#aaa" }}>{ex.sets} × {ex.reps}<br />{ex.rest}</div>
                 </div>
@@ -376,16 +420,6 @@ export default function GymRoutine() {
             <Btn onClick={() => { setActiveLog(null); setView("routine"); }} variant="secondary">Discard</Btn>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // ─── Analysis view ────────────────────────────────────────────────────────
-  if (view === "analysis") {
-    return (
-      <div style={{ fontFamily: "Georgia, serif", background: "#f8f7f4", minHeight: "100vh", color: "#1a1a1a" }}>
-        <Header />
-        <AnalysisPage workoutLog={workoutLog} />
       </div>
     );
   }
@@ -479,7 +513,31 @@ export default function GymRoutine() {
                       const loggedName = log.exerciseNames?.[exKey] || ex.name;
                       return (
                         <div key={exIdx} style={{ marginBottom: 14 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{loggedName}</div>
+                          <div style={{ marginBottom: 6 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{loggedName}</div>
+                            <button
+                              onClick={() => setShowHistAlts(p => ({ ...p, [`${key}-${exKey}`]: !p[`${key}-${exKey}`] }))}
+                              style={{ fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                            >
+                              {showHistAlts[`${key}-${exKey}`] ? "hide" : "swap exercise"}
+                            </button>
+                            {showHistAlts[`${key}-${exKey}`] && (
+                              <div style={{ marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                                {ALL_SESSIONS[logRegime]?.[log.sessionId]?.exercises[exIdx]?.alts?.map(alt => (
+                                  <button key={alt} onClick={() => swapHistoryExercise(key, exKey, alt)}
+                                    style={{ padding: "3px 8px", background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#444" }}>
+                                    {alt}
+                                  </button>
+                                ))}
+                                {loggedName !== ex.name && (
+                                  <button onClick={() => swapHistoryExercise(key, exKey, ex.name)}
+                                    style={{ padding: "3px 8px", background: "#fff0f0", border: "1px solid #f5c6c6", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#a33" }}>
+                                    restore
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 32px 26px", gap: 5, marginBottom: 4 }}>
                             <span style={{ fontSize: 10, color: "#ccc" }}>#</span>
                             <span style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase" }}>kg</span>
