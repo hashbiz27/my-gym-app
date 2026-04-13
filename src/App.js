@@ -91,7 +91,7 @@ export default function GymRoutine() {
       });
     }, 1000);
     return () => clearInterval(restRef.current);
-  }, [restTimer?.total, restTimer === null]);
+  }, [restTimer]);
 
   // Parse rest string like "2–3 min", "90s", "60s" → seconds
   const parseRest = (restStr) => {
@@ -759,8 +759,22 @@ export default function GymRoutine() {
                 )}
                 {/* Edit mode */}
                 {isEditing && (
-                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: "#fafafa" }}>
-                    <div style={{ fontSize: 11, color: "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
+                  <div style={{ padding: "12px 14px", borderTop: `1px solid ${T.cardBorder || "#f5f5f5"}`, background: T.altBg || "#fafafa" }}>
+                    {/* Date correction */}
+                    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.altBorder || "#efefef"}` }}>
+                      <div style={{ fontSize: 11, color: T.textMuted || "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Workout date</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <input
+                          type="date"
+                          value={log.date}
+                          max={todayStr()}
+                          onChange={e => updateLogDate(key, e.target.value)}
+                          style={{ padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", flex: 1 }}
+                        />
+                        <span style={{ fontSize: 11, color: T.textMuted || "#aaa" }}>tap to correct</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: T.textMuted || "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
                     {session?.exercises.map((ex, exIdx) => {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const sets = (log.sets || {})[exKey] || [];
