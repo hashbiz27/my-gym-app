@@ -408,6 +408,9 @@ export default function AnalysisPage({ workoutLog }) {
               {personalBests.map(([name, pb], i) => (
                 <div key={name} style={{ padding: "10px 14px", borderBottom: i < personalBests.length - 1 ? "1px solid #f9f9f9" : "none", display: "grid", gridTemplateColumns: "1fr 60px 60px 80px", gap: 8, alignItems: "center" }}>
                   <span style={{ fontSize: 13, fontWeight: i === 0 ? 700 : 400, color: "#111" }}>
+  <span style={{ fontSize: 10, background: i === 0 ? "#fff8e1" : "#f5f5f5", color: i === 0 ? "#b45309" : "#888", padding: "1px 5px", borderRadius: 2, fontWeight: 700, marginRight: 6 }}>PB</span>
+  {name}
+</span>
                     {i === 0 && <span style={{ fontSize: 10, background: "#fff8e1", color: "#b45309", padding: "1px 5px", borderRadius: 2, fontWeight: 700, marginRight: 6 }}>PB</span>}
                     {name}
                   </span>
