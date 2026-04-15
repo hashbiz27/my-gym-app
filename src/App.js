@@ -398,21 +398,22 @@ export default function GymRoutine() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Btn onClick={() => setStep(3)} variant="secondary">← Back</Btn>
-          <Btn onClick={() => weightClass && setStep(5)} disabled={!weightClass}>Continue →</Btn>
+          <Btn onClick={() => {
+            if (!weightClass) return;
+            if (regime === "custom") {
+              setView("routine");
+              setStep(5);
+            } else {
+              setStep(5);
+            }
+          }} disabled={!weightClass}>Continue →</Btn>
         </div>
       </div>
     </div>
   );
 
   // ─── Step 5: Days ─────────────────────────────────────────────────────────
-  // Custom regime skips days entirely — sessions are built first in the routine view,
-  // then days can be assigned from the week bar afterwards
-  if (step === 5 && regime === "custom") {
-    setView("routine");
-    return null;
-  }
-
-  if (step === 5 && view === "setup") {
+  if (step === 5 && view === "setup" && regime !== "custom") {
     const min = regimeCfg?.daysMin || 3;
     const assignedCount = selectedDays.filter(d => d.session).length;
     const sessionOptions = (regimeCfg?.sessionOrder || []).map(sid => ({ id: sid, label: regimeCfg.sessionLabels[sid] }));
@@ -490,9 +491,9 @@ export default function GymRoutine() {
     );
   }
 
-  // Route to setup if needed — but not for custom (it builds sessions in the routine view)
-  if (step === 5 && assignedSessions.length === 0 && view !== "setup" && regime !== "custom") {
-    setView("setup");
+  // Route to setup if needed — custom skips days entirely
+  if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup") {
+    // Safe: return the setup view inline rather than calling setView during render
     return null;
   }
 
@@ -980,37 +981,17 @@ export default function GymRoutine() {
 
           {/* Week bar */}
           <SLabel>Your week</SLabel>
-          {customSessionIds.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 18 }}>
-              {DAYS_OF_WEEK.map(day => {
-                const assigned = selectedDays.find(d => d.day === day);
-                return (
-                  <div key={day} style={{ display: "grid", gridTemplateColumns: "48px 1fr", gap: 10, alignItems: "center" }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{day}</span>
-                    <select
-                      value={assigned?.session || ""}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setSelectedDays(prev => {
-                          const without = prev.filter(d => d.day !== day);
-                          if (!val) return without;
-                          return [...without, { day, session: val }];
-                        });
-                      }}
-                      style={{ padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: assigned?.session ? (T.text || "#111") : (T.textMuted || "#aaa") }}
-                    >
-                      <option value="">— Rest —</option>
-                      {customSessionIds.map(sid => (
-                        <option key={sid} value={sid}>{customSessions[sid].label}</option>
-                      ))}
-                    </select>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p style={{ fontSize: 13, color: T.textMuted, marginBottom: 18, fontStyle: "italic" }}>Create a session below to start assigning training days.</p>
-          )}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 18 }}>
+            {DAYS_OF_WEEK.map(day => {
+              const a = assignedSessions.find(s => s.day === day);
+              return (
+                <div key={day} onClick={() => a && setActiveSession(a.sessionId)} style={{ background: a ? "#111" : T.card, border: `1px solid ${T.cardBorder}`, borderTop: a && activeSession === a.sessionId ? "3px solid #888" : `1px solid ${T.cardBorder}`, padding: "8px 3px", textAlign: "center", cursor: a ? "pointer" : "default" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: a ? "#aaa" : T.textMuted, textTransform: "uppercase", marginBottom: 2 }}>{day}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: a ? "#fff" : T.textMuted, lineHeight: 1.3 }}>{a ? (customSessions[a.sessionId]?.label || a.sessionId) : "Rest"}</div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Session tabs */}
           <SLabel style={{ marginTop: 0 }}>My sessions</SLabel>
