@@ -939,10 +939,7 @@ export default function GymRoutine() {
   if (regime === "custom") {
     const customSessionIds = Object.keys(customSessions);
     const currentCustomSession = activeSession && customSessions[activeSession];
-    const [csName, setCsName] = [editingCustomSession?.name ?? "", (v) => setEditingCustomSession(p => ({ ...p, name: v }))];
-    const [csSearch, setCsSearch] = editingCustomSession
-      ? [editingCustomSession.search || "", (v) => setEditingCustomSession(p => ({ ...p, search: v }))]
-      : ["", () => {}];
+    const csSearch = editingCustomSession?.search || "";
 
     // All exercise names from database
     const allDbExercises = Object.keys(EXERCISE_GUIDES).sort();

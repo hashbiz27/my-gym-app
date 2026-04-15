@@ -3748,10 +3748,6 @@ export function adjustWeightForSex(weightStr, sex) {
   // Don't touch bodyweight-only strings
   if (/^bodyweight$/i.test(weightStr.trim())) return weightStr;
 
-  // Extract prefix (BW, Bodyweight) and suffix (ea, DBs, kg ball, etc.)
-  const prefix = weightStr.match(/^(BW[–-]|Bodyweight[–-])/i)?.[0] || "";
-  const suffix = weightStr.match(/(kg ea|ea|DBs|kg ball|kg box|Max effort|Moderate|Light band|Med band|Foam roller|box|cm box|\+\d[\d–]+kg)$/i)?.[0] || "";
-
   // Find all numbers and scale them
   const scaled = weightStr.replace(/\d+(\.\d+)?/g, (n) => {
     const num = parseFloat(n);
