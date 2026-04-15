@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   AGE_CLASSES, WEIGHT_CLASSES, DAYS_OF_WEEK,
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
@@ -45,6 +45,8 @@ export default function GymRoutine() {
   const [swaps, setSwaps] = useState(() => LS.get("gym_swaps", {}));
   const [showAlts, setShowAlts] = useState({});
   const [showGuide, setShowGuide] = useState({});
+  const [showOverride, setShowOverride] = useState({});
+  const [overrideSearch, setOverrideSearch] = useState({});
   const [showAgeInfo, setShowAgeInfo] = useState(false);
   const [showMobility, setShowMobility] = useState(false);
   // View: "routine" | "log" | "history"
@@ -128,9 +130,22 @@ export default function GymRoutine() {
 
   const regimeCfg = regime ? REGIMES[regime] : null;
   const ageProfile = ageClass ? AGE_PROFILES[ageClass] : null;
-  const assignedSessions = selectedDays.slice(0, 4).map((day, i) => ({ day, sessionId: regimeCfg?.sessionOrder[i] }));
+  const assignedSessions = selectedDays
+    .filter(d => d && d.session)
+    .map(d => ({ day: d.day, sessionId: d.session }));
 
-  const toggleDay = (day) => setSelectedDays(p => p.includes(day) ? p.filter(d => d !== day) : p.length < 4 ? [...p, day] : p);
+  const toggleDay = () => {}; // replaced by per-day dropdowns in step 4
+
+  // All unique exercise names across the entire database for override search
+  const allExerciseNames = useMemo(() => {
+    const names = new Set();
+    Object.values(ALL_SESSIONS).forEach(regime =>
+      Object.values(regime).forEach(session =>
+        session.exercises.forEach(ex => names.add(ex.name))
+      )
+    );
+    return [...names].sort();
+  }, []);
 
   // Dark mode theme
   const T = dark ? {
@@ -245,7 +260,7 @@ export default function GymRoutine() {
             {dark ? "☀️" : "🌙"}
           </button>
         </div>
-        {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {selectedDays.length} days/week</p>}
+        {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {assignedSessions.length} days/week</p>}
         {step >= 4 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
             {["routine", "history", "analysis", "body"].map(v => (
@@ -353,39 +368,85 @@ export default function GymRoutine() {
 
   // ─── Step 4: Days ─────────────────────────────────────────────────────────
   if (step === 4 && view === "setup") {
-    const count = selectedDays.length;
     const min = regimeCfg?.daysMin || 3;
+    // dayAssignments: { Mon: "upper-a" | null, ... }
+    const assignedCount = selectedDays.filter(d => d.session).length;
     return (
       <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
         <div style={inner}>
           <SLabel>Step 4 of 4 — Training days</SLabel>
-          <p style={{ fontSize: 14, color: "#555", marginBottom: 18, lineHeight: 1.7 }}>Select {min}–4 days. Sessions will be assigned in order across your chosen days.</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-            {DAYS_OF_WEEK.map(day => <Pill key={day} active={selectedDays.includes(day)} onClick={() => toggleDay(day)}>{day}</Pill>)}
+          <p style={{ fontSize: 14, color: T.textSec || "#555", marginBottom: 18, lineHeight: 1.7 }}>
+            For each day you want to train, pick the session to assign to it. Leave days blank to rest.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+            {DAYS_OF_WEEK.map(day => {
+              const assigned = selectedDays.find(d => d.day === day);
+              return (
+                <div key={day} style={{ display: "grid", gridTemplateColumns: "56px 1fr", gap: 10, alignItems: "center" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{day}</span>
+                  <select
+                    value={assigned?.session || ""}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setSelectedDays(prev => {
+                        const without = prev.filter(d => d.day !== day);
+                        if (!val) return without;
+                        return [...without, { day, session: val }];
+                      });
+                    }}
+                    style={{ padding: "8px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: assigned?.session ? (T.text || "#111") : (T.textMuted || "#aaa") }}
+                  >
+                    <option value="">— Rest —</option>
+                    {regimeCfg?.sessionOrder.map(sid => (
+                      <option key={sid} value={sid}>{regimeCfg.sessionLabels[sid]}</option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
           </div>
-          {count > 0 && (
+
+          {/* Preview */}
+          {assignedCount >= min && (
             <div style={{ ...card, borderLeft: "3px solid #111", padding: "12px 16px", marginBottom: 18 }}>
-              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>Your schedule</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 6 }}>
-                {assignedSessions.map(({ day, sessionId }) => (
-                  <div key={day} style={{ fontSize: 13 }}><span style={{ fontWeight: 700 }}>{day}</span><span style={{ color: "#888", marginLeft: 6 }}>{regimeCfg?.sessionLabels[sessionId]}</span></div>
+              <div style={{ fontSize: 11, color: T.textMuted || "#aaa", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>Your schedule</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 6 }}>
+                {selectedDays.filter(d => d.session).map(({ day, session }) => (
+                  <div key={day} style={{ fontSize: 13 }}>
+                    <span style={{ fontWeight: 700, color: T.text }}>{day}</span>
+                    <span style={{ color: T.textMuted || "#888", marginLeft: 6 }}>{regimeCfg?.sessionLabels[session]}</span>
+                  </div>
                 ))}
               </div>
             </div>
           )}
+
           <div style={{ display: "flex", gap: 8 }}>
             <Btn onClick={() => setStep(3)} variant="secondary">← Back</Btn>
-            <Btn onClick={() => { if (count >= min) { setActiveSession(assignedSessions[0]?.sessionId); setView("routine"); } }} disabled={count < min}>View My Programme →</Btn>
+            <Btn
+              onClick={() => {
+                if (assignedCount >= min) {
+                  const firstDay = selectedDays.find(d => d.session);
+                  setActiveSession(firstDay?.session);
+                  setView("routine");
+                }
+              }}
+              disabled={assignedCount < min}
+            >
+              View My Programme →
+            </Btn>
           </div>
-          {count > 0 && count < min && <p style={{ fontSize: 12, color: "#999", marginTop: 8 }}>Select at least {min} days</p>}
+          {assignedCount > 0 && assignedCount < min && (
+            <p style={{ fontSize: 12, color: "#999", marginTop: 8 }}>Assign at least {min} sessions</p>
+          )}
         </div>
       </div>
     );
   }
 
   // Route to setup if needed
-  if (step === 4 && selectedDays.length === 0 && view !== "setup") {
+  if (step === 4 && assignedSessions.length === 0 && view !== "setup") {
     setView("setup");
     return null;
   }
@@ -444,7 +505,7 @@ export default function GymRoutine() {
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{loggedName}</span>
                     {allDone && <span style={{ marginLeft: 8, fontSize: 10, background: "#a5d6a7", color: "#1b5e20", padding: "2px 6px", borderRadius: 2, fontWeight: 700 }}>done</span>}
                     {ex.note && <div style={{ fontSize: 11, color: "#aaa", paddingLeft: 22, fontStyle: "italic" }}>{ex.note}</div>}
-                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Target: <strong>{ex.weight[weightClass]}</strong></div>}
+                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Ideal weight: <strong>{ex.weight[weightClass]}</strong></div>}
                     <button
                       onClick={() => setShowLogAlts(p => ({ ...p, [exKey]: !p[exKey] }))}
                       style={{ marginLeft: 22, marginTop: 3, fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
@@ -759,22 +820,8 @@ export default function GymRoutine() {
                 )}
                 {/* Edit mode */}
                 {isEditing && (
-                  <div style={{ padding: "12px 14px", borderTop: `1px solid ${T.cardBorder || "#f5f5f5"}`, background: T.altBg || "#fafafa" }}>
-                    {/* Date correction */}
-                    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.altBorder || "#efefef"}` }}>
-                      <div style={{ fontSize: 11, color: T.textMuted || "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Workout date</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <input
-                          type="date"
-                          value={log.date}
-                          max={todayStr()}
-                          onChange={e => updateLogDate(key, e.target.value)}
-                          style={{ padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", flex: 1 }}
-                        />
-                        <span style={{ fontSize: 11, color: T.textMuted || "#aaa" }}>tap to correct</span>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 11, color: T.textMuted || "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
+                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: "#fafafa" }}>
+                    <div style={{ fontSize: 11, color: "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
                     {session?.exercises.map((ex, exIdx) => {
                       const exKey = `${log.sessionId}-${exIdx}`;
                       const sets = (log.sets || {})[exKey] || [];
@@ -933,17 +980,52 @@ export default function GymRoutine() {
                       {isSwapped && <span style={{ fontSize: 9, background: "#e8f4e8", color: "#2d6a2d", padding: "2px 5px", borderRadius: 2, fontWeight: 600 }}>swapped</span>}
                     </div>
                     {ex.note && <div style={{ fontSize: 11, color: "#999", paddingLeft: 22, fontStyle: "italic", marginBottom: 2 }}>{ex.note}</div>}
-                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22, marginBottom: 3 }}><span style={{ color: "#aaa" }}>Start: </span><strong>{ex.weight[weightClass]}</strong></div>}
-                    <div style={{ paddingLeft: 22, display: "flex", gap: 12, marginTop: 2 }}>
+                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22, marginBottom: 3 }}><span style={{ color: "#aaa" }}>Ideal weight: </span><strong>{ex.weight[weightClass]}</strong></div>}
+                    <div style={{ paddingLeft: 22, display: "flex", gap: 12, marginTop: 2, flexWrap: "wrap" }}>
                       <button onClick={() => setShowAlts(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{showAlts[key] ? "hide" : "swap exercise"}</button>
                       {guide && <button onClick={() => setShowGuide(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: showGuide[key] ? "#1b5e20" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showGuide[key] ? 600 : 400 }}>{showGuide[key] ? "hide guide" : "how to"}</button>}
+                      <button onClick={() => { setShowOverride(p => ({ ...p, [key]: !p[key] })); setOverrideSearch(p => ({ ...p, [key]: "" })); }} style={{ fontSize: 11, color: showOverride[key] ? "#7c3aed" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showOverride[key] ? 600 : 400 }}>{showOverride[key] ? "hide override" : "override"}</button>
                     </div>
                     {showAlts[key] && (
                       <div style={{ paddingLeft: 22, marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {ALL_SESSIONS[regime]?.[activeSession]?.exercises[i]?.alts?.map(alt => (
                           <button key={alt} onClick={() => { setSwaps(p => ({ ...p, [key]: alt })); setShowAlts(p => ({ ...p, [key]: false })); }} style={{ padding: "3px 8px", background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#444" }}>{alt}</button>
                         ))}
-                        {isSwapped && <button onClick={() => setSwaps(p => { const n = { ...p }; delete n[key]; return n; })} style={{ padding: "3px 8px", background: "#fff0f0", border: "1px solid #f5c6c6", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#a33" }}>restore</button>}
+                        {isSwapped && <button onClick={() => setSwaps(p => { const n = { ...p }; delete n[key]; return n; })} style={{ padding: "3px 8px", background: "#fff0f0", border: "1px solid #f5c6c6", fontSize: 11, cursor: "pointer", borderRadius: 2, color: "#a33" }}>restore original</button>}
+                      </div>
+                    )}
+                    {showOverride[key] && (
+                      <div style={{ paddingLeft: 22, marginTop: 8 }}>
+                        <input
+                          type="text"
+                          placeholder="Search all exercises..."
+                          value={overrideSearch[key] || ""}
+                          onChange={e => setOverrideSearch(p => ({ ...p, [key]: e.target.value }))}
+                          style={{ width: "100%", boxSizing: "border-box", padding: "7px 10px", border: "1px solid #d8b4fe", borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", marginBottom: 6 }}
+                          autoFocus
+                        />
+                        <div style={{ maxHeight: 180, overflowY: "auto", border: "1px solid #e5e5e5", borderRadius: 2, background: T.card || "#fff" }}>
+                          {allExerciseNames
+                            .filter(n => n.toLowerCase().includes((overrideSearch[key] || "").toLowerCase()))
+                            .slice(0, 30)
+                            .map(n => (
+                              <div key={n} onClick={() => { setSwaps(p => ({ ...p, [key]: n })); setShowOverride(p => ({ ...p, [key]: false })); }}
+                                style={{ padding: "8px 12px", fontSize: 12, color: T.text || "#111", cursor: "pointer", borderBottom: "1px solid #f5f5f5", background: swaps[key] === n ? "#f5f3ff" : "transparent" }}>
+                                {n}
+                                {swaps[key] === n && <span style={{ marginLeft: 6, fontSize: 10, color: "#7c3aed", fontWeight: 700 }}>current</span>}
+                              </div>
+                            ))
+                          }
+                          {allExerciseNames.filter(n => n.toLowerCase().includes((overrideSearch[key] || "").toLowerCase())).length === 0 && (
+                            <div style={{ padding: "12px", fontSize: 12, color: "#aaa", textAlign: "center" }}>No exercises found</div>
+                          )}
+                        </div>
+                        {isSwapped && (
+                          <button onClick={() => { setSwaps(p => { const n = { ...p }; delete n[key]; return n; }); setShowOverride(p => ({ ...p, [key]: false })); }}
+                            style={{ marginTop: 6, fontSize: 11, color: "#a33", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+                            restore original ({baseName})
+                          </button>
+                        )}
                       </div>
                     )}
                     {showGuide[key] && guide && (
