@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AGE_CLASSES, WEIGHT_CLASSES, DAYS_OF_WEEK,
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
   MOBILITY_WARMUPS, getSessionWithAge, EXERCISE_GUIDES,
 } from "./gymData";
 import AnalysisPage from "./AnalysisPage";
+import { scoreAllExercises, scoreColor } from "./compatibility";
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const LS = {
@@ -47,6 +48,7 @@ export default function GymRoutine() {
   const [showGuide, setShowGuide] = useState({});
   const [showOverride, setShowOverride] = useState({});
   const [overrideSearch, setOverrideSearch] = useState({});
+  const [compatScores, setCompatScores] = useState({}); // key → sorted score array
   const [showAgeInfo, setShowAgeInfo] = useState(false);
   const [showMobility, setShowMobility] = useState(false);
   // View: "routine" | "log" | "history"
@@ -133,19 +135,6 @@ export default function GymRoutine() {
   const assignedSessions = selectedDays
     .filter(d => d && d.session)
     .map(d => ({ day: d.day, sessionId: d.session }));
-
-
-
-  // All unique exercise names across the entire database for override search
-  const allExerciseNames = useMemo(() => {
-    const names = new Set();
-    Object.values(ALL_SESSIONS).forEach(regime =>
-      Object.values(regime).forEach(session =>
-        session.exercises.forEach(ex => names.add(ex.name))
-      )
-    );
-    return [...names].sort();
-  }, []);
 
   // Dark mode theme
   const T = dark ? {
@@ -820,18 +809,18 @@ export default function GymRoutine() {
                 )}
                 {/* Edit mode */}
                 {isEditing && (
-                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: "#fafafa" }}>
-                    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid #efefef" }}>
-                      <div style={{ fontSize: 11, color: "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Workout date</div>
+                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: T.altBg || "#fafafa" }}>
+                    <div style={{ marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${T.altBorder || "#efefef"}` }}>
+                      <div style={{ fontSize: 11, color: T.textMuted || "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Workout date</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <input
                           type="date"
                           value={log.date}
                           max={todayStr()}
                           onChange={e => updateLogDate(key, e.target.value)}
-                          style={{ padding: "7px 10px", border: "1px solid #e0e0e0", borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", flex: 1 }}
+                          style={{ flex: 1, padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111" }}
                         />
-                        <span style={{ fontSize: 11, color: "#aaa" }}>tap to correct</span>
+                        <span style={{ fontSize: 11, color: T.textMuted || "#aaa" }}>tap to correct</span>
                       </div>
                     </div>
                     <div style={{ fontSize: 11, color: "#888", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase" }}>Edit sets — tap a field to update</div>
@@ -997,7 +986,16 @@ export default function GymRoutine() {
                     <div style={{ paddingLeft: 22, display: "flex", gap: 12, marginTop: 2, flexWrap: "wrap" }}>
                       <button onClick={() => setShowAlts(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{showAlts[key] ? "hide" : "swap exercise"}</button>
                       {guide && <button onClick={() => setShowGuide(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: showGuide[key] ? "#1b5e20" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showGuide[key] ? 600 : 400 }}>{showGuide[key] ? "hide guide" : "how to"}</button>}
-                      <button onClick={() => { setShowOverride(p => ({ ...p, [key]: !p[key] })); setOverrideSearch(p => ({ ...p, [key]: "" })); }} style={{ fontSize: 11, color: showOverride[key] ? "#7c3aed" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showOverride[key] ? 600 : 400 }}>{showOverride[key] ? "hide override" : "override"}</button>
+                      <button onClick={() => {
+                        const isOpening = !showOverride[key];
+                        setShowOverride(p => ({ ...p, [key]: !p[key] }));
+                        setOverrideSearch(p => ({ ...p, [key]: "" }));
+                        if (isOpening && !compatScores[key]) {
+                          const sessionExs = currentSession.exercises;
+                          const scores = scoreAllExercises(sessionExs, ex.name, i);
+                          setCompatScores(p => ({ ...p, [key]: scores }));
+                        }
+                      }} style={{ fontSize: 11, color: showOverride[key] ? "#7c3aed" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showOverride[key] ? 600 : 400 }}>{showOverride[key] ? "hide override" : "override"}</button>
                     </div>
                     {showAlts[key] && (
                       <div style={{ paddingLeft: 22, marginTop: 5, display: "flex", flexWrap: "wrap", gap: 5 }}>
@@ -1009,6 +1007,9 @@ export default function GymRoutine() {
                     )}
                     {showOverride[key] && (
                       <div style={{ paddingLeft: 22, marginTop: 8 }}>
+                        <div style={{ fontSize: 11, color: "#888", marginBottom: 6, lineHeight: 1.5 }}>
+                          % = how well this replaces <strong>{ex.name}</strong> without disrupting session balance.
+                        </div>
                         <input
                           type="text"
                           placeholder="Search all exercises..."
@@ -1017,21 +1018,46 @@ export default function GymRoutine() {
                           style={{ width: "100%", boxSizing: "border-box", padding: "7px 10px", border: "1px solid #d8b4fe", borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", marginBottom: 6 }}
                           autoFocus
                         />
-                        <div style={{ maxHeight: 180, overflowY: "auto", border: "1px solid #e5e5e5", borderRadius: 2, background: T.card || "#fff" }}>
-                          {allExerciseNames
-                            .filter(n => n.toLowerCase().includes((overrideSearch[key] || "").toLowerCase()))
-                            .slice(0, 30)
-                            .map(n => (
-                              <div key={n} onClick={() => { setSwaps(p => ({ ...p, [key]: n })); setShowOverride(p => ({ ...p, [key]: false })); }}
-                                style={{ padding: "8px 12px", fontSize: 12, color: T.text || "#111", cursor: "pointer", borderBottom: "1px solid #f5f5f5", background: swaps[key] === n ? "#f5f3ff" : "transparent" }}>
-                                {n}
-                                {swaps[key] === n && <span style={{ marginLeft: 6, fontSize: 10, color: "#7c3aed", fontWeight: 700 }}>current</span>}
-                              </div>
-                            ))
-                          }
-                          {allExerciseNames.filter(n => n.toLowerCase().includes((overrideSearch[key] || "").toLowerCase())).length === 0 && (
-                            <div style={{ padding: "12px", fontSize: 12, color: "#aaa", textAlign: "center" }}>No exercises found</div>
-                          )}
+                        <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid #e5e5e5", borderRadius: 2, background: T.card || "#fff" }}>
+                          {(() => {
+                            const scores = compatScores[key] || [];
+                            const query = (overrideSearch[key] || "").toLowerCase();
+                            const filtered = query
+                              ? scores.filter(e => e.name.toLowerCase().includes(query))
+                              : scores;
+                            if (filtered.length === 0) return (
+                              <div style={{ padding: "12px", fontSize: 12, color: "#aaa", textAlign: "center" }}>No exercises found</div>
+                            );
+                            return filtered.slice(0, 40).map(({ name, score, label, muscles }) => {
+                              const col = scoreColor(score);
+                              const isCurrent = swaps[key] === name;
+                              return (
+                                <div key={name}
+                                  onClick={() => { setSwaps(p => ({ ...p, [key]: name })); setShowOverride(p => ({ ...p, [key]: false })); }}
+                                  style={{ padding: "8px 12px", fontSize: 12, color: T.text || "#111", cursor: "pointer", borderBottom: `1px solid ${T.cardBorder || "#f5f5f5"}`, background: isCurrent ? "#f5f3ff" : "transparent", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+                                >
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: isCurrent ? 700 : 400, marginBottom: 2 }}>
+                                      {name}
+                                      {isCurrent && <span style={{ marginLeft: 6, fontSize: 10, color: "#7c3aed", fontWeight: 700 }}>current</span>}
+                                    </div>
+                                    {muscles.primary.length > 0 && (
+                                      <div style={{ fontSize: 10, color: T.textMuted || "#aaa" }}>
+                                        {muscles.primary.slice(0, 3).join(", ")}
+                                        {muscles.secondary.length > 0 && ` · ${muscles.secondary.slice(0, 2).join(", ")}`}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{ flexShrink: 0, textAlign: "right" }}>
+                                    <div style={{ display: "inline-block", background: col.bg, color: col.text, fontWeight: 700, fontSize: 11, padding: "2px 7px", borderRadius: 2, minWidth: 36, textAlign: "center" }}>
+                                      {score}%
+                                    </div>
+                                    <div style={{ fontSize: 9, color: col.text, marginTop: 2, textAlign: "center" }}>{label}</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                         {isSwapped && (
                           <button onClick={() => { setSwaps(p => { const n = { ...p }; delete n[key]; return n; }); setShowOverride(p => ({ ...p, [key]: false })); }}
