@@ -86,6 +86,18 @@ export const REGIMES = {
     sessionOrder: ["flex-a", "flex-b", "flex-c", "flex-d"],
     sessionLabels: { "flex-a": "Flow A", "flex-b": "Flow B", "flex-c": "Flow C", "flex-d": "Flow D" },
   },
+  custom: {
+    id: "custom",
+    label: "Custom",
+    icon: "✏️",
+    tagline: "Build your own routine",
+    description: "Create your own sessions with any exercises you choose. Perfect if you already have a routine and want to track it, or want to build something completely personal.",
+    split: "Your choice",
+    daysMin: 1, daysMax: 7,
+    color: "#0f766e", colorLight: "#ccfbf1",
+    sessionOrder: [],
+    sessionLabels: {},
+  },
 };
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -3705,4 +3717,48 @@ export function getSessionWithAge(regimeId, sessionId, ageClass) {
       return ov ? { ...ex, ...ov } : ex;
     }),
   };
+}
+
+// ─── Sex profiles ─────────────────────────────────────────────────────────────
+
+export const SEX_PROFILES = {
+  male: {
+    label: "Male",
+    note: "Standard weight ranges apply.",
+    repsNote: "Standard rep ranges.",
+  },
+  female: {
+    label: "Female",
+    note: "Weight ranges adjusted to female averages (approx. 55–65% of male). Reps slightly higher to reflect faster recovery and better volume tolerance.",
+    repsNote: "+1–2 reps per set recommended.",
+  },
+};
+
+// Adjust a weight string for female users.
+// Parses strings like "60–80kg", "14–18kg ea", "BW–10kg DBs", "Bodyweight" etc.
+// and scales numeric values by the given multiplier.
+export function adjustWeightForSex(weightStr, sex) {
+  if (!weightStr || sex !== "female") return weightStr;
+
+  // Multiplier: females average ~60% of male strength on upper body,
+  // ~70% on lower body. We use a blended 0.62 as a safe conservative default.
+  // Users are always encouraged to adjust up/down based on feel.
+  const MULT = 0.62;
+
+  // Don't touch bodyweight-only strings
+  if (/^bodyweight$/i.test(weightStr.trim())) return weightStr;
+
+  // Extract prefix (BW, Bodyweight) and suffix (ea, DBs, kg ball, etc.)
+  const prefix = weightStr.match(/^(BW[–-]|Bodyweight[–-])/i)?.[0] || "";
+  const suffix = weightStr.match(/(kg ea|ea|DBs|kg ball|kg box|Max effort|Moderate|Light band|Med band|Foam roller|box|cm box|\+\d[\d–]+kg)$/i)?.[0] || "";
+
+  // Find all numbers and scale them
+  const scaled = weightStr.replace(/\d+(\.\d+)?/g, (n) => {
+    const num = parseFloat(n);
+    // Don't scale very small numbers that are likely counts (e.g. "3–4" for box cm heights or ball sizes under 10)
+    if (num < 10) return n;
+    return Math.round(num * MULT).toString();
+  });
+
+  return scaled;
 }

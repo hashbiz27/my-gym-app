@@ -3,6 +3,7 @@ import {
   AGE_CLASSES, WEIGHT_CLASSES, DAYS_OF_WEEK,
   AGE_PROFILES, REGIMES, ALL_SESSIONS,
   MOBILITY_WARMUPS, getSessionWithAge, EXERCISE_GUIDES,
+  SEX_PROFILES, adjustWeightForSex,
 } from "./gymData";
 import AnalysisPage from "./AnalysisPage";
 import { scoreAllExercises, scoreColor } from "./compatibility";
@@ -37,10 +38,14 @@ const SLabel = ({ children, style = {} }) => (
 export default function GymRoutine() {
   // Setup state
   const [regime, setRegime] = useState(() => LS.get("gym_regime", null));
+  const [sex, setSex] = useState(() => LS.get("gym_sex", "male"));
   const [ageClass, setAgeClass] = useState(() => LS.get("gym_age", null));
   const [weightClass, setWeightClass] = useState(() => LS.get("gym_wc", null));
   const [selectedDays, setSelectedDays] = useState(() => LS.get("gym_days", []));
   const [step, setStep] = useState(() => LS.get("gym_step", 1));
+  // Custom routine builder
+  const [customSessions, setCustomSessions] = useState(() => LS.get("gym_custom_sessions", {}));
+  const [editingCustomSession, setEditingCustomSession] = useState(null);
   // Routine state
   const [activeSession, setActiveSession] = useState(() => LS.get("gym_session", null));
   const [swaps, setSwaps] = useState(() => LS.get("gym_swaps", {}));
@@ -48,7 +53,7 @@ export default function GymRoutine() {
   const [showGuide, setShowGuide] = useState({});
   const [showOverride, setShowOverride] = useState({});
   const [overrideSearch, setOverrideSearch] = useState({});
-  const [compatScores, setCompatScores] = useState({}); // key → sorted score array
+  const [compatScores, setCompatScores] = useState({});
   const [showAgeInfo, setShowAgeInfo] = useState(false);
   const [showMobility, setShowMobility] = useState(false);
   // View: "routine" | "log" | "history"
@@ -74,6 +79,8 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_dark", dark); }, [dark]);
   useEffect(() => { LS.set("gym_bw", bwLog); }, [bwLog]);
 
+  useEffect(() => { LS.set("gym_sex", sex); }, [sex]);
+  useEffect(() => { LS.set("gym_custom_sessions", customSessions); }, [customSessions]);
   useEffect(() => { LS.set("gym_regime", regime); }, [regime]);
   useEffect(() => { LS.set("gym_age", ageClass); }, [ageClass]);
   useEffect(() => { LS.set("gym_wc", weightClass); }, [weightClass]);
@@ -136,6 +143,8 @@ export default function GymRoutine() {
     .filter(d => d && d.session)
     .map(d => ({ day: d.day, sessionId: d.session }));
 
+
+
   // Dark mode theme
   const T = dark ? {
     bg: "#0f0f0f", card: "#1a1a1a", cardBorder: "#2a2a2a", text: "#f0f0f0",
@@ -152,7 +161,10 @@ export default function GymRoutine() {
  
   // ── Log helpers ──
   const startLog = (sid) => {
-    const session = getSessionWithAge(regime, sid, ageClass);
+    // Custom sessions stored in customSessions, built-in use getSessionWithAge
+    const session = regime === "custom"
+      ? customSessions[sid]
+      : getSessionWithAge(regime, sid, ageClass);
     if (!session) return;
     const sets = {};
     const exerciseNames = {};
@@ -249,8 +261,8 @@ export default function GymRoutine() {
             {dark ? "☀️" : "🌙"}
           </button>
         </div>
-        {step >= 4 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {assignedSessions.length} days/week</p>}
-        {step >= 4 && (
+        {step >= 5 && <p style={{ color: "#aaa", fontSize: 12, margin: "0 0 12px", fontStyle: "italic" }}>{weightClass} · {ageClass} · {sex} · {assignedSessions.length} days/week</p>}
+        {step >= 5 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
             {["routine", "history", "analysis", "body"].map(v => (
               <button key={v} onClick={() => setView(v)} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: (view === v || (v === "routine" && view === "log")) ? "#fff" : "transparent", color: (view === v || (v === "routine" && view === "log")) ? "#111" : "#888", border: `1px solid ${(view === v || (v === "routine" && view === "log")) ? "#fff" : "#555"}`, borderRadius: 2 }}>{v}</button>
@@ -258,9 +270,9 @@ export default function GymRoutine() {
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
             <button onClick={() => {
               setRegime(null); setAgeClass(null); setWeightClass(null); setSelectedDays([]);
-              setActiveSession(null); setSwaps({}); setView("routine"); setStep(1);
+              setSex("male"); setActiveSession(null); setSwaps({}); setView("routine"); setStep(1);
               LS.set("gym_step", 1); LS.set("gym_session", null); LS.set("gym_regime", null);
-              LS.set("gym_age", null); LS.set("gym_wc", null); LS.set("gym_days", []); LS.set("gym_swaps", {});
+              LS.set("gym_age", null); LS.set("gym_wc", null); LS.set("gym_days", []); LS.set("gym_swaps", {}); LS.set("gym_sex", "male");
             }} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
           </div>
         )}
@@ -276,7 +288,7 @@ export default function GymRoutine() {
     <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
-        <SLabel>Step 1 of 4 — Choose your goal</SLabel>
+        <SLabel>Step 1 of 5 — Choose your goal</SLabel>
         <p style={{ fontSize: 14, color: "#555", marginBottom: 20, lineHeight: 1.7 }}>Each programme has different exercise selection, rep ranges, rest periods and intensity. Pick the one that matches what you're training for.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10, marginBottom: 28 }}>
           {Object.values(REGIMES).map(r => {
@@ -297,12 +309,49 @@ export default function GymRoutine() {
     </div>
   );
 
-  // ─── Step 2: Age ──────────────────────────────────────────────────────────
+  // ─── Step 2: Sex ──────────────────────────────────────────────────────────
   if (step === 2) return (
     <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
-        <SLabel>Step 2 of 4 — Your age group</SLabel>
+        <SLabel>Step 2 of 5 — Your sex</SLabel>
+        <p style={{ fontSize: 14, color: T.textSec || "#555", marginBottom: 18, lineHeight: 1.7 }}>
+          Weight ranges are calibrated to your sex. Female figures are based on average female strength data — around 60% of male equivalents on most lifts. You can always adjust up or down based on feel.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+          {["male", "female"].map(s => {
+            const isActive = sex === s;
+            const profile = SEX_PROFILES[s];
+            return (
+              <button key={s} onClick={() => setSex(s)} style={{ padding: "18px 16px", border: `1px solid ${isActive ? "#111" : T.cardBorder || "#ddd"}`, background: isActive ? "#111" : T.card || "#fff", color: isActive ? "#fff" : T.text || "#333", cursor: "pointer", textAlign: "left", borderRadius: 2, fontFamily: "Georgia, serif", transition: "all 0.15s" }}>
+                <div style={{ fontSize: 22, marginBottom: 8 }}>{s === "male" ? "♂" : "♀"}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{profile.label}</div>
+                <div style={{ fontSize: 12, color: isActive ? "#bbb" : T.textMuted || "#888", lineHeight: 1.5 }}>{profile.note}</div>
+              </button>
+            );
+          })}
+        </div>
+        {sex === "female" && (
+          <div style={{ ...card, borderLeft: "3px solid #db2777", padding: "12px 16px", marginBottom: 20 }}>
+            <div style={{ fontSize: 13, color: T.textSec || "#444", lineHeight: 1.7 }}>
+              <strong>What changes for female:</strong> Weight ranges are reduced to reflect average female strength levels. Rep ranges are increased by 1–2 reps per set — research shows females recover faster between sets and respond well to higher volume. Everything else (split, exercises, rest periods) stays the same.
+            </div>
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn onClick={() => setStep(1)} variant="secondary">← Back</Btn>
+          <Btn onClick={() => setStep(3)}>Continue →</Btn>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Step 3: Age ──────────────────────────────────────────────────────────
+  if (step === 3) return (
+    <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
+      <Header />
+      <div style={inner}>
+        <SLabel>Step 3 of 5 — Your age group</SLabel>
         <p style={{ fontSize: 14, color: "#555", marginBottom: 18, lineHeight: 1.7 }}>Exercises, reps, rest and load are adapted to your life stage. Different ages need different approaches to train safely and effectively.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
           {AGE_CLASSES.map(ac => {
@@ -330,41 +379,44 @@ export default function GymRoutine() {
           </div>
         )}
         <div style={{ display: "flex", gap: 8 }}>
-          <Btn onClick={() => setStep(1)} variant="secondary">← Back</Btn>
-          <Btn onClick={() => ageClass && setStep(3)} disabled={!ageClass}>Continue →</Btn>
+          <Btn onClick={() => setStep(2)} variant="secondary">← Back</Btn>
+          <Btn onClick={() => ageClass && setStep(4)} disabled={!ageClass}>Continue →</Btn>
         </div>
       </div>
     </div>
   );
 
-  // ─── Step 3: Weight class ─────────────────────────────────────────────────
-  if (step === 3) return (
+  // ─── Step 4: Weight class ─────────────────────────────────────────────────
+  if (step === 4) return (
     <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <Header />
       <div style={inner}>
-        <SLabel>Step 3 of 4 — Your weight class</SLabel>
+        <SLabel>Step 4 of 5 — Your weight class</SLabel>
         <p style={{ fontSize: 14, color: "#555", marginBottom: 18, lineHeight: 1.7 }}>Sets starting weight ranges for every exercise. You can always adjust up or down based on feel.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24 }}>
           {WEIGHT_CLASSES.map(wc => <Pill key={wc} active={weightClass === wc} onClick={() => setWeightClass(wc)} style={{ padding: "14px", textAlign: "left", width: "100%" }}>{wc}</Pill>)}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Btn onClick={() => setStep(2)} variant="secondary">← Back</Btn>
-          <Btn onClick={() => weightClass && setStep(4)} disabled={!weightClass}>Continue →</Btn>
+          <Btn onClick={() => setStep(3)} variant="secondary">← Back</Btn>
+          <Btn onClick={() => weightClass && setStep(5)} disabled={!weightClass}>Continue →</Btn>
         </div>
       </div>
     </div>
   );
 
-  // ─── Step 4: Days ─────────────────────────────────────────────────────────
-  if (step === 4 && view === "setup") {
-    const min = regimeCfg?.daysMin || 3;
-    // dayAssignments: { Mon: "upper-a" | null, ... }
+  // ─── Step 5: Days ─────────────────────────────────────────────────────────
+  if (step === 5 && view === "setup") {
+    const min = regime === "custom" ? 1 : (regimeCfg?.daysMin || 3);
     const assignedCount = selectedDays.filter(d => d.session).length;
+    // For custom regime, session options come from customSessions
+    const sessionOptions = regime === "custom"
+      ? Object.entries(customSessions).map(([id, s]) => ({ id, label: s.label }))
+      : (regimeCfg?.sessionOrder || []).map(sid => ({ id: sid, label: regimeCfg.sessionLabels[sid] }));
     return (
       <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
         <div style={inner}>
-          <SLabel>Step 4 of 4 — Training days</SLabel>
+          <SLabel>Step 5 of 5 — Training days</SLabel>
           <p style={{ fontSize: 14, color: T.textSec || "#555", marginBottom: 18, lineHeight: 1.7 }}>
             For each day you want to train, pick the session to assign to it. Leave days blank to rest.
           </p>
@@ -387,8 +439,8 @@ export default function GymRoutine() {
                     style={{ padding: "8px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: assigned?.session ? (T.text || "#111") : (T.textMuted || "#aaa") }}
                   >
                     <option value="">— Rest —</option>
-                    {regimeCfg?.sessionOrder.map(sid => (
-                      <option key={sid} value={sid}>{regimeCfg.sessionLabels[sid]}</option>
+                    {sessionOptions.map(({ id, label }) => (
+                      <option key={id} value={id}>{label}</option>
                     ))}
                   </select>
                 </div>
@@ -412,7 +464,7 @@ export default function GymRoutine() {
           )}
 
           <div style={{ display: "flex", gap: 8 }}>
-            <Btn onClick={() => setStep(3)} variant="secondary">← Back</Btn>
+            <Btn onClick={() => setStep(4)} variant="secondary">← Back</Btn>
             <Btn
               onClick={() => {
                 if (assignedCount >= min) {
@@ -435,7 +487,7 @@ export default function GymRoutine() {
   }
 
   // Route to setup if needed
-  if (step === 4 && assignedSessions.length === 0 && view !== "setup") {
+  if (step === 5 && assignedSessions.length === 0 && view !== "setup") {
     setView("setup");
     return null;
   }
@@ -443,7 +495,9 @@ export default function GymRoutine() {
   // ─── Log view ─────────────────────────────────────────────────────────────
   if (view === "log" && activeLog) {
     const sid = activeLog.sessionId;
-    const session = getSessionWithAge(regime, sid, ageClass);
+    const session = regime === "custom"
+      ? customSessions[sid]
+      : getSessionWithAge(regime, sid, ageClass);
     if (!session) return null;
     const mobility = MOBILITY_WARMUPS[ageClass]?.[sid];
     const allSets = Object.values(activeLog.sets).flat();
@@ -494,7 +548,7 @@ export default function GymRoutine() {
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{loggedName}</span>
                     {allDone && <span style={{ marginLeft: 8, fontSize: 10, background: "#a5d6a7", color: "#1b5e20", padding: "2px 6px", borderRadius: 2, fontWeight: 700 }}>done</span>}
                     {ex.note && <div style={{ fontSize: 11, color: "#aaa", paddingLeft: 22, fontStyle: "italic" }}>{ex.note}</div>}
-                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Ideal weight: <strong>{ex.weight[weightClass]}</strong></div>}
+                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22 }}>Ideal weight: <strong>{adjustWeightForSex(ex.weight[weightClass], sex)}</strong></div>}
                     <button
                       onClick={() => setShowLogAlts(p => ({ ...p, [exKey]: !p[exKey] }))}
                       style={{ marginLeft: 22, marginTop: 3, fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
@@ -724,7 +778,7 @@ export default function GymRoutine() {
               <div style={{ fontSize: 24, marginBottom: 10 }}>🗑️</div>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Delete this workout?</div>
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 20 }}>
-                This will permanently remove the workout log for <strong>{workoutLog[deleteConfirm]?.date}</strong> — <strong>{ALL_SESSIONS[workoutLog[deleteConfirm]?.regime]?.[workoutLog[deleteConfirm]?.sessionId]?.label || workoutLog[deleteConfirm]?.sessionId}</strong>. This cannot be undone.
+                This will permanently remove the workout log for <strong>{workoutLog[deleteConfirm]?.date}</strong> — <strong>{ALL_SESSIONS[workoutLog[deleteConfirm]?.regime]?.[workoutLog[deleteConfirm]?.sessionId]?.label || customSessions[workoutLog[deleteConfirm]?.sessionId]?.label || workoutLog[deleteConfirm]?.sessionId}</strong>. This cannot be undone.
               </p>
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn onClick={() => deleteLog(deleteConfirm)} variant="danger" style={{ flex: 1 }}>Yes, delete it</Btn>
@@ -742,7 +796,7 @@ export default function GymRoutine() {
             </div>
           ) : allLogs.map(([key, log]) => {
             const logRegime = log.regime || "hypertrophy";
-            const session = ALL_SESSIONS[logRegime]?.[log.sessionId];
+            const session = ALL_SESSIONS[logRegime]?.[log.sessionId] || customSessions[log.sessionId];
             const doneSets = Object.values(log.sets || {}).flat().filter(s => s.done).length;
             const totalSets = Object.values(log.sets || {}).flat().length;
             const p = pct(log); const v = vol(log);
@@ -809,17 +863,12 @@ export default function GymRoutine() {
                 )}
                 {/* Edit mode */}
                 {isEditing && (
-                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: T.altBg || "#fafafa" }}>
+                  <div style={{ padding: "12px 14px", borderTop: "1px solid #f5f5f5", background: "#fafafa" }}>
                     <div style={{ marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${T.altBorder || "#efefef"}` }}>
                       <div style={{ fontSize: 11, color: T.textMuted || "#888", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Workout date</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <input
-                          type="date"
-                          value={log.date}
-                          max={todayStr()}
-                          onChange={e => updateLogDate(key, e.target.value)}
-                          style={{ flex: 1, padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111" }}
-                        />
+                        <input type="date" value={log.date} max={todayStr()} onChange={e => updateLogDate(key, e.target.value)}
+                          style={{ flex: 1, padding: "7px 10px", border: `1px solid ${T.inputBorder || "#e0e0e0"}`, borderRadius: 2, fontSize: 13, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111" }} />
                         <span style={{ fontSize: 11, color: T.textMuted || "#aaa" }}>tap to correct</span>
                       </div>
                     </div>
@@ -886,6 +935,210 @@ export default function GymRoutine() {
   }
 
   // ─── Routine view ─────────────────────────────────────────────────────────
+  // Handle custom regime separately
+  if (regime === "custom") {
+    const customSessionIds = Object.keys(customSessions);
+    const currentCustomSession = activeSession && customSessions[activeSession];
+    const [csName, setCsName] = [editingCustomSession?.name ?? "", (v) => setEditingCustomSession(p => ({ ...p, name: v }))];
+    const [csSearch, setCsSearch] = editingCustomSession
+      ? [editingCustomSession.search || "", (v) => setEditingCustomSession(p => ({ ...p, search: v }))]
+      : ["", () => {}];
+
+    // All exercise names from database
+    const allDbExercises = Object.keys(EXERCISE_GUIDES).sort();
+
+    const saveCustomSession = () => {
+      if (!editingCustomSession?.name?.trim()) return;
+      const sid = editingCustomSession.id || `custom-${Date.now()}`;
+      const session = {
+        label: editingCustomSession.name.trim(),
+        tag: "Custom",
+        focus: editingCustomSession.name.trim(),
+        exercises: (editingCustomSession.exercises || []).map(ex => ({
+          name: ex.name,
+          note: ex.note || "",
+          sets: ex.sets || "3",
+          reps: ex.reps || "8–12",
+          rest: ex.rest || "90s",
+          alts: [],
+          weight: {},
+        })),
+      };
+      const newSessions = { ...customSessions, [sid]: session };
+      setCustomSessions(newSessions);
+      // Update regimeCfg session labels
+      LS.set("gym_custom_sessions", newSessions);
+      setActiveSession(sid);
+      setEditingCustomSession(null);
+    };
+
+    return (
+      <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
+        <Header />
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px 56px" }}>
+
+          {/* Week bar */}
+          <SLabel>Your week</SLabel>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 18 }}>
+            {DAYS_OF_WEEK.map(day => {
+              const a = assignedSessions.find(s => s.day === day);
+              return (
+                <div key={day} onClick={() => a && setActiveSession(a.sessionId)} style={{ background: a ? "#111" : T.card, border: `1px solid ${T.cardBorder}`, borderTop: a && activeSession === a.sessionId ? "3px solid #888" : `1px solid ${T.cardBorder}`, padding: "8px 3px", textAlign: "center", cursor: a ? "pointer" : "default" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: a ? "#aaa" : T.textMuted, textTransform: "uppercase", marginBottom: 2 }}>{day}</div>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: a ? "#fff" : T.textMuted, lineHeight: 1.3 }}>{a ? (customSessions[a.sessionId]?.label || a.sessionId) : "Rest"}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Session tabs */}
+          <SLabel style={{ marginTop: 0 }}>My sessions</SLabel>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+            {customSessionIds.map(sid => (
+              <Pill key={sid} active={activeSession === sid} onClick={() => setActiveSession(sid)} style={{ fontSize: 11, padding: "7px 12px" }}>
+                {customSessions[sid].label}
+              </Pill>
+            ))}
+            <button onClick={() => setEditingCustomSession({ name: "", exercises: [], search: "" })}
+              style={{ padding: "7px 14px", fontSize: 11, fontWeight: 700, background: "#0f766e", color: "#fff", border: "none", cursor: "pointer", borderRadius: 2, fontFamily: "Georgia, serif" }}>
+              + New session
+            </button>
+          </div>
+
+          {/* Session builder */}
+          {editingCustomSession && (
+            <div style={{ ...card, padding: "16px", marginBottom: 16, borderLeft: "3px solid #0f766e" }}>
+              <div style={{ fontSize: 11, color: T.textMuted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+                {editingCustomSession.id ? "Edit session" : "New session"}
+              </div>
+              <input
+                placeholder="Session name (e.g. Push Day, Full Body A)"
+                value={editingCustomSession.name}
+                onChange={e => setEditingCustomSession(p => ({ ...p, name: e.target.value }))}
+                style={{ width: "100%", boxSizing: "border-box", padding: "9px 12px", border: `1px solid ${T.inputBorder}`, borderRadius: 2, fontSize: 14, fontFamily: "Georgia, serif", background: T.input, color: T.text, marginBottom: 12 }}
+              />
+
+              {/* Exercise list */}
+              {(editingCustomSession.exercises || []).length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  {editingCustomSession.exercises.map((ex, idx) => (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: T.altBg, border: `1px solid ${T.altBorder}`, borderRadius: 2, marginBottom: 5 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{ex.name}</div>
+                        <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                          <input placeholder="Sets" value={ex.sets} onChange={e => setEditingCustomSession(p => ({ ...p, exercises: p.exercises.map((e2, i) => i === idx ? { ...e2, sets: e.target.value } : e2) }))}
+                            style={{ width: 48, padding: "4px 6px", border: `1px solid ${T.inputBorder}`, borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input, color: T.text }} />
+                          <input placeholder="Reps" value={ex.reps} onChange={e => setEditingCustomSession(p => ({ ...p, exercises: p.exercises.map((e2, i) => i === idx ? { ...e2, reps: e.target.value } : e2) }))}
+                            style={{ width: 64, padding: "4px 6px", border: `1px solid ${T.inputBorder}`, borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input, color: T.text }} />
+                          <input placeholder="Rest" value={ex.rest} onChange={e => setEditingCustomSession(p => ({ ...p, exercises: p.exercises.map((e2, i) => i === idx ? { ...e2, rest: e.target.value } : e2) }))}
+                            style={{ width: 64, padding: "4px 6px", border: `1px solid ${T.inputBorder}`, borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input, color: T.text }} />
+                        </div>
+                      </div>
+                      <button onClick={() => setEditingCustomSession(p => ({ ...p, exercises: p.exercises.filter((_, i) => i !== idx) }))}
+                        style={{ width: 26, height: 26, background: "none", border: `1px solid ${T.cardBorder}`, cursor: "pointer", borderRadius: 2, fontSize: 14, color: T.textMuted }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exercise search */}
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  placeholder="Search exercises to add..."
+                  value={csSearch}
+                  onChange={e => setEditingCustomSession(p => ({ ...p, search: e.target.value }))}
+                  style={{ width: "100%", boxSizing: "border-box", padding: "8px 10px", border: `1px solid ${T.inputBorder}`, borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input, color: T.text, marginBottom: 5 }}
+                />
+                {csSearch.trim() && (
+                  <div style={{ maxHeight: 180, overflowY: "auto", border: `1px solid ${T.cardBorder}`, borderRadius: 2, background: T.card }}>
+                    {allDbExercises
+                      .filter(n => n.toLowerCase().includes(csSearch.toLowerCase()))
+                      .slice(0, 25)
+                      .map(n => (
+                        <div key={n}
+                          onClick={() => {
+                            setEditingCustomSession(p => ({ ...p, exercises: [...(p.exercises || []), { name: n, sets: "3", reps: "8–12", rest: "90s", note: "" }], search: "" }));
+                          }}
+                          style={{ padding: "8px 12px", fontSize: 12, cursor: "pointer", color: T.text, borderBottom: `1px solid ${T.altBorder}`, background: "transparent" }}>
+                          {n}
+                          <span style={{ marginLeft: 6, fontSize: 10, color: T.textMuted }}>+ add</span>
+                        </div>
+                      ))
+                    }
+                    {allDbExercises.filter(n => n.toLowerCase().includes(csSearch.toLowerCase())).length === 0 && (
+                      <div
+                        onClick={() => {
+                          setEditingCustomSession(p => ({ ...p, exercises: [...(p.exercises || []), { name: csSearch.trim(), sets: "3", reps: "8–12", rest: "90s", note: "" }], search: "" }));
+                        }}
+                        style={{ padding: "8px 12px", fontSize: 12, cursor: "pointer", color: "#0f766e", borderBottom: `1px solid ${T.altBorder}` }}>
+                        + Add "{csSearch.trim()}" as custom exercise
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <Btn onClick={saveCustomSession} disabled={!editingCustomSession.name?.trim()} color="#0f766e">Save session</Btn>
+                {editingCustomSession.id && (
+                  <Btn onClick={() => {
+                    const n = { ...customSessions }; delete n[editingCustomSession.id];
+                    setCustomSessions(n); setEditingCustomSession(null);
+                    if (activeSession === editingCustomSession.id) setActiveSession(Object.keys(n)[0] || null);
+                  }} variant="danger">Delete</Btn>
+                )}
+                <Btn onClick={() => setEditingCustomSession(null)} variant="secondary">Cancel</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* Current session exercises */}
+          {currentCustomSession && !editingCustomSession && (
+            <>
+              <div style={{ ...card, marginBottom: 14 }}>
+                <div style={{ padding: "12px 14px 10px", borderBottom: `1px solid ${T.cardBorder}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                  <div>
+                    <h2 style={{ margin: "0 0 2px", fontSize: 16, fontWeight: 700, color: T.text }}>{currentCustomSession.label}</h2>
+                    <p style={{ margin: 0, fontSize: 13, color: T.textMuted, fontStyle: "italic" }}>{currentCustomSession.exercises.length} exercises</p>
+                  </div>
+                  <button onClick={() => setEditingCustomSession({ ...currentCustomSession, id: activeSession, search: "" })}
+                    style={{ fontSize: 11, color: "#0f766e", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "Georgia, serif" }}>
+                    edit session
+                  </button>
+                </div>
+                {currentCustomSession.exercises.map((ex, i) => (
+                  <div key={i} style={{ borderBottom: i < currentCustomSession.exercises.length - 1 ? `1px solid ${T.cardBorder}` : "none", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <span style={{ fontSize: 10, color: T.textMuted, fontFamily: "monospace", marginRight: 6 }}>{String(i + 1).padStart(2, "0")}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{ex.name}</span>
+                      {ex.note && <div style={{ fontSize: 11, color: T.textMuted, paddingLeft: 22, fontStyle: "italic" }}>{ex.note}</div>}
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{ex.sets} × {ex.reps}</div>
+                      <div style={{ fontSize: 11, color: T.textMuted }}>{ex.rest}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Btn onClick={() => startLog(activeSession)} style={{ width: "100%", padding: "13px", fontSize: 13 }} color="#0f766e">
+                Start {currentCustomSession.label} →
+              </Btn>
+            </>
+          )}
+
+          {customSessionIds.length === 0 && !editingCustomSession && (
+            <div style={{ ...card, padding: "40px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>✏️</div>
+              <p style={{ color: T.textMuted, fontSize: 14, margin: "0 0 16px" }}>No sessions yet. Create your first session to get started.</p>
+              <Btn onClick={() => setEditingCustomSession({ name: "", exercises: [], search: "" })} color="#0f766e">Create first session</Btn>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Built-in regime routine view
   if (!activeSession && regimeCfg) {
     const firstSid = regimeCfg.sessionOrder[0];
     LS.set("gym_session", firstSid);
@@ -982,7 +1235,7 @@ export default function GymRoutine() {
                       {isSwapped && <span style={{ fontSize: 9, background: "#e8f4e8", color: "#2d6a2d", padding: "2px 5px", borderRadius: 2, fontWeight: 600 }}>swapped</span>}
                     </div>
                     {ex.note && <div style={{ fontSize: 11, color: "#999", paddingLeft: 22, fontStyle: "italic", marginBottom: 2 }}>{ex.note}</div>}
-                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22, marginBottom: 3 }}><span style={{ color: "#aaa" }}>Ideal weight: </span><strong>{ex.weight[weightClass]}</strong></div>}
+                    {weightClass && ex.weight?.[weightClass] && <div style={{ fontSize: 11, color: "#555", paddingLeft: 22, marginBottom: 3 }}><span style={{ color: "#aaa" }}>Ideal weight: </span><strong>{adjustWeightForSex(ex.weight[weightClass], sex)}</strong></div>}
                     <div style={{ paddingLeft: 22, display: "flex", gap: 12, marginTop: 2, flexWrap: "wrap" }}>
                       <button onClick={() => setShowAlts(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>{showAlts[key] ? "hide" : "swap exercise"}</button>
                       {guide && <button onClick={() => setShowGuide(p => ({ ...p, [key]: !p[key] }))} style={{ fontSize: 11, color: showGuide[key] ? "#1b5e20" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showGuide[key] ? 600 : 400 }}>{showGuide[key] ? "hide guide" : "how to"}</button>}
@@ -991,8 +1244,7 @@ export default function GymRoutine() {
                         setShowOverride(p => ({ ...p, [key]: !p[key] }));
                         setOverrideSearch(p => ({ ...p, [key]: "" }));
                         if (isOpening && !compatScores[key]) {
-                          const sessionExs = currentSession.exercises;
-                          const scores = scoreAllExercises(sessionExs, ex.name, i);
+                          const scores = scoreAllExercises(currentSession.exercises, ex.name, i);
                           setCompatScores(p => ({ ...p, [key]: scores }));
                         }
                       }} style={{ fontSize: 11, color: showOverride[key] ? "#7c3aed" : "#888", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontWeight: showOverride[key] ? 600 : 400 }}>{showOverride[key] ? "hide override" : "override"}</button>
@@ -1007,51 +1259,38 @@ export default function GymRoutine() {
                     )}
                     {showOverride[key] && (
                       <div style={{ paddingLeft: 22, marginTop: 8 }}>
-                        <div style={{ fontSize: 11, color: "#888", marginBottom: 6, lineHeight: 1.5 }}>
+                        <div style={{ fontSize: 11, color: T.textMuted || "#888", marginBottom: 6, lineHeight: 1.5 }}>
                           % = how well this replaces <strong>{ex.name}</strong> without disrupting session balance.
                         </div>
-                        <input
-                          type="text"
-                          placeholder="Search all exercises..."
-                          value={overrideSearch[key] || ""}
+                        <input type="text" placeholder="Search all exercises..." value={overrideSearch[key] || ""}
                           onChange={e => setOverrideSearch(p => ({ ...p, [key]: e.target.value }))}
                           style={{ width: "100%", boxSizing: "border-box", padding: "7px 10px", border: "1px solid #d8b4fe", borderRadius: 2, fontSize: 12, fontFamily: "Georgia, serif", background: T.input || "#fff", color: T.text || "#111", marginBottom: 6 }}
                           autoFocus
                         />
-                        <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid #e5e5e5", borderRadius: 2, background: T.card || "#fff" }}>
+                        <div style={{ maxHeight: 240, overflowY: "auto", border: `1px solid ${T.cardBorder || "#e5e5e5"}`, borderRadius: 2, background: T.card || "#fff" }}>
                           {(() => {
                             const scores = compatScores[key] || [];
                             const query = (overrideSearch[key] || "").toLowerCase();
-                            const filtered = query
-                              ? scores.filter(e => e.name.toLowerCase().includes(query))
-                              : scores;
-                            if (filtered.length === 0) return (
-                              <div style={{ padding: "12px", fontSize: 12, color: "#aaa", textAlign: "center" }}>No exercises found</div>
-                            );
+                            const filtered = query ? scores.filter(e => e.name.toLowerCase().includes(query)) : scores;
+                            if (!filtered.length) return <div style={{ padding: "12px", fontSize: 12, color: T.textMuted || "#aaa", textAlign: "center" }}>No exercises found</div>;
                             return filtered.slice(0, 40).map(({ name, score, label, muscles }) => {
                               const col = scoreColor(score);
                               const isCurrent = swaps[key] === name;
                               return (
-                                <div key={name}
-                                  onClick={() => { setSwaps(p => ({ ...p, [key]: name })); setShowOverride(p => ({ ...p, [key]: false })); }}
-                                  style={{ padding: "8px 12px", fontSize: 12, color: T.text || "#111", cursor: "pointer", borderBottom: `1px solid ${T.cardBorder || "#f5f5f5"}`, background: isCurrent ? "#f5f3ff" : "transparent", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
-                                >
+                                <div key={name} onClick={() => { setSwaps(p => ({ ...p, [key]: name })); setShowOverride(p => ({ ...p, [key]: false })); }}
+                                  style={{ padding: "8px 12px", fontSize: 12, color: T.text || "#111", cursor: "pointer", borderBottom: `1px solid ${T.cardBorder || "#f5f5f5"}`, background: isCurrent ? "#f5f3ff" : "transparent", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontWeight: isCurrent ? 700 : 400, marginBottom: 2 }}>
-                                      {name}
-                                      {isCurrent && <span style={{ marginLeft: 6, fontSize: 10, color: "#7c3aed", fontWeight: 700 }}>current</span>}
+                                      {name}{isCurrent && <span style={{ marginLeft: 6, fontSize: 10, color: "#7c3aed", fontWeight: 700 }}>current</span>}
                                     </div>
-                                    {muscles.primary.length > 0 && (
+                                    {muscles?.primary?.length > 0 && (
                                       <div style={{ fontSize: 10, color: T.textMuted || "#aaa" }}>
-                                        {muscles.primary.slice(0, 3).join(", ")}
-                                        {muscles.secondary.length > 0 && ` · ${muscles.secondary.slice(0, 2).join(", ")}`}
+                                        {muscles.primary.slice(0, 3).join(", ")}{muscles.secondary?.length > 0 && ` · ${muscles.secondary.slice(0, 2).join(", ")}`}
                                       </div>
                                     )}
                                   </div>
                                   <div style={{ flexShrink: 0, textAlign: "right" }}>
-                                    <div style={{ display: "inline-block", background: col.bg, color: col.text, fontWeight: 700, fontSize: 11, padding: "2px 7px", borderRadius: 2, minWidth: 36, textAlign: "center" }}>
-                                      {score}%
-                                    </div>
+                                    <div style={{ display: "inline-block", background: col.bg, color: col.text, fontWeight: 700, fontSize: 11, padding: "2px 7px", borderRadius: 2, minWidth: 36, textAlign: "center" }}>{score}%</div>
                                     <div style={{ fontSize: 9, color: col.text, marginTop: 2, textAlign: "center" }}>{label}</div>
                                   </div>
                                 </div>
