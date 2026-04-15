@@ -91,12 +91,14 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_log", workoutLog); }, [workoutLog]);
   useEffect(() => { LS.set("gym_activeLog", activeLog); }, [activeLog]);
 
-  // Safe redirect — if we're at step 5 with no assigned sessions and not in setup, go to setup
+  // Safe redirect — if at step 5 with no assigned days and not already in setup, go to setup
+  // Uses selectedDays directly (not assignedSessions) to avoid use-before-define
   useEffect(() => {
-    if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup" && view !== "log") {
+    const hasAssignedDays = selectedDays.filter(d => d && d.session).length > 0;
+    if (step === 5 && regime !== "custom" && !hasAssignedDays && view !== "setup" && view !== "log") {
       setView("setup");
     }
-  }, [step, regime, assignedSessions.length, view]);
+  }, [step, regime, selectedDays, view]);
 
   // Rest timer tick
   useEffect(() => {
