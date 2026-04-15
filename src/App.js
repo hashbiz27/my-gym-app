@@ -91,6 +91,13 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_log", workoutLog); }, [workoutLog]);
   useEffect(() => { LS.set("gym_activeLog", activeLog); }, [activeLog]);
 
+  // Safe redirect — if we're at step 5 with no assigned sessions and not in setup, go to setup
+  useEffect(() => {
+    if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup" && view !== "log") {
+      setView("setup");
+    }
+  }, [step, regime, assignedSessions.length, view]);
+
   // Rest timer tick
   useEffect(() => {
     if (!restTimer) { clearInterval(restRef.current); return; }
@@ -489,12 +496,6 @@ export default function GymRoutine() {
         </div>
       </div>
     );
-  }
-
-  // Route to setup if needed — custom skips days entirely
-  if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup") {
-    // Safe: return the setup view inline rather than calling setView during render
-    return null;
   }
 
   // ─── Log view ─────────────────────────────────────────────────────────────
