@@ -7,6 +7,7 @@ import {
 } from "./gymData";
 import AnalysisPage from "./AnalysisPage";
 import { scoreAllExercises, scoreColor } from "./compatibility";
+import { Analytics } from "@vercel/analytics/react";
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const LS = {
@@ -315,6 +316,7 @@ export default function GymRoutine() {
         </div>
         <Btn onClick={() => regime && setStep(2)} disabled={!regime}>Continue →</Btn>
       </div>
+      <Analytics />
     </div>
   );
 
@@ -352,6 +354,7 @@ export default function GymRoutine() {
           <Btn onClick={() => setStep(3)}>Continue →</Btn>
         </div>
       </div>
+      <Analytics />
     </div>
   );
 
@@ -392,6 +395,7 @@ export default function GymRoutine() {
           <Btn onClick={() => ageClass && setStep(4)} disabled={!ageClass}>Continue →</Btn>
         </div>
       </div>
+      <Analytics />
     </div>
   );
 
@@ -418,10 +422,11 @@ export default function GymRoutine() {
           }} disabled={!weightClass}>Continue →</Btn>
         </div>
       </div>
+      <Analytics />
     </div>
   );
 
-  // ─── Step 5: Days ─────────────────────────────────────────────────────────
+  // ─── Step 5: Days ─────────────────────────────────────────────────────���───
   if (step === 5 && view === "setup" && regime !== "custom") {
     const min = regimeCfg?.daysMin || 3;
     const assignedCount = selectedDays.filter(d => d.session).length;
@@ -496,6 +501,7 @@ export default function GymRoutine() {
             <p style={{ fontSize: 12, color: "#999", marginTop: 8 }}>Assign at least {min} sessions</p>
           )}
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -644,6 +650,7 @@ export default function GymRoutine() {
             </div>
           )}
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -654,6 +661,7 @@ export default function GymRoutine() {
       <div style={{ fontFamily: "Georgia, serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <Header />
         <AnalysisPage workoutLog={workoutLog} bwLog={bwLog} dark={dark} T={T} />
+        <Analytics />
       </div>
     );
   }
@@ -770,6 +778,7 @@ export default function GymRoutine() {
             </div>
           )}
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -938,6 +947,7 @@ export default function GymRoutine() {
             );
           })}
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -1139,6 +1149,7 @@ export default function GymRoutine() {
             </div>
           )}
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -1170,7 +1181,7 @@ export default function GymRoutine() {
             </div>
             {showAgeInfo && (
               <div style={{ padding: "0 14px 12px", borderTop: "1px solid #f5f5f5" }}>
-                {ageProfile.notes.map((n, i) => <div key={i} style={{ display: "flex", gap: 8, marginTop: 5 }}><span style={{ color: ageProfile.badgeText, flexShrink: 0 }}>→</span><span style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{n}</span></div>)}
+                {ageProfile.notes.map((n, i) => <div key={i} style={{ display: "flex", gap: 8, marginTop: 5 }}><span style={{ color: ageProfile.badgeText, flexShrink: 0 }}>��</span><span style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{n}</span></div>)}
                 <div style={{ marginTop: 10, background: "#f9f9f9", padding: "8px 12px", fontSize: 12, color: "#555", lineHeight: 1.7 }}>
                   <div><strong>Weight:</strong> {ageProfile.weightNote}</div>
                   <div><strong>Rest:</strong> {ageProfile.restNote}</div>
@@ -1363,6 +1374,7 @@ export default function GymRoutine() {
           }
         </div>
       </div>
+      <Analytics />
     </div>
   );
 }
