@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import WorkoutScreen from "../screens/WorkoutScreen";
 import LibraryStack from "./LibraryStack";
 import HistoryScreen from "../screens/HistoryScreen";
+import AnalysisScreen from "../screens/AnalysisScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 
 const Tab = createBottomTabNavigator();
@@ -61,6 +62,14 @@ export default function MainNavigator() {
         options={{
           title: "History",
           tabBarIcon: tabIcon("time"),
+        }}
+      />
+      <Tab.Screen
+        name="Analysis"
+        component={AnalysisScreen}
+        options={{
+          title: "Analysis",
+          tabBarIcon: tabIcon("stats-chart"),
         }}
       />
       <Tab.Screen
