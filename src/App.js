@@ -13,11 +13,6 @@ const LS = {
   get: (k, fb = null) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fb; } catch { return fb; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-
-// Converts an exercise name to its MuscleWiki URL
-// e.g. "Barbell Bench Press" → "https://musclewiki.com/exercise/barbell-bench-press"
-const muscleWikiUrl = (name) =>
-  `https://musclewiki.com/exercise/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 const todayStr = () => {
   const now = new Date();
   const y = now.getFullYear();
@@ -1343,12 +1338,12 @@ export default function GymRoutine() {
                           {guide.mistakes.map((m, mi) => <div key={mi} style={{ display: "flex", gap: 7, marginBottom: 2 }}><span style={{ fontSize: 11, color: "#b91c1c", flexShrink: 0 }}>−</span><span style={{ fontSize: 12, color: "#444", lineHeight: 1.5 }}>{m}</span></div>)}
                         </>}
                         <a
-                          href={muscleWikiUrl(displayName)}
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(displayName + " exercise form tutorial")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 11, color: "#1b5e20", textDecoration: "none", fontWeight: 600, borderTop: "1px solid #e8f0e0", paddingTop: 10, width: "100%" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 11, color: "#cc0000", textDecoration: "none", fontWeight: 600, borderTop: "1px solid #e8f0e0", paddingTop: 10, width: "100%" }}
                         >
-                          🎬 Watch on MuscleWiki
+                          ▶ Watch on YouTube
                           <span style={{ fontSize: 10, color: "#999", fontWeight: 400 }}>↗ opens in browser</span>
                         </a>
                       </div>
