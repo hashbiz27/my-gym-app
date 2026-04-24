@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import WorkoutScreen from "../screens/WorkoutScreen";
-import LibraryScreen from "../screens/LibraryScreen";
+import LibraryStack from "./LibraryStack";
 import HistoryScreen from "../screens/HistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 
@@ -49,7 +49,7 @@ export default function MainNavigator() {
       />
       <Tab.Screen
         name="Library"
-        component={LibraryScreen}
+        component={LibraryStack}
         options={{
           title: "Library",
           tabBarIcon: tabIcon("library"),
