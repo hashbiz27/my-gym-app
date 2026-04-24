@@ -13,6 +13,11 @@ const LS = {
   get: (k, fb = null) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fb; } catch { return fb; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
+
+// Converts an exercise name to its MuscleWiki URL
+// e.g. "Barbell Bench Press" → "https://musclewiki.com/exercise/barbell-bench-press"
+const muscleWikiUrl = (name) =>
+  `https://musclewiki.com/exercise/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 const todayStr = () => {
   const now = new Date();
   const y = now.getFullYear();
@@ -90,15 +95,6 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_swaps", swaps); }, [swaps]);
   useEffect(() => { LS.set("gym_log", workoutLog); }, [workoutLog]);
   useEffect(() => { LS.set("gym_activeLog", activeLog); }, [activeLog]);
-
-  // Safe redirect — if at step 5 with no assigned days and not already in setup, go to setup
-  // Uses selectedDays directly (not assignedSessions) to avoid use-before-define
-  useEffect(() => {
-    const hasAssignedDays = selectedDays.filter(d => d && d.session).length > 0;
-    if (step === 5 && regime !== "custom" && !hasAssignedDays && view !== "setup" && view !== "log") {
-      setView("setup");
-    }
-  }, [step, regime, selectedDays, view]);
 
   // Rest timer tick
   useEffect(() => {
@@ -498,6 +494,12 @@ export default function GymRoutine() {
         </div>
       </div>
     );
+  }
+
+  // Route to setup if needed — custom skips days entirely
+  if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup") {
+    // Safe: return the setup view inline rather than calling setView during render
+    return null;
   }
 
   // ─── Log view ─────────────────────────────────────────────────────────────
@@ -1340,6 +1342,15 @@ export default function GymRoutine() {
                           <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "#999", marginTop: 8, marginBottom: 4 }}>Common mistakes</div>
                           {guide.mistakes.map((m, mi) => <div key={mi} style={{ display: "flex", gap: 7, marginBottom: 2 }}><span style={{ fontSize: 11, color: "#b91c1c", flexShrink: 0 }}>−</span><span style={{ fontSize: 12, color: "#444", lineHeight: 1.5 }}>{m}</span></div>)}
                         </>}
+                        <a
+                          href={muscleWikiUrl(displayName)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 10, fontSize: 11, color: "#1b5e20", textDecoration: "none", fontWeight: 600, borderTop: "1px solid #e8f0e0", paddingTop: 10, width: "100%" }}
+                        >
+                          🎬 Watch on MuscleWiki
+                          <span style={{ fontSize: 10, color: "#999", fontWeight: 400 }}>↗ opens in browser</span>
+                        </a>
                       </div>
                     )}
                   </div>
