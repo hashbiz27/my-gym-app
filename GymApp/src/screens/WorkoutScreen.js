@@ -20,6 +20,7 @@ import {
   adjustWeightForSex,
 } from "../data/gymData";
 import { useGymData } from "../hooks/useGymData";
+import { useSyncContext } from "../context/SyncContext";
 import SwapModal from "../components/SwapModal";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -83,8 +84,18 @@ function buildRestoredLogState(exercises, sessionId, logs) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase }) {
+function WorkoutHeader({
+  session,
+  regimeCfg,
+  doneSets,
+  totalSets,
+  phase,
+  isSyncing,
+  pendingCount,
+}) {
   const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
+  const showSync = isSyncing || pendingCount > 0;
+
   return (
     <View className="bg-gray-900 px-5 pt-4 pb-4">
       <Text className="text-xs tracking-widest uppercase text-gray-500 mb-1">
@@ -133,6 +144,28 @@ function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase }) {
           />
         )}
       </View>
+
+      {showSync ? (
+        <View className="flex-row items-center gap-x-1.5 mt-2">
+          {isSyncing ? (
+            <ActivityIndicator size="small" color="#60a5fa" />
+          ) : (
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: "#f59e0b",
+              }}
+            />
+          )}
+          <Text className="text-xs text-blue-400">
+            {isSyncing
+              ? "Syncing…"
+              : `${pendingCount} set${pendingCount !== 1 ? "s" : ""} pending sync`}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -437,6 +470,8 @@ export default function WorkoutScreen() {
     updateSessionLog,
     updateSessionNotes,
   } = useGymData();
+
+  const { isSyncing, pendingCount } = useSyncContext();
 
   const [profile, setProfile] = useState(null);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -785,6 +820,8 @@ export default function WorkoutScreen() {
         doneSets={doneSets}
         totalSets={totalSets}
         phase={sessionPhase}
+        isSyncing={isSyncing}
+        pendingCount={pendingCount}
       />
 
       <SessionPicker

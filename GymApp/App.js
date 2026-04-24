@@ -10,6 +10,7 @@ import { supabase } from "./src/lib/supabase";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
+import { SyncProvider } from "./src/context/SyncContext";
 
 function Root() {
   const { isDark } = useAppTheme();
@@ -47,9 +48,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <BottomSheetModalProvider>
-          <Root />
-        </BottomSheetModalProvider>
+        <SyncProvider>
+          <BottomSheetModalProvider>
+            <Root />
+          </BottomSheetModalProvider>
+        </SyncProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
