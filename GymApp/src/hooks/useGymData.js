@@ -158,6 +158,108 @@ export function useGymData() {
     }
   }, []);
 
+  // ── Upsert a regime row by name, return its UUID ─────────────────────────
+  // Used when starting a workout to ensure a matching row exists.
+  const ensureRegime = useCallback(async (name) => {
+    try {
+      const userId = await currentUserId();
+      const { data: existing } = await supabase
+        .from("regimes")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("name", name)
+        .maybeSingle();
+      if (existing) return existing.id;
+      const { data: created, error } = await supabase
+        .from("regimes")
+        .insert({ user_id: userId, name })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return created.id;
+    } catch (e) {
+      setError(e.message);
+      return null;
+    }
+  }, []);
+
+  // ── Create a session row without logs (for real-time logging) ─────────────
+  const createSession = useCallback(async ({ regimeId, date, notes }) => {
+    try {
+      const userId = await currentUserId();
+      const { data, error } = await supabase
+        .from("sessions")
+        .insert({
+          user_id: userId,
+          regime_id: regimeId ?? null,
+          date,
+          notes: notes ?? null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      setError(e.message);
+      return null;
+    }
+  }, []);
+
+  // ── Insert a single set log entry, return the new row id ─────────────────
+  const insertSessionLog = useCallback(
+    async (sessionId, { exerciseName, setNumber, reps, weight }) => {
+      try {
+        const { data, error } = await supabase
+          .from("session_logs")
+          .insert({
+            session_id: sessionId,
+            exercise_name: exerciseName,
+            set_number: setNumber,
+            reps: reps !== "" && reps != null ? parseInt(reps, 10) : null,
+            weight: weight !== "" && weight != null ? parseFloat(weight) : null,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return data.id;
+      } catch (e) {
+        setError(e.message);
+        return null;
+      }
+    },
+    []
+  );
+
+  // ── Delete a single log entry (when a done set is un-checked) ────────────
+  const deleteSessionLog = useCallback(async (logId) => {
+    try {
+      const { error } = await supabase
+        .from("session_logs")
+        .delete()
+        .eq("id", logId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
+  // ── Patch session notes after a workout finishes ──────────────────────────
+  const updateSessionNotes = useCallback(async (sessionId, notes) => {
+    try {
+      const { error } = await supabase
+        .from("sessions")
+        .update({ notes })
+        .eq("id", sessionId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
   return {
     // State
     regimes,
@@ -165,11 +267,17 @@ export function useGymData() {
     sessionHistory,
     loading,
     error,
-    // Actions
+    // Bulk actions
     fetchRegimes,
     fetchSessions,
     saveSession,
     fetchSessionHistory,
     updateSessionLog,
+    // Real-time workout actions
+    ensureRegime,
+    createSession,
+    insertSessionLog,
+    deleteSessionLog,
+    updateSessionNotes,
   };
 }
