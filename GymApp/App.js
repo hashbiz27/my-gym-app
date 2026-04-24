@@ -2,50 +2,55 @@ import "./global.css";
 
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { supabase } from "./src/lib/supabase";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainNavigator from "./src/navigation/MainNavigator";
+import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
 
-export default function App() {
+function Root() {
+  const { isDark } = useAppTheme();
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    // Restore existing session on launch
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Keep session state in sync with Supabase auth events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => setSession(session)
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Show a spinner while the initial session check is in flight
   if (session === undefined) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View className="flex-1 items-center justify-center bg-white">
-          <ActivityIndicator size="large" color="#4f46e5" />
-        </View>
-      </GestureHandlerRootView>
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#4f46e5" />
+      </View>
     );
   }
 
   return (
+    <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      {session ? <MainNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <NavigationContainer>
-          <StatusBar style="auto" />
-          {session ? <MainNavigator /> : <AuthNavigator />}
-        </NavigationContainer>
-      </BottomSheetModalProvider>
+      <ThemeProvider>
+        <BottomSheetModalProvider>
+          <Root />
+        </BottomSheetModalProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
