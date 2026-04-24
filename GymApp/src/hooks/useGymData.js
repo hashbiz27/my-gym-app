@@ -184,7 +184,7 @@ export function useGymData() {
   }, []);
 
   // ── Create a session row without logs (for real-time logging) ─────────────
-  const createSession = useCallback(async ({ regimeId, date, notes }) => {
+  const createSession = useCallback(async ({ regimeId, date, notes, startedAt }) => {
     try {
       const userId = await currentUserId();
       const { data, error } = await supabase
@@ -194,6 +194,7 @@ export function useGymData() {
           regime_id: regimeId ?? null,
           date,
           notes: notes ?? null,
+          started_at: startedAt ?? null,
         })
         .select()
         .single();
@@ -202,6 +203,52 @@ export function useGymData() {
     } catch (e) {
       setError(e.message);
       return null;
+    }
+  }, []);
+
+  // ── Mark a session finished ───────────────────────────────────────────────
+  const finishSession = useCallback(async (sessionId) => {
+    try {
+      const { error } = await supabase
+        .from("sessions")
+        .update({ finished_at: new Date().toISOString() })
+        .eq("id", sessionId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
+  // ── Fetch a single session row by ID ─────────────────────────────────────
+  const fetchSessionById = useCallback(async (sessionId) => {
+    try {
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      setError(e.message);
+      return null;
+    }
+  }, []);
+
+  // ── Fetch all log entries for a session (used to restore in-progress state)
+  const fetchLogsForSession = useCallback(async (sessionId) => {
+    try {
+      const { data, error } = await supabase
+        .from("session_logs")
+        .select("*")
+        .eq("session_id", sessionId);
+      if (error) throw error;
+      return data ?? [];
+    } catch (e) {
+      setError(e.message);
+      return [];
     }
   }, []);
 
@@ -318,6 +365,9 @@ export function useGymData() {
     // Real-time workout actions
     ensureRegime,
     createSession,
+    finishSession,
+    fetchSessionById,
+    fetchLogsForSession,
     insertSessionLog,
     deleteSessionLog,
     updateSessionNotes,

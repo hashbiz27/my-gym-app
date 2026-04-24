@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   ALL_SESSIONS,
@@ -19,6 +20,10 @@ import {
   adjustWeightForSex,
 } from "../data/gymData";
 import { useGymData } from "../hooks/useGymData";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const ACTIVE_SESSION_KEY = "gym_active_session";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,9 +60,29 @@ function buildInitialLogState(exercises, sessionId) {
   return initial;
 }
 
+// Rebuild log state from previously saved session_logs rows
+function buildRestoredLogState(exercises, sessionId, logs) {
+  const initial = buildInitialLogState(exercises, sessionId);
+  logs.forEach((log) => {
+    const exIdx = exercises.findIndex((ex) => ex.name === log.exercise_name);
+    if (exIdx === -1) return;
+    const exKey = `${sessionId}-${exIdx}`;
+    const si = log.set_number - 1;
+    if (initial[exKey]?.[si]) {
+      initial[exKey][si] = {
+        weight: log.weight != null ? String(log.weight) : "",
+        reps: log.reps != null ? String(log.reps) : "",
+        done: true,
+        logId: log.id,
+      };
+    }
+  });
+  return initial;
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function WorkoutHeader({ session, regimeCfg, doneSets, totalSets }) {
+function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase }) {
   const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
   return (
     <View className="bg-gray-900 px-5 pt-4 pb-4">
@@ -76,27 +101,42 @@ function WorkoutHeader({ session, regimeCfg, doneSets, totalSets }) {
           </Text>
         </View>
         <View className="items-end">
-          <Text className="text-2xl font-bold text-white">
-            {doneSets}
-            <Text className="text-sm text-gray-500">/{totalSets}</Text>
-          </Text>
-          <Text className="text-xs text-gray-500 uppercase tracking-wider">
-            sets done
-          </Text>
+          {phase === "active" ? (
+            <>
+              <Text className="text-2xl font-bold text-white">
+                {doneSets}
+                <Text className="text-sm text-gray-500">/{totalSets}</Text>
+              </Text>
+              <Text className="text-xs text-gray-500 uppercase tracking-wider">
+                sets done
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text className="text-2xl font-bold text-gray-600">
+                {totalSets}
+              </Text>
+              <Text className="text-xs text-gray-500 uppercase tracking-wider">
+                sets total
+              </Text>
+            </>
+          )}
         </View>
       </View>
 
       <View className="h-1 bg-gray-700 rounded-full mt-3">
-        <View
-          className="h-1 bg-green-500 rounded-full"
-          style={{ width: `${pct}%` }}
-        />
+        {phase === "active" && (
+          <View
+            className="h-1 bg-green-500 rounded-full"
+            style={{ width: `${pct}%` }}
+          />
+        )}
       </View>
     </View>
   );
 }
 
-function SessionPicker({ regimeCfg, selectedSessionId, onSelect }) {
+function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
   if (!regimeCfg?.sessionOrder?.length) return null;
   return (
     <ScrollView
@@ -110,16 +150,19 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect }) {
         return (
           <TouchableOpacity
             key={sid}
-            onPress={() => onSelect(sid)}
+            onPress={() => !disabled && onSelect(sid)}
+            disabled={disabled}
             className={`mr-2 px-4 py-1.5 rounded-full border ${
               active
                 ? "bg-green-600 border-green-600"
+                : disabled
+                ? "bg-gray-50 border-gray-100"
                 : "bg-white border-gray-200"
             }`}
           >
             <Text
               className={`text-xs font-semibold ${
-                active ? "text-white" : "text-gray-500"
+                active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"
               }`}
             >
               {regimeCfg.sessionLabels[sid]}
@@ -187,6 +230,7 @@ function ExerciseCard({
   rows,
   expanded,
   cardSaving,
+  interactive,
   onToggleExpand,
   onToggleDone,
   onChangeWeight,
@@ -203,10 +247,9 @@ function ExerciseCard({
 
   return (
     <View className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      {/* Tappable card header */}
       <TouchableOpacity
-        onPress={() => onToggleExpand(exKey)}
-        activeOpacity={0.7}
+        onPress={interactive ? () => onToggleExpand(exKey) : undefined}
+        activeOpacity={interactive ? 0.7 : 1}
         className="px-4 py-3 border-b border-gray-100 flex-row justify-between items-start"
       >
         <View className="flex-1 mr-3">
@@ -245,28 +288,29 @@ function ExerciseCard({
             {exercise.sets} × {exercise.reps}
           </Text>
           <Text className="text-xs text-gray-400 mt-0.5">{exercise.rest}</Text>
-          <View className="flex-row items-center mt-1.5 gap-x-1.5">
-            {cardSaving ? (
-              <ActivityIndicator size="small" color="#16a34a" />
-            ) : null}
-            <Text
-              className={`text-xs font-semibold ${
-                allDone ? "text-green-600" : "text-gray-400"
-              }`}
-            >
-              {doneSets}/{rows.length}
-            </Text>
-            <Ionicons
-              name={expanded ? "chevron-up" : "chevron-down"}
-              size={14}
-              color="#9ca3af"
-            />
-          </View>
+          {interactive && (
+            <View className="flex-row items-center mt-1.5 gap-x-1.5">
+              {cardSaving ? (
+                <ActivityIndicator size="small" color="#16a34a" />
+              ) : null}
+              <Text
+                className={`text-xs font-semibold ${
+                  allDone ? "text-green-600" : "text-gray-400"
+                }`}
+              >
+                {doneSets}/{rows.length}
+              </Text>
+              <Ionicons
+                name={expanded ? "chevron-up" : "chevron-down"}
+                size={14}
+                color="#9ca3af"
+              />
+            </View>
+          )}
         </View>
       </TouchableOpacity>
 
-      {/* Expanded set rows */}
-      {expanded && (
+      {interactive && expanded && (
         <View className="px-4 py-3">
           {rows.map((row, i) => (
             <SetRow
@@ -286,7 +330,30 @@ function ExerciseCard({
   );
 }
 
-function ListFooter({ notes, onNotesChange, onFinish, onDiscard }) {
+function StartFooter({ onStart, starting }) {
+  return (
+    <View className="mx-4 mt-5 mb-8">
+      <TouchableOpacity
+        className={`rounded-xl py-4 items-center flex-row justify-center gap-x-2 ${
+          starting ? "bg-green-400" : "bg-green-600"
+        }`}
+        onPress={onStart}
+        disabled={starting}
+      >
+        {starting ? (
+          <ActivityIndicator color="white" size="small" />
+        ) : (
+          <Ionicons name="play" size={18} color="white" />
+        )}
+        <Text className="text-white font-bold text-base">
+          {starting ? "Starting…" : "Start Session"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function FinishFooter({ notes, onNotesChange, onFinish, onDiscard }) {
   return (
     <View className="mx-4 mt-5 mb-8">
       <Text className="text-xs tracking-widest uppercase text-gray-400 mb-2">
@@ -306,7 +373,7 @@ function ListFooter({ notes, onNotesChange, onFinish, onDiscard }) {
           className="flex-1 bg-green-600 rounded-xl py-3.5 items-center"
           onPress={() => onFinish(notes)}
         >
-          <Text className="text-white font-bold text-sm">Finish Workout</Text>
+          <Text className="text-white font-bold text-sm">Finish Session</Text>
         </TouchableOpacity>
         <TouchableOpacity
           className="px-5 py-3.5 rounded-xl border border-gray-200 items-center"
@@ -340,6 +407,9 @@ export default function WorkoutScreen() {
     fetchProfile,
     ensureRegime,
     createSession,
+    finishSession,
+    fetchSessionById,
+    fetchLogsForSession,
     insertSessionLog,
     deleteSessionLog,
     updateSessionLog,
@@ -350,13 +420,15 @@ export default function WorkoutScreen() {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // "idle" → pre-session preview; "starting" → creating row; "active" → logging
+  const [sessionPhase, setSessionPhase] = useState("idle");
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [logState, setLogState] = useState({});
   const [expandedCards, setExpandedCards] = useState(new Set());
   const [savingCards, setSavingCards] = useState({});
   const [workoutNotes, setWorkoutNotes] = useState("");
 
-  // Refs keep async callbacks from capturing stale state
+  // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
   activeSessionIdRef.current = activeSessionId;
   const logStateRef = useRef({});
@@ -365,18 +437,61 @@ export default function WorkoutScreen() {
   profileRef.current = profile;
   const selectedSessionIdRef = useRef(null);
   selectedSessionIdRef.current = selectedSessionId;
+  // Prevents sessionKey effect from firing before the mount restore finishes
+  const isFirstKeyRun = useRef(true);
 
-  // Load profile on mount
+  // ── Mount: load profile and restore any in-progress session ───────────────
   useEffect(() => {
-    fetchProfile().then((p) => {
+    (async () => {
+      const p = await fetchProfile();
       setProfile(p);
-      if (p?.regime) {
-        const order = REGIMES[p.regime]?.sessionOrder ?? [];
-        setSelectedSessionId(order[0] ?? null);
+
+      if (!p?.regime) {
+        setLoading(false);
+        return;
       }
+
+      const order = REGIMES[p.regime]?.sessionOrder ?? [];
+      const defaultSid = order[0] ?? null;
+
+      // Try to restore a persisted session
+      try {
+        const stored = await AsyncStorage.getItem(ACTIVE_SESSION_KEY);
+        if (stored) {
+          const { sessionId, regimeKey, sessionTabId } = JSON.parse(stored);
+          if (regimeKey === p.regime) {
+            const sess = await fetchSessionById(sessionId);
+            if (sess && !sess.finished_at) {
+              const logs = await fetchLogsForSession(sessionId);
+              const resolved = resolveSession(p.regime, sessionTabId, p.age_class);
+              if (resolved) {
+                setLogState(
+                  buildRestoredLogState(resolved.exercises, sessionTabId, logs)
+                );
+              }
+              setSelectedSessionId(sessionTabId);
+              setActiveSessionId(sessionId);
+              setSessionPhase("active");
+              setLoading(false);
+              return;
+            }
+          }
+          // Stale or mismatched — clear it
+          await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
+        }
+      } catch (_) {}
+
+      // Fresh start
+      if (defaultSid && p.age_class) {
+        const resolved = resolveSession(p.regime, defaultSid, p.age_class);
+        if (resolved) {
+          setLogState(buildInitialLogState(resolved.exercises, defaultSid));
+        }
+      }
+      setSelectedSessionId(defaultSid);
       setLoading(false);
-    });
-  }, []);
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const regimeCfg = profile?.regime ? REGIMES[profile.regime] : null;
 
@@ -388,13 +503,18 @@ export default function WorkoutScreen() {
     [profile, selectedSessionId]
   );
 
-  // Reset log state whenever regime / session / age class changes
+  // Reset when regime / session tab / age class changes (user edits Settings)
   const sessionKey =
     profile?.regime && selectedSessionId && profile?.age_class
       ? `${profile.regime}|${selectedSessionId}|${profile.age_class}`
       : null;
 
   useEffect(() => {
+    // Skip the initial run — mount effect already handled the first setup
+    if (isFirstKeyRun.current) {
+      if (sessionKey) isFirstKeyRun.current = false;
+      return;
+    }
     if (!sessionKey || !profile?.regime || !selectedSessionId) return;
     const resolved = resolveSession(
       profile.regime,
@@ -402,10 +522,12 @@ export default function WorkoutScreen() {
       profile.age_class
     );
     if (!resolved) return;
+    AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(() => {});
     setLogState(buildInitialLogState(resolved.exercises, selectedSessionId));
     setExpandedCards(new Set());
     setSavingCards({});
     setActiveSessionId(null);
+    setSessionPhase("idle");
     setWorkoutNotes("");
   }, [sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -423,36 +545,46 @@ export default function WorkoutScreen() {
     [session]
   );
 
-  // Lazily create the session row on first set completion
-  const ensureSessionRow = useCallback(async () => {
-    if (activeSessionIdRef.current) return activeSessionIdRef.current;
+  // ── Start session ──────────────────────────────────────────────────────────
+  const handleStartSession = useCallback(async () => {
     const p = profileRef.current;
+    const sid = selectedSessionIdRef.current;
+    if (!p?.regime || !sid) return;
+
+    setSessionPhase("starting");
     const regimeId = await ensureRegime(p.regime);
-    // Guard against concurrent calls both reaching this point
-    if (activeSessionIdRef.current) return activeSessionIdRef.current;
     const sess = await createSession({
       regimeId,
       date: new Date().toISOString().split("T")[0],
+      startedAt: new Date().toISOString(),
       notes: null,
     });
-    if (!sess) return null;
+
+    if (!sess) {
+      setSessionPhase("idle");
+      return;
+    }
+
     setActiveSessionId(sess.id);
-    return sess.id;
+    try {
+      await AsyncStorage.setItem(
+        ACTIVE_SESSION_KEY,
+        JSON.stringify({ sessionId: sess.id, regimeKey: p.regime, sessionTabId: sid })
+      );
+    } catch (_) {}
+    setSessionPhase("active");
   }, [ensureRegime, createSession]);
 
+  // ── Per-set logging ────────────────────────────────────────────────────────
   const handleToggleDone = useCallback(
     async (exKey, setIndex, exercise) => {
+      const sessionId = activeSessionIdRef.current;
       const row = logStateRef.current[exKey]?.[setIndex];
-      if (!row) return;
+      if (!sessionId || !row) return;
 
       setSavingCards((prev) => ({ ...prev, [exKey]: true }));
 
       if (!row.done) {
-        const sessionId = await ensureSessionRow();
-        if (!sessionId) {
-          setSavingCards((prev) => ({ ...prev, [exKey]: false }));
-          return;
-        }
         const logId = await insertSessionLog(sessionId, {
           exerciseName: exercise.name,
           setNumber: setIndex + 1,
@@ -475,7 +607,7 @@ export default function WorkoutScreen() {
 
       setSavingCards((prev) => ({ ...prev, [exKey]: false }));
     },
-    [ensureSessionRow, insertSessionLog, deleteSessionLog]
+    [insertSessionLog, deleteSessionLog]
   );
 
   const handleChangeWeight = useCallback((exKey, setIndex, value) => {
@@ -512,7 +644,8 @@ export default function WorkoutScreen() {
     });
   }, []);
 
-  const resetWorkoutState = useCallback(() => {
+  // ── Finish / discard ───────────────────────────────────────────────────────
+  const resetToIdle = useCallback(() => {
     const p = profileRef.current;
     const sid = selectedSessionIdRef.current;
     if (p?.regime && sid) {
@@ -522,28 +655,44 @@ export default function WorkoutScreen() {
     setExpandedCards(new Set());
     setSavingCards({});
     setActiveSessionId(null);
+    setSessionPhase("idle");
     setWorkoutNotes("");
   }, []);
 
-  const handleFinishWorkout = useCallback(
+  const handleFinishSession = useCallback(
     async (notes) => {
-      if (activeSessionIdRef.current && notes?.trim()) {
-        await updateSessionNotes(activeSessionIdRef.current, notes.trim());
+      const sessionId = activeSessionIdRef.current;
+      if (sessionId) {
+        if (notes?.trim()) await updateSessionNotes(sessionId, notes.trim());
+        await finishSession(sessionId);
       }
-      resetWorkoutState();
-      Alert.alert("Workout saved!", "Great work today.");
+      try {
+        await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
+      } catch (_) {}
+      resetToIdle();
+      Alert.alert("Session complete!", "Great work today.");
     },
-    [updateSessionNotes, resetWorkoutState]
+    [finishSession, updateSessionNotes, resetToIdle]
   );
 
   const handleDiscard = useCallback(() => {
-    Alert.alert("Discard workout?", "All logged sets will be lost.", [
+    Alert.alert("Discard session?", "All logged sets will be lost.", [
       { text: "Cancel", style: "cancel" },
-      { text: "Discard", style: "destructive", onPress: resetWorkoutState },
+      {
+        text: "Discard",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
+          } catch (_) {}
+          resetToIdle();
+        },
+      },
     ]);
-  }, [resetWorkoutState]);
+  }, [resetToIdle]);
 
-  // ── Loading ──
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
@@ -552,7 +701,6 @@ export default function WorkoutScreen() {
     );
   }
 
-  // ── No profile preferences set ──
   if (!profile?.regime) {
     return (
       <SafeAreaView className="flex-1 bg-white">
@@ -561,7 +709,8 @@ export default function WorkoutScreen() {
     );
   }
 
-  // ── Main screen ──
+  const isActive = sessionPhase === "active";
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <WorkoutHeader
@@ -569,12 +718,14 @@ export default function WorkoutScreen() {
         regimeCfg={regimeCfg}
         doneSets={doneSets}
         totalSets={totalSets}
+        phase={sessionPhase}
       />
 
       <SessionPicker
         regimeCfg={regimeCfg}
         selectedSessionId={selectedSessionId}
         onSelect={setSelectedSessionId}
+        disabled={isActive}
       />
 
       <FlatList
@@ -592,6 +743,7 @@ export default function WorkoutScreen() {
               rows={logState[exKey] ?? []}
               expanded={expandedCards.has(exKey)}
               cardSaving={!!savingCards[exKey]}
+              interactive={isActive}
               onToggleExpand={handleToggleExpand}
               onToggleDone={handleToggleDone}
               onChangeWeight={handleChangeWeight}
@@ -601,14 +753,23 @@ export default function WorkoutScreen() {
           );
         }}
         ListFooterComponent={
-          session ? (
-            <ListFooter
-              notes={workoutNotes}
-              onNotesChange={setWorkoutNotes}
-              onFinish={handleFinishWorkout}
-              onDiscard={handleDiscard}
-            />
-          ) : null
+          session
+            ? isActive
+              ? (
+                <FinishFooter
+                  notes={workoutNotes}
+                  onNotesChange={setWorkoutNotes}
+                  onFinish={handleFinishSession}
+                  onDiscard={handleDiscard}
+                />
+              )
+              : (
+                <StartFooter
+                  onStart={handleStartSession}
+                  starting={sessionPhase === "starting"}
+                />
+              )
+            : null
         }
         contentContainerStyle={{ paddingBottom: 16 }}
         className="flex-1"
