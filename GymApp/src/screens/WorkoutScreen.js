@@ -20,6 +20,7 @@ import {
   adjustWeightForSex,
 } from "../data/gymData";
 import { useGymData } from "../hooks/useGymData";
+import SwapModal from "../components/SwapModal";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -231,11 +232,14 @@ function ExerciseCard({
   expanded,
   cardSaving,
   interactive,
+  originalExerciseName,
+  wasSwapped,
   onToggleExpand,
   onToggleDone,
   onChangeWeight,
   onChangeReps,
   onBlurField,
+  onOpenSwap,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -274,13 +278,31 @@ function ExerciseCard({
             </Text>
           ) : null}
 
-          <TouchableOpacity
-            className="mt-1.5 self-start ml-5"
-            disabled
-            activeOpacity={1}
-          >
-            <Text className="text-xs text-gray-300">Swap</Text>
-          </TouchableOpacity>
+          {interactive ? (
+            <TouchableOpacity
+              className="mt-1.5 self-start ml-5"
+              onPress={() =>
+                onOpenSwap(exKey, index, exercise.name, originalExerciseName)
+              }
+              activeOpacity={0.7}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  wasSwapped ? "text-orange-500" : "text-indigo-500"
+                }`}
+              >
+                {wasSwapped ? "Swapped" : "Swap"}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              className="mt-1.5 self-start ml-5"
+              disabled
+              activeOpacity={1}
+            >
+              <Text className="text-xs text-gray-300">Swap</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View className="items-end">
@@ -428,6 +450,11 @@ export default function WorkoutScreen() {
   const [savingCards, setSavingCards] = useState({});
   const [workoutNotes, setWorkoutNotes] = useState("");
 
+  // { [exKey]: replacementName } — overrides the plan exercise at that slot
+  const [swappedExercises, setSwappedExercises] = useState({});
+  // { exKey, slotIndex, exerciseName, originalName } | null
+  const [swapTarget, setSwapTarget] = useState(null);
+
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
   activeSessionIdRef.current = activeSessionId;
@@ -529,6 +556,7 @@ export default function WorkoutScreen() {
     setActiveSessionId(null);
     setSessionPhase("idle");
     setWorkoutNotes("");
+    setSwappedExercises({});
   }, [sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doneSets = useMemo(
@@ -544,6 +572,43 @@ export default function WorkoutScreen() {
       ) ?? 0,
     [session]
   );
+
+  // Plan exercises with user-selected swap overrides applied
+  const displayedExercises = useMemo(() => {
+    if (!session) return [];
+    return session.exercises.map((ex, i) => {
+      const exKey = `${selectedSessionId}-${i}`;
+      const swappedName = swappedExercises[exKey];
+      return swappedName
+        ? { ...ex, name: swappedName, weight: undefined, note: undefined }
+        : ex;
+    });
+  }, [session, selectedSessionId, swappedExercises]);
+
+  const handleOpenSwap = useCallback(
+    (exKey, slotIndex, currentName, originalName) => {
+      setSwapTarget({ exKey, slotIndex, exerciseName: currentName, originalName });
+    },
+    []
+  );
+
+  const handleConfirmSwap = useCallback(
+    (selectedName) => {
+      if (!swapTarget) return;
+      setSwappedExercises((prev) => {
+        // Re-selecting the original restores the slot to the plan default
+        if (selectedName === swapTarget.originalName) {
+          const { [swapTarget.exKey]: _, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [swapTarget.exKey]: selectedName };
+      });
+      setSwapTarget(null);
+    },
+    [swapTarget]
+  );
+
+  const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
 
   // ── Start session ──────────────────────────────────────────────────────────
   const handleStartSession = useCallback(async () => {
@@ -657,6 +722,7 @@ export default function WorkoutScreen() {
     setActiveSessionId(null);
     setSessionPhase("idle");
     setWorkoutNotes("");
+    setSwappedExercises({});
   }, []);
 
   const handleFinishSession = useCallback(
@@ -729,7 +795,7 @@ export default function WorkoutScreen() {
       />
 
       <FlatList
-        data={session?.exercises ?? []}
+        data={displayedExercises}
         keyExtractor={(_, index) => `${selectedSessionId}-${index}`}
         renderItem={({ item, index }) => {
           const exKey = `${selectedSessionId}-${index}`;
@@ -744,11 +810,14 @@ export default function WorkoutScreen() {
               expanded={expandedCards.has(exKey)}
               cardSaving={!!savingCards[exKey]}
               interactive={isActive}
+              originalExerciseName={session?.exercises[index]?.name ?? item.name}
+              wasSwapped={!!swappedExercises[exKey]}
               onToggleExpand={handleToggleExpand}
               onToggleDone={handleToggleDone}
               onChangeWeight={handleChangeWeight}
               onChangeReps={handleChangeReps}
               onBlurField={handleBlurField}
+              onOpenSwap={handleOpenSwap}
             />
           );
         }}
@@ -774,6 +843,16 @@ export default function WorkoutScreen() {
         contentContainerStyle={{ paddingBottom: 16 }}
         className="flex-1"
         keyboardShouldPersistTaps="handled"
+      />
+
+      <SwapModal
+        visible={swapTarget !== null}
+        exerciseName={swapTarget?.exerciseName}
+        sessionExercises={displayedExercises}
+        slotIndex={swapTarget?.slotIndex}
+        originalName={swapTarget?.originalName}
+        onSwap={handleConfirmSwap}
+        onClose={handleCloseSwap}
       />
     </SafeAreaView>
   );
