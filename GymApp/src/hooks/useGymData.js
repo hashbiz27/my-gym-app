@@ -245,6 +245,45 @@ export function useGymData() {
     }
   }, []);
 
+  // ── Fetch the logged-in user's profile row ───────────────────────────────
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userId = await currentUserId();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      setError(e.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ── Upsert profile preference fields ─────────────────────────────────────
+  const saveProfile = useCallback(async (fields) => {
+    setError(null);
+    try {
+      const userId = await currentUserId();
+      const { data, error } = await supabase
+        .from("profiles")
+        .upsert({ user_id: userId, ...fields }, { onConflict: "user_id" })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      setError(e.message);
+      return null;
+    }
+  }, []);
+
   // ── Patch session notes after a workout finishes ──────────────────────────
   const updateSessionNotes = useCallback(async (sessionId, notes) => {
     try {
@@ -273,6 +312,9 @@ export function useGymData() {
     saveSession,
     fetchSessionHistory,
     updateSessionLog,
+    // Profile
+    fetchProfile,
+    saveProfile,
     // Real-time workout actions
     ensureRegime,
     createSession,
