@@ -18,14 +18,15 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useGymData } from "../hooks/useGymData";
+import { Colors } from "../theme";
 
 // Chart is full-width minus 32px horizontal page padding, minus internal card padding
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CHART_WIDTH = SCREEN_WIDTH - 32 - 32; // page margins + card padding
 
-const INDIGO = "#4f46e5";
-const GRAY_400 = "#9ca3af";
-const GRID_COLOR = "#f3f4f6";
+const INDIGO = Colors.primary;
+const GRAY_400 = Colors.textMuted;
+const GRID_COLOR = Colors.borderLight;
 
 const SECTIONS = ["Overview", "Lifting", "Volume", "PRs", "Duration"];
 
@@ -672,7 +673,7 @@ export default function AnalysisScreen() {
         className="flex-1 bg-white items-center justify-center px-8"
         edges={["top"]}
       >
-        <Ionicons name="stats-chart-outline" size={48} color="#d1d5db" />
+        <Ionicons name="stats-chart-outline" size={48} color={Colors.textLight} />
         <Text className="text-lg font-bold text-gray-400 mt-4 text-center">
           No data yet
         </Text>

@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useGymData } from "../hooks/useGymData";
+import { Colors } from "../theme";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ function SessionCard({ session }) {
             <Text className="text-xs text-gray-500 font-medium">{startTime}</Text>
           ) : null}
           {session.notes ? (
-            <Ionicons name="document-text-outline" size={12} color="#9ca3af" />
+            <Ionicons name="document-text-outline" size={12} color={Colors.textMuted} />
           ) : null}
         </View>
         <Text className="text-xs text-gray-400">
@@ -176,7 +177,7 @@ export default function HistoryScreen() {
   if (loading && !sessionHistory.length) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={["top"]}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </SafeAreaView>
     );
   }
@@ -185,7 +186,7 @@ export default function HistoryScreen() {
   if (!loading && !sessionHistory.length) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center px-8" edges={["top"]}>
-        <Ionicons name="time-outline" size={48} color="#d1d5db" />
+        <Ionicons name="time-outline" size={48} color={Colors.textLight} />
         <Text className="text-lg font-bold text-gray-400 mt-4 text-center">
           No sessions yet
         </Text>

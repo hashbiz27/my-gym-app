@@ -9,7 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../../lib/supabase";
+import { Colors } from "../../theme";
 
 export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -60,54 +62,56 @@ export default function SignUpScreen({ navigation }) {
   }
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-3xl font-bold text-gray-900 mb-2">Create account</Text>
-        <Text className="text-gray-500 mb-8">Start tracking your workouts</Text>
+    <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View className="flex-1 justify-center px-6">
+          <Text className="text-3xl font-bold text-gray-900 mb-2">Create account</Text>
+          <Text className="text-gray-500 mb-8">Start tracking your workouts</Text>
 
-        <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
-        <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-900"
-          placeholder="you@example.com"
-          placeholderTextColor="#9ca3af"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
+          <TextInput
+            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-900"
+            placeholder="you@example.com"
+            placeholderTextColor={Colors.textMuted}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
-        <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
-        <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-900"
-          placeholder="Min. 6 characters"
-          placeholderTextColor="#9ca3af"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
+          <TextInput
+            className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-900"
+            placeholder="Min. 6 characters"
+            placeholderTextColor={Colors.textMuted}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
 
-        <TouchableOpacity
-          className="bg-indigo-600 rounded-lg py-3 items-center mb-4"
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold text-base">Create account</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="bg-indigo-600 rounded-lg py-3 items-center mb-4"
+            onPress={handleSignUp}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text className="text-white font-semibold text-base">Create account</Text>
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text className="text-center text-gray-500">
-            Already have an account?{" "}
-            <Text className="text-indigo-600 font-semibold">Sign in</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text className="text-center text-gray-500">
+              Already have an account?{" "}
+              <Text className="text-indigo-600 font-semibold">Sign in</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

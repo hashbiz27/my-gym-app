@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "../theme";
 import WorkoutScreen from "../screens/WorkoutScreen";
 import LibraryStack from "./LibraryStack";
 import HistoryScreen from "../screens/HistoryScreen";
@@ -8,8 +9,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 
 const Tab = createBottomTabNavigator();
 
-const ACTIVE_COLOR = "#4f46e5";
-const INACTIVE_COLOR = "#9ca3af";
+const ACTIVE_COLOR = Colors.primary;
+const INACTIVE_COLOR = Colors.textMuted;
 
 function tabIcon(name) {
   return ({ color, size, focused }) => (
@@ -29,8 +30,8 @@ export default function MainNavigator() {
         tabBarActiveTintColor: ACTIVE_COLOR,
         tabBarInactiveTintColor: INACTIVE_COLOR,
         tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#f3f4f6",
+          backgroundColor: Colors.white,
+          borderTopColor: Colors.borderLight,
           borderTopWidth: 1,
         },
         tabBarLabelStyle: {

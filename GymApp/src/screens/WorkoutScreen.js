@@ -22,6 +22,7 @@ import {
 import { useGymData } from "../hooks/useGymData";
 import { useSyncContext } from "../context/SyncContext";
 import SwapModal from "../components/SwapModal";
+import { Colors } from "../theme";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -148,14 +149,14 @@ function WorkoutHeader({
       {showSync ? (
         <View className="flex-row items-center gap-x-1.5 mt-2">
           {isSyncing ? (
-            <ActivityIndicator size="small" color="#60a5fa" />
+            <ActivityIndicator size="small" color={Colors.info} />
           ) : (
             <View
               style={{
                 width: 6,
                 height: 6,
                 borderRadius: 3,
-                backgroundColor: "#f59e0b",
+                backgroundColor: Colors.warning,
               }}
             />
           )}
@@ -221,7 +222,7 @@ function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur,
             : "border-gray-200 bg-white text-gray-800"
         }`}
         placeholder="kg"
-        placeholderTextColor="#d1d5db"
+        placeholderTextColor={Colors.textLight}
         keyboardType="decimal-pad"
         value={row.weight}
         onChangeText={(v) => onChangeWeight(setIndex, v)}
@@ -235,7 +236,7 @@ function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur,
             : "border-gray-200 bg-white text-gray-800"
         }`}
         placeholder="reps"
-        placeholderTextColor="#d1d5db"
+        placeholderTextColor={Colors.textLight}
         keyboardType="number-pad"
         value={row.reps}
         onChangeText={(v) => onChangeReps(setIndex, v)}
@@ -249,7 +250,7 @@ function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur,
           row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
         }`}
       >
-        {row.done && <Ionicons name="checkmark" size={16} color="white" />}
+        {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
       </TouchableOpacity>
     </View>
   );
@@ -346,7 +347,7 @@ function ExerciseCard({
           {interactive && (
             <View className="flex-row items-center mt-1.5 gap-x-1.5">
               {cardSaving ? (
-                <ActivityIndicator size="small" color="#16a34a" />
+                <ActivityIndicator size="small" color={Colors.success} />
               ) : null}
               <Text
                 className={`text-xs font-semibold ${
@@ -358,7 +359,7 @@ function ExerciseCard({
               <Ionicons
                 name={expanded ? "chevron-up" : "chevron-down"}
                 size={14}
-                color="#9ca3af"
+                color={Colors.textMuted}
               />
             </View>
           )}
@@ -396,9 +397,9 @@ function StartFooter({ onStart, starting }) {
         disabled={starting}
       >
         {starting ? (
-          <ActivityIndicator color="white" size="small" />
+          <ActivityIndicator color={Colors.white} size="small" />
         ) : (
-          <Ionicons name="play" size={18} color="white" />
+          <Ionicons name="play" size={18} color={Colors.white} />
         )}
         <Text className="text-white font-bold text-base">
           {starting ? "Starting…" : "Start Session"}
@@ -417,7 +418,7 @@ function FinishFooter({ notes, onNotesChange, onFinish, onDiscard }) {
       <TextInput
         className="border border-gray-200 rounded-xl px-4 py-3 bg-white h-20 text-sm text-gray-800"
         placeholder="How did it feel? PRs, injuries, observations…"
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor={Colors.textMuted}
         multiline
         textAlignVertical="top"
         value={notes}
@@ -444,7 +445,7 @@ function FinishFooter({ notes, onNotesChange, onFinish, onDiscard }) {
 function NoProfilePlaceholder() {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Ionicons name="barbell-outline" size={48} color="#d1d5db" />
+      <Ionicons name="barbell-outline" size={48} color={Colors.textLight} />
       <Text className="text-lg font-bold text-gray-400 mt-4 text-center">
         No programme selected
       </Text>
@@ -797,7 +798,7 @@ export default function WorkoutScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color={Colors.success} />
       </SafeAreaView>
     );
   }

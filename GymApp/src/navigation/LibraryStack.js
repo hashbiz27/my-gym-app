@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Colors } from "../theme";
 import LibraryScreen from "../screens/LibraryScreen";
 import ExerciseDetailScreen from "../screens/ExerciseDetailScreen";
 
@@ -8,12 +9,12 @@ export default function LibraryStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: "#ffffff" },
-        headerTitleStyle: { fontWeight: "700", color: "#111827", fontSize: 17 },
-        headerTintColor: "#4f46e5",
+        headerStyle: { backgroundColor: Colors.white },
+        headerTitleStyle: { fontWeight: "700", color: Colors.gray900, fontSize: 17 },
+        headerTintColor: Colors.primary,
         headerBackTitleVisible: false,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: "#ffffff" },
+        contentStyle: { backgroundColor: Colors.white },
       }}
     >
       <Stack.Screen

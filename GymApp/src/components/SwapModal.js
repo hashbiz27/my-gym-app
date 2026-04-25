@@ -9,6 +9,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { scoreAllExercises, scoreColor } from "../data/compatibility";
+import { Colors } from "../theme";
 
 export default function SwapModal({
   visible,
@@ -72,7 +73,7 @@ export default function SwapModal({
       snapPoints={snapPoints}
       onDismiss={handleDismiss}
       backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{ backgroundColor: "#e5e7eb", width: 40 }}
+      handleIndicatorStyle={{ backgroundColor: Colors.gray200, width: 40 }}
     >
       {/* Header */}
       <View className="px-4 pb-3 border-b border-gray-100">
@@ -81,7 +82,7 @@ export default function SwapModal({
             Swap Exercise
           </Text>
           <TouchableOpacity onPress={handleDismiss} className="p-1">
-            <Ionicons name="close" size={22} color="#9ca3af" />
+            <Ionicons name="close" size={22} color={Colors.textMuted} />
           </TouchableOpacity>
         </View>
         <Text className="text-xs text-gray-400 mb-3">
@@ -90,17 +91,17 @@ export default function SwapModal({
         </Text>
         <BottomSheetTextInput
           style={{
-            backgroundColor: "#f9fafb",
+            backgroundColor: Colors.gray50,
             borderWidth: 1,
-            borderColor: "#e5e7eb",
+            borderColor: Colors.gray200,
             borderRadius: 8,
             paddingHorizontal: 12,
             paddingVertical: 8,
             fontSize: 14,
-            color: "#111827",
+            color: Colors.gray900,
           }}
           placeholder="Search exercises…"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textMuted}
           value={search}
           onChangeText={setSearch}
           autoCorrect={false}

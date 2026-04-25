@@ -14,6 +14,7 @@ import { supabase } from "../lib/supabase";
 import { useGymData } from "../hooks/useGymData";
 import { useAppTheme } from "../context/ThemeContext";
 import { AGE_CLASSES, WEIGHT_CLASSES, REGIMES } from "../data/gymData";
+import { Colors } from "../theme";
 
 const REGIME_LIST = Object.values(REGIMES);
 const SEX_OPTIONS = [
@@ -166,7 +167,7 @@ export default function SettingsScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={["top"]}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </SafeAreaView>
     );
   }
@@ -179,7 +180,7 @@ export default function SettingsScreen() {
         <SectionHeader title="Account" />
         <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
           <View className="flex-row items-center px-4 py-3.5">
-            <Ionicons name="mail-outline" size={18} color="#9ca3af" />
+            <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
             <Text className="ml-3 text-sm text-gray-700 flex-1" numberOfLines={1}>
               {email ?? "—"}
             </Text>
@@ -221,14 +222,14 @@ export default function SettingsScreen() {
             <Ionicons
               name={isDark ? "moon" : "sunny-outline"}
               size={18}
-              color="#9ca3af"
+              color={Colors.textMuted}
             />
             <Text className="ml-3 text-sm text-gray-700 flex-1">Dark mode</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
-              trackColor={{ false: "#e5e7eb", true: "#818cf8" }}
-              thumbColor={isDark ? "#4f46e5" : "#f9fafb"}
+              trackColor={{ false: Colors.gray200, true: Colors.primaryMid }}
+              thumbColor={isDark ? Colors.primary : Colors.gray50}
             />
           </View>
         </View>
@@ -240,7 +241,7 @@ export default function SettingsScreen() {
             onPress={handleSignOut}
             activeOpacity={0.75}
           >
-            <Ionicons name="log-out-outline" size={18} color="#dc2626" />
+            <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
             <Text className="text-red-600 font-semibold text-sm">Sign out</Text>
           </TouchableOpacity>
         </View>
