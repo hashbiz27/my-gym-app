@@ -9,29 +9,52 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { supabase } from "./src/lib/supabase";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainNavigator from "./src/navigation/MainNavigator";
+import OnboardingScreen from "./src/screens/OnboardingScreen";
 import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
 import { SyncProvider } from "./src/context/SyncContext";
+import { Colors } from "./src/theme";
 
 function Root() {
   const { isDark } = useAppTheme();
   const [session, setSession] = useState(undefined);
+  // null = not yet checked; true = needs onboarding; false = profile complete
+  const [needsOnboarding, setNeedsOnboarding] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (!session) setNeedsOnboarding(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) setNeedsOnboarding(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (session === undefined) {
+  // After session is known, check whether the profile has a regime set
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from("profiles")
+      .select("regime")
+      .eq("user_id", session.user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setNeedsOnboarding(!data?.regime);
+      });
+  }, [session]);
+
+  const isLoading = session === undefined || (session && needsOnboarding === null);
+
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -39,7 +62,13 @@ function Root() {
   return (
     <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      {session ? <MainNavigator /> : <AuthNavigator />}
+      {!session ? (
+        <AuthNavigator />
+      ) : needsOnboarding ? (
+        <OnboardingScreen onComplete={() => setNeedsOnboarding(false)} />
+      ) : (
+        <MainNavigator />
+      )}
     </NavigationContainer>
   );
 }

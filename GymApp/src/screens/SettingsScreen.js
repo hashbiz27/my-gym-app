@@ -21,6 +21,7 @@ const SEX_OPTIONS = [
   { label: "Male", value: "male" },
   { label: "Female", value: "female" },
 ];
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function chunk(arr, size) {
   const result = [];
@@ -58,6 +59,53 @@ function PillPicker({ options, value, onSelect }) {
               {label}
             </Text>
           </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+function SchedulePicker({ regime, schedule, onSelect }) {
+  const cfg = regime ? REGIMES[regime] : null;
+  const options = cfg
+    ? [
+        { id: "rest", label: "Rest" },
+        ...cfg.sessionOrder.map((id) => ({ id, label: cfg.sessionLabels[id] })),
+      ]
+    : [{ id: "rest", label: "Rest" }];
+
+  return (
+    <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {DAYS.map((day, idx) => {
+        const value = schedule?.[String(idx)] ?? "rest";
+        return (
+          <View
+            key={day}
+            className={`flex-row items-center px-4 py-2.5 ${idx < 6 ? "border-b border-gray-100" : ""}`}
+          >
+            <Text className="w-9 text-sm font-semibold text-gray-500">{day}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
+              <View className="flex-row gap-2 pr-2">
+                {options.map((opt) => {
+                  const active = opt.id === value;
+                  return (
+                    <TouchableOpacity
+                      key={opt.id}
+                      onPress={() => onSelect(String(idx), opt.id)}
+                      className={`px-3 py-1 rounded-full border ${
+                        active ? "bg-indigo-600 border-indigo-600" : "bg-gray-50 border-gray-200"
+                      }`}
+                      activeOpacity={0.75}
+                    >
+                      <Text className={`text-xs font-medium ${active ? "text-white" : "text-gray-600"}`}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
         );
       })}
     </View>
@@ -116,6 +164,7 @@ export default function SettingsScreen() {
   const [ageClass, setAgeClass] = useState(null);
   const [weightClass, setWeightClass] = useState(null);
   const [sex, setSex] = useState(null);
+  const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -130,6 +179,7 @@ export default function SettingsScreen() {
         setAgeClass(profile.age_class ?? null);
         setWeightClass(profile.weight_class ?? null);
         setSex(profile.sex ?? null);
+        setSchedule(profile.schedule ?? null);
       }
       setLoading(false);
     }
@@ -147,6 +197,15 @@ export default function SettingsScreen() {
       await saveProfile({ [field]: value });
     },
     [saveProfile]
+  );
+
+  const handleScheduleSelect = useCallback(
+    async (dayIndex, sessionId) => {
+      const next = { ...(schedule ?? {}), [dayIndex]: sessionId };
+      setSchedule(next);
+      await saveProfile({ schedule: next });
+    },
+    [schedule, saveProfile]
   );
 
   async function handleSignOut() {
@@ -190,6 +249,14 @@ export default function SettingsScreen() {
         {/* Training regime */}
         <SectionHeader title="Training Regime" />
         <RegimeGrid value={regime} onSelect={(v) => handleSelect("regime", v)} />
+
+        {/* Weekly schedule */}
+        <SectionHeader title="Weekly Schedule" />
+        <SchedulePicker
+          regime={regime}
+          schedule={schedule}
+          onSelect={handleScheduleSelect}
+        />
 
         {/* Age class */}
         <SectionHeader title="Age Class" />

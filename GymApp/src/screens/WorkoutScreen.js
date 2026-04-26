@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Alert,
@@ -515,7 +516,10 @@ export default function WorkoutScreen() {
       }
 
       const order = REGIMES[p.regime]?.sessionOrder ?? [];
-      const defaultSid = order[0] ?? null;
+      const dayKey = String(new Date().getDay()); // "0"=Sun … "6"=Sat
+      const scheduled = p.schedule?.[dayKey];
+      const defaultSid =
+        scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
 
       // Try to restore a persisted session
       try {
@@ -594,6 +598,32 @@ export default function WorkoutScreen() {
     setWorkoutNotes("");
     setSwappedExercises({});
   }, [sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-fetch profile each time the tab gains focus so changes made in Settings
+  // (regime, age class, weight class, schedule) are reflected immediately.
+  // Skip during an active session to avoid disrupting an in-progress workout.
+  useFocusEffect(
+    useCallback(() => {
+      if (sessionPhaseRef.current === "active") return;
+      fetchProfile().then((p) => {
+        if (!p) return;
+        setProfile(p);
+        if (p.regime && !selectedSessionIdRef.current) {
+          const order = REGIMES[p.regime]?.sessionOrder ?? [];
+          const dayKey = String(new Date().getDay());
+          const scheduled = p.schedule?.[dayKey];
+          const sid =
+            scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
+          setSelectedSessionId(sid);
+          if (sid) {
+            const resolved = resolveSession(p.regime, sid, p.age_class);
+            if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
+          }
+          setLoading(false);
+        }
+      });
+    }, [fetchProfile])
+  );
 
   const doneSets = useMemo(
     () => Object.values(logState).flat().filter((r) => r.done).length,
