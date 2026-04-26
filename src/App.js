@@ -91,6 +91,21 @@ export default function GymRoutine() {
   useEffect(() => { LS.set("gym_log", workoutLog); }, [workoutLog]);
   useEffect(() => { LS.set("gym_activeLog", activeLog); }, [activeLog]);
 
+  // Safe redirect — handles all broken routing states without calling setView during render
+  useEffect(() => {
+    // If regime got cleared but step is still > 1, reset to beginning
+    if (!regime && step > 1) {
+      setStep(1);
+      setView("setup");
+      return;
+    }
+    // If at step 5 for non-custom with no days assigned, go to day setup
+    const hasAssignedDays = selectedDays.filter(d => d && d.session).length > 0;
+    if (step === 5 && regime && regime !== "custom" && !hasAssignedDays && view !== "setup" && view !== "log") {
+      setView("setup");
+    }
+  }, [step, regime, selectedDays, view]);
+
   // Rest timer tick
   useEffect(() => {
     if (!restTimer) { clearInterval(restRef.current); return; }
@@ -270,7 +285,7 @@ export default function GymRoutine() {
             {activeLog && <span onClick={() => setView("log")} style={{ padding: "4px 10px", fontSize: 10, background: "#4caf50", color: "#fff", borderRadius: 2, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer" }}>● Active</span>}
             <button onClick={() => {
               setRegime(null); setAgeClass(null); setWeightClass(null); setSelectedDays([]);
-              setSex("male"); setActiveSession(null); setSwaps({}); setView("routine"); setStep(1);
+              setSex("male"); setActiveSession(null); setSwaps({}); setView("setup"); setStep(1);
               LS.set("gym_step", 1); LS.set("gym_session", null); LS.set("gym_regime", null);
               LS.set("gym_age", null); LS.set("gym_wc", null); LS.set("gym_days", []); LS.set("gym_swaps", {}); LS.set("gym_sex", "male");
             }} style={{ padding: "4px 12px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "Georgia, serif", cursor: "pointer", background: "transparent", color: "#666", border: "1px solid #444", borderRadius: 2 }}>Switch</button>
@@ -489,12 +504,6 @@ export default function GymRoutine() {
         </div>
       </div>
     );
-  }
-
-  // Route to setup if needed — custom skips days entirely
-  if (step === 5 && regime !== "custom" && assignedSessions.length === 0 && view !== "setup") {
-    // Safe: return the setup view inline rather than calling setView during render
-    return null;
   }
 
   // ─── Log view ─────────────────────────────────────────────────────────────
@@ -940,6 +949,9 @@ export default function GymRoutine() {
   }
 
   // ─── Routine view ─────────────────────────────────────────────────────────
+  // Safety net: if regime is null here, the useEffect will redirect — render nothing
+  if (!regime) return null;
+
   // Handle custom regime separately
   if (regime === "custom") {
     const customSessionIds = Object.keys(customSessions);
