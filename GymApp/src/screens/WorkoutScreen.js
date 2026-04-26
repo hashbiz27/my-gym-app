@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ALL_SESSIONS,
   AGE_OVERRIDES,
+  AGE_PROFILES,
   MOBILITY_WARMUPS,
   REGIMES,
   adjustWeightForSex,
@@ -477,6 +478,63 @@ function NoProfilePlaceholder() {
       <Text className="text-sm text-gray-400 mt-2 text-center leading-5">
         Go to Settings to choose your regime, age group, and weight class.
       </Text>
+    </View>
+  );
+}
+
+// ─── Age profile banner ───────────────────────────────────────────────────────
+
+function AgeProfileBanner({ ageClass }) {
+  const [open, setOpen] = useState(false);
+  const profile = AGE_PROFILES[ageClass];
+  if (!profile) return null;
+  return (
+    <View
+      className="mx-4 mt-3 rounded-xl border overflow-hidden"
+      style={{ borderColor: profile.badgeText + "55", backgroundColor: profile.badgeColor }}
+    >
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-2.5"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <View
+          className="px-2 py-0.5 rounded-full mr-3"
+          style={{ backgroundColor: profile.badgeText + "22" }}
+        >
+          <Text className="text-xs font-bold" style={{ color: profile.badgeText }}>
+            {profile.badge}
+          </Text>
+        </View>
+        <Text className="flex-1 text-xs font-medium" style={{ color: profile.badgeText }}>
+          {profile.intensityLabel}
+        </Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={14}
+          color={profile.badgeText}
+        />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t" style={{ borderTopColor: profile.badgeText + "33" }}>
+          {profile.notes.map((note, i) => (
+            <View key={i} className="flex-row items-start py-1">
+              <Text className="text-xs mr-2" style={{ color: profile.badgeText }}>•</Text>
+              <Text className="text-xs flex-1" style={{ color: profile.badgeText }}>
+                {note}
+              </Text>
+            </View>
+          ))}
+          <View className="mt-2 flex-row flex-wrap gap-x-4">
+            <Text className="text-xs" style={{ color: profile.badgeText + "cc" }}>
+              Weight: {profile.weightNote}
+            </Text>
+            <Text className="text-xs" style={{ color: profile.badgeText + "cc" }}>
+              Rest: {profile.restNote}
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -1019,6 +1077,8 @@ export default function WorkoutScreen() {
         onSelect={setSelectedSessionId}
         disabled={isActive}
       />
+
+      {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
 
       {(() => {
         const drills = MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId];
