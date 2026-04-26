@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Vibration,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,12 +18,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ALL_SESSIONS,
   AGE_OVERRIDES,
+  AGE_PROFILES,
+  MOBILITY_WARMUPS,
   REGIMES,
   adjustWeightForSex,
 } from "../data/gymData";
 import { useGymData } from "../hooks/useGymData";
 import { useSyncContext } from "../context/SyncContext";
 import SwapModal from "../components/SwapModal";
+import HowToModal from "../components/HowToModal";
 import { Colors } from "../theme";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -210,49 +214,67 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
   );
 }
 
+function epley1RM(weight, reps) {
+  const w = parseFloat(weight);
+  const r = parseInt(reps);
+  if (!w || !r || r <= 0) return null;
+  if (r === 1) return Math.round(w);
+  return Math.round(w * (1 + r / 30));
+}
+
 function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur, disabled }) {
+  const orm = row.done ? epley1RM(row.weight, row.reps) : null;
   return (
-    <View className="flex-row items-center gap-x-2 mb-2">
-      <Text className="w-5 text-xs text-gray-400 text-center font-bold">
-        {setIndex + 1}
-      </Text>
-      <TextInput
-        className={`flex-1 border rounded-lg py-2 text-center text-sm ${
-          row.done
-            ? "border-green-200 bg-green-50 text-gray-700"
-            : "border-gray-200 bg-white text-gray-800"
-        }`}
-        placeholder="kg"
-        placeholderTextColor={Colors.textLight}
-        keyboardType="decimal-pad"
-        value={row.weight}
-        onChangeText={(v) => onChangeWeight(setIndex, v)}
-        onBlur={() => onBlur(setIndex)}
-        editable={!disabled}
-      />
-      <TextInput
-        className={`flex-1 border rounded-lg py-2 text-center text-sm ${
-          row.done
-            ? "border-green-200 bg-green-50 text-gray-700"
-            : "border-gray-200 bg-white text-gray-800"
-        }`}
-        placeholder="reps"
-        placeholderTextColor={Colors.textLight}
-        keyboardType="number-pad"
-        value={row.reps}
-        onChangeText={(v) => onChangeReps(setIndex, v)}
-        onBlur={() => onBlur(setIndex)}
-        editable={!disabled}
-      />
-      <TouchableOpacity
-        onPress={() => onToggle(setIndex)}
-        disabled={disabled}
-        className={`w-7 h-7 rounded border-2 items-center justify-center ${
-          row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
-        }`}
-      >
-        {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
-      </TouchableOpacity>
+    <View className="mb-2">
+      <View className="flex-row items-center gap-x-2">
+        <Text className="w-5 text-xs text-gray-400 text-center font-bold">
+          {setIndex + 1}
+        </Text>
+        <TextInput
+          className={`flex-1 border rounded-lg py-2 text-center text-sm ${
+            row.done
+              ? "border-green-200 bg-green-50 text-gray-700"
+              : "border-gray-200 bg-white text-gray-800"
+          }`}
+          placeholder="kg"
+          placeholderTextColor={Colors.textLight}
+          keyboardType="decimal-pad"
+          value={row.weight}
+          onChangeText={(v) => onChangeWeight(setIndex, v)}
+          onBlur={() => onBlur(setIndex)}
+          editable={!disabled}
+        />
+        <TextInput
+          className={`flex-1 border rounded-lg py-2 text-center text-sm ${
+            row.done
+              ? "border-green-200 bg-green-50 text-gray-700"
+              : "border-gray-200 bg-white text-gray-800"
+          }`}
+          placeholder="reps"
+          placeholderTextColor={Colors.textLight}
+          keyboardType="number-pad"
+          value={row.reps}
+          onChangeText={(v) => onChangeReps(setIndex, v)}
+          onBlur={() => onBlur(setIndex)}
+          editable={!disabled}
+        />
+        <TouchableOpacity
+          onPress={() => onToggle(setIndex)}
+          disabled={disabled}
+          className={`w-7 h-7 rounded border-2 items-center justify-center ${
+            row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
+          }`}
+        >
+          {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+        </TouchableOpacity>
+      </View>
+      {orm !== null && (
+        <View className="ml-7 mt-0.5">
+          <Text className="text-xs text-green-600 font-medium">
+            ≈ {orm} kg 1RM
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -267,6 +289,7 @@ function ExerciseCard({
   expanded,
   cardSaving,
   interactive,
+  canSwap,
   originalExerciseName,
   wasSwapped,
   onToggleExpand,
@@ -275,6 +298,8 @@ function ExerciseCard({
   onChangeReps,
   onBlurField,
   onOpenSwap,
+  onOpenHowTo,
+  onAddSet,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -313,31 +338,32 @@ function ExerciseCard({
             </Text>
           ) : null}
 
-          {interactive ? (
+          <View className="flex-row items-center mt-1.5 ml-5 gap-x-3">
+            {canSwap ? (
+              <TouchableOpacity
+                onPress={() =>
+                  onOpenSwap(exKey, index, exercise.name, originalExerciseName)
+                }
+                activeOpacity={0.7}
+              >
+                <Text
+                  className={`text-xs font-medium ${
+                    wasSwapped ? "text-orange-500" : "text-indigo-500"
+                  }`}
+                >
+                  {wasSwapped ? "Swapped" : "Swap"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text className="text-xs text-gray-300">Swap</Text>
+            )}
             <TouchableOpacity
-              className="mt-1.5 self-start ml-5"
-              onPress={() =>
-                onOpenSwap(exKey, index, exercise.name, originalExerciseName)
-              }
+              onPress={() => onOpenHowTo(exercise.name)}
               activeOpacity={0.7}
             >
-              <Text
-                className={`text-xs font-medium ${
-                  wasSwapped ? "text-orange-500" : "text-indigo-500"
-                }`}
-              >
-                {wasSwapped ? "Swapped" : "Swap"}
-              </Text>
+              <Text className="text-xs font-medium text-gray-400">How to</Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              className="mt-1.5 self-start ml-5"
-              disabled
-              activeOpacity={1}
-            >
-              <Text className="text-xs text-gray-300">Swap</Text>
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
 
         <View className="items-end">
@@ -381,6 +407,14 @@ function ExerciseCard({
               disabled={cardSaving}
             />
           ))}
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-1.5 mt-1 py-2 rounded-lg border border-dashed border-gray-200"
+            onPress={() => onAddSet(exKey)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={14} color={Colors.textMuted} />
+            <Text className="text-xs text-gray-400 font-medium">Add set</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -457,6 +491,203 @@ function NoProfilePlaceholder() {
   );
 }
 
+// ─── Regime tip box ───────────────────────────────────────────────────────────
+
+function RegimeTipBox({ regime }) {
+  const [open, setOpen] = useState(false);
+  if (!regime?.description) return null;
+  return (
+    <View
+      className="mx-4 mt-3 rounded-xl border overflow-hidden"
+      style={{ borderColor: regime.color + "44", backgroundColor: regime.colorLight }}
+    >
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-2.5"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <Text className="text-base mr-2">{regime.icon}</Text>
+        <View className="flex-1">
+          <Text className="text-xs font-bold" style={{ color: regime.color }}>
+            {regime.label} · {regime.tagline}
+          </Text>
+          <Text className="text-xs" style={{ color: regime.color + "99" }}>
+            {regime.split} · {regime.daysMin}–{regime.daysMax} days/week
+          </Text>
+        </View>
+        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={14} color={regime.color} />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t" style={{ borderTopColor: regime.color + "33" }}>
+          <Text className="text-xs leading-5" style={{ color: regime.color }}>
+            {regime.description}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Age profile banner ───────────────────────────────────────────────────────
+
+function AgeProfileBanner({ ageClass }) {
+  const [open, setOpen] = useState(false);
+  const profile = AGE_PROFILES[ageClass];
+  if (!profile) return null;
+  return (
+    <View
+      className="mx-4 mt-3 rounded-xl border overflow-hidden"
+      style={{ borderColor: profile.badgeText + "55", backgroundColor: profile.badgeColor }}
+    >
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-2.5"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <View
+          className="px-2 py-0.5 rounded-full mr-3"
+          style={{ backgroundColor: profile.badgeText + "22" }}
+        >
+          <Text className="text-xs font-bold" style={{ color: profile.badgeText }}>
+            {profile.badge}
+          </Text>
+        </View>
+        <Text className="flex-1 text-xs font-medium" style={{ color: profile.badgeText }}>
+          {profile.intensityLabel}
+        </Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={14}
+          color={profile.badgeText}
+        />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t" style={{ borderTopColor: profile.badgeText + "33" }}>
+          {profile.notes.map((note, i) => (
+            <View key={i} className="flex-row items-start py-1">
+              <Text className="text-xs mr-2" style={{ color: profile.badgeText }}>•</Text>
+              <Text className="text-xs flex-1" style={{ color: profile.badgeText }}>
+                {note}
+              </Text>
+            </View>
+          ))}
+          <View className="mt-2 flex-row flex-wrap gap-x-4">
+            <Text className="text-xs" style={{ color: profile.badgeText + "cc" }}>
+              Weight: {profile.weightNote}
+            </Text>
+            <Text className="text-xs" style={{ color: profile.badgeText + "cc" }}>
+              Rest: {profile.restNote}
+            </Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Mobility warm-up card ────────────────────────────────────────────────────
+
+function MobilityCard({ drills }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View className="mx-4 mt-3 rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-3"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <Text className="text-base mr-2">🧘</Text>
+        <View className="flex-1">
+          <Text className="text-sm font-bold text-amber-800">Warm-up first</Text>
+          <Text className="text-xs text-amber-600 mt-0.5">{drills.length} exercises before lifting</Text>
+        </View>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={16}
+          color="#92400e"
+        />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t border-amber-200">
+          {drills.map((drill, i) => (
+            <View key={i} className="flex-row items-start py-1.5">
+              <Text className="text-xs font-bold text-amber-700 w-5">{i + 1}</Text>
+              <Text className="text-sm text-amber-900 flex-1">{drill}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Rest timer helpers ───────────────────────────────────────────────────────
+
+function parseRestSeconds(restStr) {
+  if (!restStr) return 0;
+  // "3 min", "2–3 min" → use lower bound
+  const minMatch = restStr.match(/(\d+)(?:[–-]\d+)?\s*min/i);
+  if (minMatch) return parseInt(minMatch[1]) * 60;
+  // "90s", "60s", "90–120s"
+  const secMatch = restStr.match(/(\d+)(?:[–-]\d+)?\s*s/i);
+  if (secMatch) return parseInt(secMatch[1]);
+  return 0;
+}
+
+function fmt(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
+  const progress = total > 0 ? seconds / total : 0;
+  const urgent = seconds <= 10;
+  return (
+    <View
+      className={`mx-4 mb-3 rounded-xl overflow-hidden border ${
+        urgent ? "border-orange-300 bg-orange-50" : "border-indigo-200 bg-indigo-50"
+      }`}
+    >
+      {/* progress bar */}
+      <View className="h-1 bg-gray-100">
+        <View
+          className={urgent ? "h-1 bg-orange-400" : "h-1 bg-indigo-400"}
+          style={{ width: `${progress * 100}%` }}
+        />
+      </View>
+      <View className="flex-row items-center px-4 py-2.5">
+        <Ionicons
+          name="timer-outline"
+          size={18}
+          color={urgent ? "#f97316" : "#6366f1"}
+        />
+        <View className="flex-1 ml-2">
+          <Text className={`text-xs ${urgent ? "text-orange-600" : "text-indigo-600"}`}>
+            Rest · {exerciseName}
+          </Text>
+          <Text
+            className={`text-xl font-bold tabular-nums ${
+              urgent ? "text-orange-600" : "text-indigo-700"
+            }`}
+          >
+            {fmt(seconds)}
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={onSkip}
+          className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
+          activeOpacity={0.75}
+        >
+          <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
+            Skip
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function WorkoutScreen() {
@@ -491,6 +722,9 @@ export default function WorkoutScreen() {
   const [swappedExercises, setSwappedExercises] = useState({});
   // { exKey, slotIndex, exerciseName, originalName } | null
   const [swapTarget, setSwapTarget] = useState(null);
+  const [howToTarget, setHowToTarget] = useState(null);
+  // { seconds: number, total: number, exerciseName: string } | null
+  const [restTimer, setRestTimer] = useState(null);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -678,6 +912,26 @@ export default function WorkoutScreen() {
 
   const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
 
+  const handleOpenHowTo = useCallback((exerciseName) => {
+    setHowToTarget(exerciseName);
+  }, []);
+
+  const handleCloseHowTo = useCallback(() => setHowToTarget(null), []);
+
+  // Countdown tick for rest timer
+  useEffect(() => {
+    if (!restTimer) return;
+    if (restTimer.seconds <= 0) {
+      Vibration.vibrate([0, 200, 100, 200]);
+      setRestTimer(null);
+      return;
+    }
+    const id = setTimeout(() => {
+      setRestTimer((prev) => prev ? { ...prev, seconds: prev.seconds - 1 } : null);
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [restTimer]);
+
   // ── Start session ──────────────────────────────────────────────────────────
   const handleStartSession = useCallback(async () => {
     const p = profileRef.current;
@@ -729,6 +983,11 @@ export default function WorkoutScreen() {
           rows[setIndex] = { ...rows[setIndex], done: true, logId };
           return { ...prev, [exKey]: rows };
         });
+        // Start rest timer (skip if this is the last set of the last exercise)
+        const secs = parseRestSeconds(exercise.rest);
+        if (secs > 0) {
+          setRestTimer({ seconds: secs, total: secs, exerciseName: exercise.name });
+        }
       } else {
         if (row.logId) await deleteSessionLog(row.logId);
         setLogState((prev) => {
@@ -777,6 +1036,18 @@ export default function WorkoutScreen() {
     });
   }, []);
 
+  const handleAddSet = useCallback((exKey) => {
+    setLogState((prev) => {
+      const rows = prev[exKey] ?? [];
+      // Copy weight/reps from the last row as a starting point
+      const last = rows[rows.length - 1];
+      return {
+        ...prev,
+        [exKey]: [...rows, { done: false, weight: last?.weight ?? "", reps: last?.reps ?? "", logId: null }],
+      };
+    });
+  }, []);
+
   // ── Finish / discard ───────────────────────────────────────────────────────
   const resetToIdle = useCallback(() => {
     const p = profileRef.current;
@@ -791,6 +1062,7 @@ export default function WorkoutScreen() {
     setSessionPhase("idle");
     setWorkoutNotes("");
     setSwappedExercises({});
+    setRestTimer(null);
   }, []);
 
   const handleFinishSession = useCallback(
@@ -864,6 +1136,23 @@ export default function WorkoutScreen() {
         disabled={isActive}
       />
 
+      <RegimeTipBox regime={regimeCfg} />
+      {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
+
+      {(() => {
+        const drills = MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId];
+        return drills ? <MobilityCard drills={drills} /> : null;
+      })()}
+
+      {isActive && restTimer && (
+        <RestTimerBanner
+          seconds={restTimer.seconds}
+          total={restTimer.total}
+          exerciseName={restTimer.exerciseName}
+          onSkip={() => setRestTimer(null)}
+        />
+      )}
+
       <FlatList
         data={displayedExercises}
         keyExtractor={(_, index) => `${selectedSessionId}-${index}`}
@@ -880,6 +1169,7 @@ export default function WorkoutScreen() {
               expanded={expandedCards.has(exKey)}
               cardSaving={!!savingCards[exKey]}
               interactive={isActive}
+              canSwap={sessionPhase !== "starting"}
               originalExerciseName={session?.exercises[index]?.name ?? item.name}
               wasSwapped={!!swappedExercises[exKey]}
               onToggleExpand={handleToggleExpand}
@@ -888,6 +1178,8 @@ export default function WorkoutScreen() {
               onChangeReps={handleChangeReps}
               onBlurField={handleBlurField}
               onOpenSwap={handleOpenSwap}
+              onOpenHowTo={handleOpenHowTo}
+              onAddSet={handleAddSet}
             />
           );
         }}
@@ -923,6 +1215,12 @@ export default function WorkoutScreen() {
         originalName={swapTarget?.originalName}
         onSwap={handleConfirmSwap}
         onClose={handleCloseSwap}
+      />
+
+      <HowToModal
+        visible={howToTarget !== null}
+        exerciseName={howToTarget}
+        onClose={handleCloseHowTo}
       />
     </SafeAreaView>
   );

@@ -1,8 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   SectionList,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +17,6 @@ import { Colors } from "../theme";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatSectionDate(dateStr) {
-  // Append local midnight time to avoid UTC-offset day-shift
   const date = new Date(dateStr + "T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -55,16 +57,92 @@ function formatSetChip(log) {
   return "—";
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Inline set editor ────────────────────────────────────────────────────────
 
-function SessionCard({ session }) {
+function SetChip({ log, onEdit }) {
+  return (
+    <TouchableOpacity
+      onPress={() => onEdit(log)}
+      activeOpacity={0.7}
+      className="bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1"
+    >
+      <Text className="text-xs text-gray-600 font-medium">{formatSetChip(log)}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function SetEditor({ log, onSave, onDelete, onCancel }) {
+  const [weight, setWeight] = useState(log.weight != null ? String(log.weight) : "");
+  const [reps, setReps] = useState(log.reps != null ? String(log.reps) : "");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await onSave(log.id, { weight: weight || null, reps: reps || null });
+    setSaving(false);
+  }
+
+  return (
+    <View className="flex-row items-center gap-x-2 mt-1 mb-1">
+      <TextInput
+        className="w-16 border border-gray-200 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 bg-white"
+        placeholder="kg"
+        placeholderTextColor={Colors.textLight}
+        keyboardType="decimal-pad"
+        value={weight}
+        onChangeText={setWeight}
+      />
+      <TextInput
+        className="w-16 border border-gray-200 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 bg-white"
+        placeholder="reps"
+        placeholderTextColor={Colors.textLight}
+        keyboardType="number-pad"
+        value={reps}
+        onChangeText={setReps}
+      />
+      <TouchableOpacity
+        onPress={handleSave}
+        disabled={saving}
+        className="w-7 h-7 rounded-lg bg-indigo-600 items-center justify-center"
+        activeOpacity={0.8}
+      >
+        {saving ? (
+          <ActivityIndicator size="small" color={Colors.white} />
+        ) : (
+          <Ionicons name="checkmark" size={14} color={Colors.white} />
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => onDelete(log.id)}
+        className="w-7 h-7 rounded-lg bg-red-50 border border-red-100 items-center justify-center"
+        activeOpacity={0.8}
+      >
+        <Ionicons name="trash-outline" size={14} color={Colors.danger} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onCancel}
+        className="w-7 h-7 rounded-lg bg-gray-100 items-center justify-center"
+        activeOpacity={0.8}
+      >
+        <Ionicons name="close" size={14} color={Colors.textMuted} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Session card ─────────────────────────────────────────────────────────────
+
+function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
+  const [editingLogId, setEditingLogId] = useState(null);
+  // Local copy of logs so we can update without a full refetch
+  const [localLogs, setLocalLogs] = useState(session.session_logs ?? []);
+
   const startTime = formatTime(session.started_at);
-  const totalSets = session.session_logs?.length ?? 0;
+  const totalSets = localLogs.length;
 
-  // Group logs by exercise name, preserving first-appearance order
   const exerciseOrder = [];
   const byExercise = {};
-  [...(session.session_logs ?? [])]
+  [...localLogs]
     .sort((a, b) => a.set_number - b.set_number)
     .forEach((log) => {
       if (!byExercise[log.exercise_name]) {
@@ -74,9 +152,36 @@ function SessionCard({ session }) {
       byExercise[log.exercise_name].push(log);
     });
 
+  async function handleSave(logId, { weight, reps }) {
+    await updateLog(logId, { weight, reps });
+    setLocalLogs((prev) =>
+      prev.map((l) =>
+        l.id === logId
+          ? { ...l, weight: weight != null ? parseFloat(weight) : null, reps: reps != null ? parseInt(reps) : null }
+          : l
+      )
+    );
+    setEditingLogId(null);
+  }
+
+  async function handleDelete(logId) {
+    Alert.alert("Delete set?", "This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await deleteLog(logId);
+          setLocalLogs((prev) => prev.filter((l) => l.id !== logId));
+          setEditingLogId(null);
+        },
+      },
+    ]);
+  }
+
   return (
     <View className="mx-4 mb-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      {/* Card meta row */}
+      {/* Header */}
       <View className="px-4 py-2.5 border-b border-gray-100 flex-row justify-between items-center bg-gray-50">
         <View className="flex-row items-center gap-x-2">
           {startTime ? (
@@ -92,7 +197,7 @@ function SessionCard({ session }) {
         </Text>
       </View>
 
-      {/* Exercise log rows */}
+      {/* Exercise rows */}
       {exerciseOrder.length === 0 ? (
         <View className="px-4 py-4">
           <Text className="text-sm text-gray-300 italic">No sets logged</Text>
@@ -106,20 +211,25 @@ function SessionCard({ session }) {
               key={name}
               className={`px-4 py-3 ${isLast ? "" : "border-b border-gray-50"}`}
             >
-              <Text className="text-xs font-semibold text-gray-700 mb-2">
-                {name}
-              </Text>
+              <Text className="text-xs font-semibold text-gray-700 mb-2">{name}</Text>
               <View className="flex-row flex-wrap gap-x-2 gap-y-1.5">
-                {logs.map((log) => (
-                  <View
-                    key={log.id}
-                    className="bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1"
-                  >
-                    <Text className="text-xs text-gray-600 font-medium">
-                      {formatSetChip(log)}
-                    </Text>
-                  </View>
-                ))}
+                {logs.map((log) =>
+                  editingLogId === log.id ? (
+                    <SetEditor
+                      key={log.id}
+                      log={log}
+                      onSave={handleSave}
+                      onDelete={handleDelete}
+                      onCancel={() => setEditingLogId(null)}
+                    />
+                  ) : (
+                    <SetChip
+                      key={log.id}
+                      log={log}
+                      onEdit={(l) => setEditingLogId(l.id)}
+                    />
+                  )
+                )}
               </View>
             </View>
           );
@@ -129,9 +239,7 @@ function SessionCard({ session }) {
       {/* Session notes */}
       {session.notes ? (
         <View className="px-4 py-3 bg-amber-50 border-t border-amber-100">
-          <Text className="text-xs text-amber-700 italic">
-            "{session.notes}"
-          </Text>
+          <Text className="text-xs text-amber-700 italic">"{session.notes}"</Text>
         </View>
       ) : null}
     </View>
@@ -141,17 +249,14 @@ function SessionCard({ session }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
-  const { fetchSessionHistory, sessionHistory, loading } = useGymData();
+  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, sessionHistory, loading } = useGymData();
 
-  // Refetch every time the tab comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchSessionHistory();
     }, [fetchSessionHistory])
   );
 
-  // Group sessions by date and sort descending; within each date sort by
-  // started_at descending so the most recent session of the day is first
   const sections = useMemo(() => {
     if (!sessionHistory.length) return [];
     const grouped = {};
@@ -173,7 +278,6 @@ export default function HistoryScreen() {
       .map(([title, data]) => ({ title, data }));
   }, [sessionHistory]);
 
-  // ── Full-screen loading (first fetch, no data yet) ──
   if (loading && !sessionHistory.length) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={["top"]}>
@@ -182,14 +286,11 @@ export default function HistoryScreen() {
     );
   }
 
-  // ── Empty state ──
   if (!loading && !sessionHistory.length) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center px-8" edges={["top"]}>
         <Ionicons name="time-outline" size={48} color={Colors.textLight} />
-        <Text className="text-lg font-bold text-gray-400 mt-4 text-center">
-          No sessions yet
-        </Text>
+        <Text className="text-lg font-bold text-gray-400 mt-4 text-center">No sessions yet</Text>
         <Text className="text-sm text-gray-400 mt-2 text-center leading-5">
           Complete your first workout and it will appear here.
         </Text>
@@ -197,7 +298,6 @@ export default function HistoryScreen() {
     );
   }
 
-  // ── Session list ──
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <SectionList
@@ -211,7 +311,13 @@ export default function HistoryScreen() {
             </Text>
           </View>
         )}
-        renderItem={({ item }) => <SessionCard session={item} />}
+        renderItem={({ item }) => (
+          <SessionCard
+            session={item}
+            updateLog={updateSessionLog}
+            deleteLog={deleteSessionLog}
+          />
+        )}
         SectionSeparatorComponent={() => <View className="h-1" />}
         contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}
       />
