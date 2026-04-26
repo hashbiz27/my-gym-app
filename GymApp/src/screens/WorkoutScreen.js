@@ -501,6 +501,8 @@ export default function WorkoutScreen() {
   profileRef.current = profile;
   const selectedSessionIdRef = useRef(null);
   selectedSessionIdRef.current = selectedSessionId;
+  const sessionPhaseRef = useRef("idle");
+  sessionPhaseRef.current = sessionPhase;
   // Prevents sessionKey effect from firing before the mount restore finishes
   const isFirstKeyRun = useRef(true);
 
