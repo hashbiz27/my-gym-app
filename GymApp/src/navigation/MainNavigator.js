@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../theme";
 import WorkoutScreen from "../screens/WorkoutScreen";
+import BodyScreen from "../screens/BodyScreen";
 import LibraryStack from "./LibraryStack";
 import HistoryScreen from "../screens/HistoryScreen";
 import AnalysisScreen from "../screens/AnalysisScreen";
@@ -47,6 +48,14 @@ export default function MainNavigator() {
         options={{
           title: "Today",
           tabBarIcon: tabIcon("barbell"),
+        }}
+      />
+      <Tab.Screen
+        name="Body"
+        component={BodyScreen}
+        options={{
+          title: "Body",
+          tabBarIcon: tabIcon("scale"),
         }}
       />
       <Tab.Screen
