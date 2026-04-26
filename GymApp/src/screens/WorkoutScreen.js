@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Vibration,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -211,49 +212,67 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
   );
 }
 
+function epley1RM(weight, reps) {
+  const w = parseFloat(weight);
+  const r = parseInt(reps);
+  if (!w || !r || r <= 0) return null;
+  if (r === 1) return Math.round(w);
+  return Math.round(w * (1 + r / 30));
+}
+
 function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur, disabled }) {
+  const orm = row.done ? epley1RM(row.weight, row.reps) : null;
   return (
-    <View className="flex-row items-center gap-x-2 mb-2">
-      <Text className="w-5 text-xs text-gray-400 text-center font-bold">
-        {setIndex + 1}
-      </Text>
-      <TextInput
-        className={`flex-1 border rounded-lg py-2 text-center text-sm ${
-          row.done
-            ? "border-green-200 bg-green-50 text-gray-700"
-            : "border-gray-200 bg-white text-gray-800"
-        }`}
-        placeholder="kg"
-        placeholderTextColor={Colors.textLight}
-        keyboardType="decimal-pad"
-        value={row.weight}
-        onChangeText={(v) => onChangeWeight(setIndex, v)}
-        onBlur={() => onBlur(setIndex)}
-        editable={!disabled}
-      />
-      <TextInput
-        className={`flex-1 border rounded-lg py-2 text-center text-sm ${
-          row.done
-            ? "border-green-200 bg-green-50 text-gray-700"
-            : "border-gray-200 bg-white text-gray-800"
-        }`}
-        placeholder="reps"
-        placeholderTextColor={Colors.textLight}
-        keyboardType="number-pad"
-        value={row.reps}
-        onChangeText={(v) => onChangeReps(setIndex, v)}
-        onBlur={() => onBlur(setIndex)}
-        editable={!disabled}
-      />
-      <TouchableOpacity
-        onPress={() => onToggle(setIndex)}
-        disabled={disabled}
-        className={`w-7 h-7 rounded border-2 items-center justify-center ${
-          row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
-        }`}
-      >
-        {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
-      </TouchableOpacity>
+    <View className="mb-2">
+      <View className="flex-row items-center gap-x-2">
+        <Text className="w-5 text-xs text-gray-400 text-center font-bold">
+          {setIndex + 1}
+        </Text>
+        <TextInput
+          className={`flex-1 border rounded-lg py-2 text-center text-sm ${
+            row.done
+              ? "border-green-200 bg-green-50 text-gray-700"
+              : "border-gray-200 bg-white text-gray-800"
+          }`}
+          placeholder="kg"
+          placeholderTextColor={Colors.textLight}
+          keyboardType="decimal-pad"
+          value={row.weight}
+          onChangeText={(v) => onChangeWeight(setIndex, v)}
+          onBlur={() => onBlur(setIndex)}
+          editable={!disabled}
+        />
+        <TextInput
+          className={`flex-1 border rounded-lg py-2 text-center text-sm ${
+            row.done
+              ? "border-green-200 bg-green-50 text-gray-700"
+              : "border-gray-200 bg-white text-gray-800"
+          }`}
+          placeholder="reps"
+          placeholderTextColor={Colors.textLight}
+          keyboardType="number-pad"
+          value={row.reps}
+          onChangeText={(v) => onChangeReps(setIndex, v)}
+          onBlur={() => onBlur(setIndex)}
+          editable={!disabled}
+        />
+        <TouchableOpacity
+          onPress={() => onToggle(setIndex)}
+          disabled={disabled}
+          className={`w-7 h-7 rounded border-2 items-center justify-center ${
+            row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
+          }`}
+        >
+          {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+        </TouchableOpacity>
+      </View>
+      {orm !== null && (
+        <View className="ml-7 mt-0.5">
+          <Text className="text-xs text-green-600 font-medium">
+            ≈ {orm} kg 1RM
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -461,6 +480,73 @@ function NoProfilePlaceholder() {
   );
 }
 
+// ─── Rest timer helpers ───────────────────────────────────────────────────────
+
+function parseRestSeconds(restStr) {
+  if (!restStr) return 0;
+  // "3 min", "2–3 min" → use lower bound
+  const minMatch = restStr.match(/(\d+)(?:[–-]\d+)?\s*min/i);
+  if (minMatch) return parseInt(minMatch[1]) * 60;
+  // "90s", "60s", "90–120s"
+  const secMatch = restStr.match(/(\d+)(?:[–-]\d+)?\s*s/i);
+  if (secMatch) return parseInt(secMatch[1]);
+  return 0;
+}
+
+function fmt(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
+  const progress = total > 0 ? seconds / total : 0;
+  const urgent = seconds <= 10;
+  return (
+    <View
+      className={`mx-4 mb-3 rounded-xl overflow-hidden border ${
+        urgent ? "border-orange-300 bg-orange-50" : "border-indigo-200 bg-indigo-50"
+      }`}
+    >
+      {/* progress bar */}
+      <View className="h-1 bg-gray-100">
+        <View
+          className={urgent ? "h-1 bg-orange-400" : "h-1 bg-indigo-400"}
+          style={{ width: `${progress * 100}%` }}
+        />
+      </View>
+      <View className="flex-row items-center px-4 py-2.5">
+        <Ionicons
+          name="timer-outline"
+          size={18}
+          color={urgent ? "#f97316" : "#6366f1"}
+        />
+        <View className="flex-1 ml-2">
+          <Text className={`text-xs ${urgent ? "text-orange-600" : "text-indigo-600"}`}>
+            Rest · {exerciseName}
+          </Text>
+          <Text
+            className={`text-xl font-bold tabular-nums ${
+              urgent ? "text-orange-600" : "text-indigo-700"
+            }`}
+          >
+            {fmt(seconds)}
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={onSkip}
+          className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
+          activeOpacity={0.75}
+        >
+          <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
+            Skip
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function WorkoutScreen() {
@@ -496,6 +582,8 @@ export default function WorkoutScreen() {
   // { exKey, slotIndex, exerciseName, originalName } | null
   const [swapTarget, setSwapTarget] = useState(null);
   const [howToTarget, setHowToTarget] = useState(null);
+  // { seconds: number, total: number, exerciseName: string } | null
+  const [restTimer, setRestTimer] = useState(null);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -689,6 +777,20 @@ export default function WorkoutScreen() {
 
   const handleCloseHowTo = useCallback(() => setHowToTarget(null), []);
 
+  // Countdown tick for rest timer
+  useEffect(() => {
+    if (!restTimer) return;
+    if (restTimer.seconds <= 0) {
+      Vibration.vibrate([0, 200, 100, 200]);
+      setRestTimer(null);
+      return;
+    }
+    const id = setTimeout(() => {
+      setRestTimer((prev) => prev ? { ...prev, seconds: prev.seconds - 1 } : null);
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [restTimer]);
+
   // ── Start session ──────────────────────────────────────────────────────────
   const handleStartSession = useCallback(async () => {
     const p = profileRef.current;
@@ -740,6 +842,11 @@ export default function WorkoutScreen() {
           rows[setIndex] = { ...rows[setIndex], done: true, logId };
           return { ...prev, [exKey]: rows };
         });
+        // Start rest timer (skip if this is the last set of the last exercise)
+        const secs = parseRestSeconds(exercise.rest);
+        if (secs > 0) {
+          setRestTimer({ seconds: secs, total: secs, exerciseName: exercise.name });
+        }
       } else {
         if (row.logId) await deleteSessionLog(row.logId);
         setLogState((prev) => {
@@ -802,6 +909,7 @@ export default function WorkoutScreen() {
     setSessionPhase("idle");
     setWorkoutNotes("");
     setSwappedExercises({});
+    setRestTimer(null);
   }, []);
 
   const handleFinishSession = useCallback(
@@ -874,6 +982,15 @@ export default function WorkoutScreen() {
         onSelect={setSelectedSessionId}
         disabled={isActive}
       />
+
+      {isActive && restTimer && (
+        <RestTimerBanner
+          seconds={restTimer.seconds}
+          total={restTimer.total}
+          exerciseName={restTimer.exerciseName}
+          onSkip={() => setRestTimer(null)}
+        />
+      )}
 
       <FlatList
         data={displayedExercises}
