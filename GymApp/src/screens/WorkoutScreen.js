@@ -299,6 +299,7 @@ function ExerciseCard({
   onBlurField,
   onOpenSwap,
   onOpenHowTo,
+  onAddSet,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -406,6 +407,14 @@ function ExerciseCard({
               disabled={cardSaving}
             />
           ))}
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-1.5 mt-1 py-2 rounded-lg border border-dashed border-gray-200"
+            onPress={() => onAddSet(exKey)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={14} color={Colors.textMuted} />
+            <Text className="text-xs text-gray-400 font-medium">Add set</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -1027,6 +1036,18 @@ export default function WorkoutScreen() {
     });
   }, []);
 
+  const handleAddSet = useCallback((exKey) => {
+    setLogState((prev) => {
+      const rows = prev[exKey] ?? [];
+      // Copy weight/reps from the last row as a starting point
+      const last = rows[rows.length - 1];
+      return {
+        ...prev,
+        [exKey]: [...rows, { done: false, weight: last?.weight ?? "", reps: last?.reps ?? "", logId: null }],
+      };
+    });
+  }, []);
+
   // ── Finish / discard ───────────────────────────────────────────────────────
   const resetToIdle = useCallback(() => {
     const p = profileRef.current;
@@ -1158,6 +1179,7 @@ export default function WorkoutScreen() {
               onBlurField={handleBlurField}
               onOpenSwap={handleOpenSwap}
               onOpenHowTo={handleOpenHowTo}
+              onAddSet={handleAddSet}
             />
           );
         }}
