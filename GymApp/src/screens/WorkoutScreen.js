@@ -482,6 +482,43 @@ function NoProfilePlaceholder() {
   );
 }
 
+// ─── Regime tip box ───────────────────────────────────────────────────────────
+
+function RegimeTipBox({ regime }) {
+  const [open, setOpen] = useState(false);
+  if (!regime?.description) return null;
+  return (
+    <View
+      className="mx-4 mt-3 rounded-xl border overflow-hidden"
+      style={{ borderColor: regime.color + "44", backgroundColor: regime.colorLight }}
+    >
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-2.5"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <Text className="text-base mr-2">{regime.icon}</Text>
+        <View className="flex-1">
+          <Text className="text-xs font-bold" style={{ color: regime.color }}>
+            {regime.label} · {regime.tagline}
+          </Text>
+          <Text className="text-xs" style={{ color: regime.color + "99" }}>
+            {regime.split} · {regime.daysMin}–{regime.daysMax} days/week
+          </Text>
+        </View>
+        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={14} color={regime.color} />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t" style={{ borderTopColor: regime.color + "33" }}>
+          <Text className="text-xs leading-5" style={{ color: regime.color }}>
+            {regime.description}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 // ─── Age profile banner ───────────────────────────────────────────────────────
 
 function AgeProfileBanner({ ageClass }) {
@@ -1078,6 +1115,7 @@ export default function WorkoutScreen() {
         disabled={isActive}
       />
 
+      <RegimeTipBox regime={regimeCfg} />
       {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
 
       {(() => {
