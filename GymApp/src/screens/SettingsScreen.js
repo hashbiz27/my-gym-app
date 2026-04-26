@@ -258,6 +258,14 @@ export default function SettingsScreen() {
           onSelect={handleScheduleSelect}
         />
 
+        {/* Sex */}
+        <SectionHeader title="Sex" />
+        <PillPicker
+          options={SEX_OPTIONS}
+          value={sex}
+          onSelect={(v) => handleSelect("sex", v)}
+        />
+
         {/* Age class */}
         <SectionHeader title="Age Class" />
         <PillPicker
@@ -272,14 +280,6 @@ export default function SettingsScreen() {
           options={WEIGHT_CLASSES}
           value={weightClass}
           onSelect={(v) => handleSelect("weight_class", v)}
-        />
-
-        {/* Sex */}
-        <SectionHeader title="Sex" />
-        <PillPicker
-          options={SEX_OPTIONS}
-          value={sex}
-          onSelect={(v) => handleSelect("sex", v)}
         />
 
         {/* Display */}

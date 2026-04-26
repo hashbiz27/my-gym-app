@@ -23,6 +23,7 @@ import {
 import { useGymData } from "../hooks/useGymData";
 import { useSyncContext } from "../context/SyncContext";
 import SwapModal from "../components/SwapModal";
+import HowToModal from "../components/HowToModal";
 import { Colors } from "../theme";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -267,6 +268,7 @@ function ExerciseCard({
   expanded,
   cardSaving,
   interactive,
+  canSwap,
   originalExerciseName,
   wasSwapped,
   onToggleExpand,
@@ -275,6 +277,7 @@ function ExerciseCard({
   onChangeReps,
   onBlurField,
   onOpenSwap,
+  onOpenHowTo,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -313,31 +316,32 @@ function ExerciseCard({
             </Text>
           ) : null}
 
-          {interactive ? (
+          <View className="flex-row items-center mt-1.5 ml-5 gap-x-3">
+            {canSwap ? (
+              <TouchableOpacity
+                onPress={() =>
+                  onOpenSwap(exKey, index, exercise.name, originalExerciseName)
+                }
+                activeOpacity={0.7}
+              >
+                <Text
+                  className={`text-xs font-medium ${
+                    wasSwapped ? "text-orange-500" : "text-indigo-500"
+                  }`}
+                >
+                  {wasSwapped ? "Swapped" : "Swap"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text className="text-xs text-gray-300">Swap</Text>
+            )}
             <TouchableOpacity
-              className="mt-1.5 self-start ml-5"
-              onPress={() =>
-                onOpenSwap(exKey, index, exercise.name, originalExerciseName)
-              }
+              onPress={() => onOpenHowTo(exercise.name)}
               activeOpacity={0.7}
             >
-              <Text
-                className={`text-xs font-medium ${
-                  wasSwapped ? "text-orange-500" : "text-indigo-500"
-                }`}
-              >
-                {wasSwapped ? "Swapped" : "Swap"}
-              </Text>
+              <Text className="text-xs font-medium text-gray-400">How to</Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              className="mt-1.5 self-start ml-5"
-              disabled
-              activeOpacity={1}
-            >
-              <Text className="text-xs text-gray-300">Swap</Text>
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
 
         <View className="items-end">
@@ -491,6 +495,7 @@ export default function WorkoutScreen() {
   const [swappedExercises, setSwappedExercises] = useState({});
   // { exKey, slotIndex, exerciseName, originalName } | null
   const [swapTarget, setSwapTarget] = useState(null);
+  const [howToTarget, setHowToTarget] = useState(null);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -677,6 +682,12 @@ export default function WorkoutScreen() {
   );
 
   const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
+
+  const handleOpenHowTo = useCallback((exerciseName) => {
+    setHowToTarget(exerciseName);
+  }, []);
+
+  const handleCloseHowTo = useCallback(() => setHowToTarget(null), []);
 
   // ── Start session ──────────────────────────────────────────────────────────
   const handleStartSession = useCallback(async () => {
@@ -880,6 +891,7 @@ export default function WorkoutScreen() {
               expanded={expandedCards.has(exKey)}
               cardSaving={!!savingCards[exKey]}
               interactive={isActive}
+              canSwap={sessionPhase !== "starting"}
               originalExerciseName={session?.exercises[index]?.name ?? item.name}
               wasSwapped={!!swappedExercises[exKey]}
               onToggleExpand={handleToggleExpand}
@@ -888,6 +900,7 @@ export default function WorkoutScreen() {
               onChangeReps={handleChangeReps}
               onBlurField={handleBlurField}
               onOpenSwap={handleOpenSwap}
+              onOpenHowTo={handleOpenHowTo}
             />
           );
         }}
@@ -923,6 +936,12 @@ export default function WorkoutScreen() {
         originalName={swapTarget?.originalName}
         onSwap={handleConfirmSwap}
         onClose={handleCloseSwap}
+      />
+
+      <HowToModal
+        visible={howToTarget !== null}
+        exerciseName={howToTarget}
+        onClose={handleCloseHowTo}
       />
     </SafeAreaView>
   );
