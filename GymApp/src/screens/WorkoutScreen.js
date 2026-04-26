@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ALL_SESSIONS,
   AGE_OVERRIDES,
+  MOBILITY_WARMUPS,
   REGIMES,
   adjustWeightForSex,
 } from "../data/gymData";
@@ -476,6 +477,42 @@ function NoProfilePlaceholder() {
       <Text className="text-sm text-gray-400 mt-2 text-center leading-5">
         Go to Settings to choose your regime, age group, and weight class.
       </Text>
+    </View>
+  );
+}
+
+// ─── Mobility warm-up card ────────────────────────────────────────────────────
+
+function MobilityCard({ drills }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View className="mx-4 mt-3 rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-3"
+        onPress={() => setOpen((v) => !v)}
+        activeOpacity={0.75}
+      >
+        <Text className="text-base mr-2">🧘</Text>
+        <View className="flex-1">
+          <Text className="text-sm font-bold text-amber-800">Warm-up first</Text>
+          <Text className="text-xs text-amber-600 mt-0.5">{drills.length} exercises before lifting</Text>
+        </View>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={16}
+          color="#92400e"
+        />
+      </TouchableOpacity>
+      {open && (
+        <View className="px-4 pb-3 border-t border-amber-200">
+          {drills.map((drill, i) => (
+            <View key={i} className="flex-row items-start py-1.5">
+              <Text className="text-xs font-bold text-amber-700 w-5">{i + 1}</Text>
+              <Text className="text-sm text-amber-900 flex-1">{drill}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -982,6 +1019,11 @@ export default function WorkoutScreen() {
         onSelect={setSelectedSessionId}
         disabled={isActive}
       />
+
+      {(() => {
+        const drills = MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId];
+        return drills ? <MobilityCard drills={drills} /> : null;
+      })()}
 
       {isActive && restTimer && (
         <RestTimerBanner
