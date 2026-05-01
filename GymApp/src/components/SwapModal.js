@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
-import { scoreAllExercises, scoreColor } from "../data/compatibility";
+import { getAllExerciseNamesWithMuscles, scoreOneExercise, scoreColor } from "../data/compatibility";
 import { Colors } from "../theme";
+
+const CHUNK_SIZE = 40;
 
 // mode: "swap" (session-only) | "override" (permanent)
 export default function SwapModal({
@@ -35,19 +37,53 @@ export default function SwapModal({
     }
   }, [visible]);
 
-  // Defer the CPU-heavy scoring until after the sheet animation completes
+  // Score exercises progressively in chunks after the sheet animation finishes.
+  // This keeps the open animation smooth and shows results as they come in.
   useEffect(() => {
     if (!visible || !exerciseName) {
       setRanked([]);
       return;
     }
     setComputing(true);
+    setRanked([]);
+
+    let cancelled = false;
+    const sessionNames = (sessionExercises ?? []).map((e) => e.name);
+
     const task = InteractionManager.runAfterInteractions(() => {
-      const result = scoreAllExercises(sessionExercises ?? [], exerciseName, slotIndex);
-      setRanked(result);
-      setComputing(false);
+      if (cancelled) return;
+
+      // Pool is cached after first call — subsequent opens are instant
+      const pool = Object.entries(getAllExerciseNamesWithMuscles())
+        .filter(([name]) => name !== exerciseName);
+
+      let index = 0;
+      let accumulated = [];
+
+      function processChunk() {
+        if (cancelled) return;
+        const chunk = pool.slice(index, index + CHUNK_SIZE);
+        chunk.forEach(([name, muscles]) => {
+          accumulated.push(scoreOneExercise(name, muscles, sessionNames, exerciseName, slotIndex));
+        });
+        // Sort and publish after each chunk so results appear progressively
+        const sorted = [...accumulated].sort((a, b) => b.score - a.score);
+        setRanked(sorted);
+        index += CHUNK_SIZE;
+        if (index < pool.length) {
+          setTimeout(processChunk, 0);
+        } else {
+          setComputing(false);
+        }
+      }
+
+      processChunk();
     });
-    return () => task.cancel();
+
+    return () => {
+      cancelled = true;
+      task.cancel();
+    };
   }, [visible, exerciseName, sessionExercises, slotIndex]);
 
   const results = search.trim()

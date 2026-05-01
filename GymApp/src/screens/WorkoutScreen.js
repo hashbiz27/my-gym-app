@@ -90,88 +90,47 @@ function buildRestoredLogState(exercises, sessionId, logs) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function WorkoutHeader({
-  session,
-  regimeCfg,
-  doneSets,
-  totalSets,
-  phase,
-  isSyncing,
-  pendingCount,
-}) {
+function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSyncing, pendingCount }) {
   const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
+  const isActive = phase === "active";
   const showSync = isSyncing || pendingCount > 0;
 
   return (
-    <View className="bg-gray-900 px-5 pt-4 pb-4">
-      <Text className="text-xs tracking-widest uppercase text-gray-500 mb-1">
-        {todayLabel()}
-      </Text>
-
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1 mr-4">
-          <Text className="text-xl font-bold text-white">
-            {session?.label ?? "—"}
-          </Text>
-          <Text className="text-xs text-gray-400 italic mt-0.5">
-            {regimeCfg?.label}
-            {session?.tag ? ` · ${session.tag}` : ""}
-          </Text>
-        </View>
-        <View className="items-end">
-          {phase === "active" ? (
-            <>
-              <Text className="text-2xl font-bold text-white">
-                {doneSets}
-                <Text className="text-sm text-gray-500">/{totalSets}</Text>
-              </Text>
-              <Text className="text-xs text-gray-500 uppercase tracking-wider">
-                sets done
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text className="text-2xl font-bold text-gray-600">
-                {totalSets}
-              </Text>
-              <Text className="text-xs text-gray-500 uppercase tracking-wider">
-                sets total
-              </Text>
-            </>
-          )}
-        </View>
-      </View>
-
-      <View className="h-1 bg-gray-700 rounded-full mt-3">
-        {phase === "active" && (
-          <View
-            className="h-1 bg-green-500 rounded-full"
-            style={{ width: `${pct}%` }}
-          />
+    <View className="bg-gray-900 px-4 pt-3 pb-2">
+      {/* Single compact row: date · session label · sets counter */}
+      <View className="flex-row items-center">
+        <Text className="text-xs text-gray-500 mr-2">{todayLabel()}</Text>
+        {showSync && (
+          isSyncing
+            ? <ActivityIndicator size="small" color={Colors.info} style={{ marginRight: 6 }} />
+            : <View className="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-2" />
         )}
       </View>
-
-      {showSync ? (
-        <View className="flex-row items-center gap-x-1.5 mt-2">
-          {isSyncing ? (
-            <ActivityIndicator size="small" color={Colors.info} />
-          ) : (
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: Colors.warning,
-              }}
-            />
-          )}
-          <Text className="text-xs text-blue-400">
-            {isSyncing
-              ? "Syncing…"
-              : `${pendingCount} set${pendingCount !== 1 ? "s" : ""} pending sync`}
+      <View className="flex-row items-center justify-between mt-0.5">
+        <View className="flex-1 mr-3">
+          <Text className="text-base font-bold text-white" numberOfLines={1}>
+            {session?.label ?? "—"}
           </Text>
+          {regimeCfg?.label ? (
+            <Text className="text-xs text-gray-500" numberOfLines={1}>
+              {regimeCfg.label}{session?.tag ? ` · ${session.tag}` : ""}
+            </Text>
+          ) : null}
         </View>
-      ) : null}
+        {isActive ? (
+          <Text className="text-sm font-bold text-white tabular-nums">
+            {doneSets}<Text className="text-gray-500 font-normal">/{totalSets}</Text>
+          </Text>
+        ) : (
+          <Text className="text-sm text-gray-500 tabular-nums">{totalSets} sets</Text>
+        )}
+      </View>
+      {/* Slim progress bar — only during active session */}
+      {isActive && (
+        <View className="h-0.5 bg-gray-700 rounded-full mt-2">
+          <View className="h-0.5 bg-green-500 rounded-full" style={{ width: `${pct}%` }} />
+        </View>
+      )}
     </View>
   );
 }
@@ -183,7 +142,7 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
       horizontal
       showsHorizontalScrollIndicator={false}
       className="bg-white border-b border-gray-100"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10 }}
+      contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 6 }}
     >
       {regimeCfg.sessionOrder.map((sid) => {
         const active = sid === selectedSessionId;
@@ -192,7 +151,7 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
             key={sid}
             onPress={() => !disabled && onSelect(sid)}
             disabled={disabled}
-            className={`mr-2 px-4 py-1.5 rounded-full border ${
+            className={`mr-1.5 px-3 py-1 rounded-full border ${
               active
                 ? "bg-green-600 border-green-600"
                 : disabled
@@ -200,11 +159,7 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
                 : "bg-white border-gray-200"
             }`}
           >
-            <Text
-              className={`text-xs font-semibold ${
-                active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"
-              }`}
-            >
+            <Text className={`text-xs font-semibold ${active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"}`}>
               {regimeCfg.sessionLabels[sid]}
             </Text>
           </TouchableOpacity>
