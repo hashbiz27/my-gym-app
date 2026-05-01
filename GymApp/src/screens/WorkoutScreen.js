@@ -298,8 +298,10 @@ function ExerciseCard({
   onChangeReps,
   onBlurField,
   onOpenSwap,
+  onOpenOverride,
   onOpenHowTo,
   onAddSet,
+  isOverridden,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -339,28 +341,30 @@ function ExerciseCard({
           ) : null}
 
           <View className="flex-row items-center mt-1.5 ml-5 gap-x-3">
+            {/* Swap — session only */}
             {canSwap ? (
               <TouchableOpacity
-                onPress={() =>
-                  onOpenSwap(exKey, index, exercise.name, originalExerciseName)
-                }
+                onPress={() => onOpenSwap(exKey, index, exercise.name, originalExerciseName)}
                 activeOpacity={0.7}
               >
-                <Text
-                  className={`text-xs font-medium ${
-                    wasSwapped ? "text-orange-500" : "text-indigo-500"
-                  }`}
-                >
-                  {wasSwapped ? "Swapped" : "Swap"}
+                <Text className={`text-xs font-medium ${wasSwapped ? "text-orange-500" : "text-indigo-500"}`}>
+                  {wasSwapped ? "Swapped ↺" : "Swap"}
                 </Text>
               </TouchableOpacity>
             ) : (
               <Text className="text-xs text-gray-300">Swap</Text>
             )}
+            {/* Override — permanent */}
             <TouchableOpacity
-              onPress={() => onOpenHowTo(exercise.name)}
+              onPress={() => onOpenOverride(exKey, index, exercise.name, originalExerciseName)}
               activeOpacity={0.7}
             >
+              <Text className={`text-xs font-medium ${isOverridden ? "text-amber-600" : "text-gray-400"}`}>
+                {isOverridden ? "Overridden ✦" : "Override"}
+              </Text>
+            </TouchableOpacity>
+            {/* How to */}
+            <TouchableOpacity onPress={() => onOpenHowTo(exercise.name)} activeOpacity={0.7}>
               <Text className="text-xs font-medium text-gray-400">How to</Text>
             </TouchableOpacity>
           </View>
@@ -693,6 +697,7 @@ function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
 export default function WorkoutScreen() {
   const {
     fetchProfile,
+    saveProfile,
     ensureRegime,
     createSession,
     finishSession,
@@ -720,8 +725,12 @@ export default function WorkoutScreen() {
 
   // { [exKey]: replacementName } — overrides the plan exercise at that slot
   const [swappedExercises, setSwappedExercises] = useState({});
+  // { "Exercise Name": "Replacement Name" } — permanent profile-level overrides
+  const [profileOverrides, setProfileOverrides] = useState({});
   // { exKey, slotIndex, exerciseName, originalName } | null
   const [swapTarget, setSwapTarget] = useState(null);
+  // { exKey, slotIndex, exerciseName, originalName } | null — for permanent override
+  const [overrideTarget, setOverrideTarget] = useState(null);
   const [howToTarget, setHowToTarget] = useState(null);
   // { seconds: number, total: number, exerciseName: string } | null
   const [restTimer, setRestTimer] = useState(null);
@@ -745,6 +754,7 @@ export default function WorkoutScreen() {
     (async () => {
       const p = await fetchProfile();
       setProfile(p);
+      if (p?.overrides) setProfileOverrides(p.overrides);
 
       if (!p?.regime) {
         setLoading(false);
@@ -844,6 +854,7 @@ export default function WorkoutScreen() {
       fetchProfile().then((p) => {
         if (!p) return;
         setProfile(p);
+        if (p?.overrides) setProfileOverrides(p.overrides);
         if (p.regime && !selectedSessionIdRef.current) {
           const order = REGIMES[p.regime]?.sessionOrder ?? [];
           const dayKey = String(new Date().getDay());
@@ -875,17 +886,18 @@ export default function WorkoutScreen() {
     [session]
   );
 
-  // Plan exercises with user-selected swap overrides applied
+  // Apply profile overrides first (permanent), then session swaps (temporary)
   const displayedExercises = useMemo(() => {
     if (!session) return [];
     return session.exercises.map((ex, i) => {
       const exKey = `${selectedSessionId}-${i}`;
       const swappedName = swappedExercises[exKey];
-      return swappedName
-        ? { ...ex, name: swappedName, weight: undefined, note: undefined }
-        : ex;
+      if (swappedName) return { ...ex, name: swappedName, weight: undefined, note: undefined };
+      const overriddenName = profileOverrides[ex.name];
+      if (overriddenName) return { ...ex, name: overriddenName, weight: undefined, note: undefined };
+      return ex;
     });
-  }, [session, selectedSessionId, swappedExercises]);
+  }, [session, selectedSessionId, swappedExercises, profileOverrides]);
 
   const handleOpenSwap = useCallback(
     (exKey, slotIndex, currentName, originalName) => {
@@ -911,6 +923,30 @@ export default function WorkoutScreen() {
   );
 
   const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
+
+  const handleOpenOverride = useCallback(
+    (exKey, slotIndex, currentName, originalName) => {
+      setOverrideTarget({ exKey, slotIndex, exerciseName: originalName, originalName });
+    },
+    []
+  );
+
+  const handleConfirmOverride = useCallback(
+    async (selectedName) => {
+      if (!overrideTarget) return;
+      const originalName = overrideTarget.originalName;
+      const next =
+        selectedName === originalName
+          ? (({ [originalName]: _, ...rest }) => rest)(profileOverrides)
+          : { ...profileOverrides, [originalName]: selectedName };
+      setProfileOverrides(next);
+      setOverrideTarget(null);
+      await saveProfile({ overrides: next });
+    },
+    [overrideTarget, profileOverrides, saveProfile]
+  );
+
+  const handleCloseOverride = useCallback(() => setOverrideTarget(null), []);
 
   const handleOpenHowTo = useCallback((exerciseName) => {
     setHowToTarget(exerciseName);
@@ -1136,14 +1172,6 @@ export default function WorkoutScreen() {
         disabled={isActive}
       />
 
-      <RegimeTipBox regime={regimeCfg} />
-      {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
-
-      {(() => {
-        const drills = MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId];
-        return drills ? <MobilityCard drills={drills} /> : null;
-      })()}
-
       {isActive && restTimer && (
         <RestTimerBanner
           seconds={restTimer.seconds}
@@ -1156,8 +1184,18 @@ export default function WorkoutScreen() {
       <FlatList
         data={displayedExercises}
         keyExtractor={(_, index) => `${selectedSessionId}-${index}`}
+        ListHeaderComponent={
+          <>
+            <RegimeTipBox regime={regimeCfg} />
+            {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
+            {MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId]
+              ? <MobilityCard drills={MOBILITY_WARMUPS[profile.age_class][selectedSessionId]} />
+              : null}
+          </>
+        }
         renderItem={({ item, index }) => {
           const exKey = `${selectedSessionId}-${index}`;
+          const originalName = session?.exercises[index]?.name ?? item.name;
           return (
             <ExerciseCard
               exercise={item}
@@ -1170,14 +1208,16 @@ export default function WorkoutScreen() {
               cardSaving={!!savingCards[exKey]}
               interactive={isActive}
               canSwap={sessionPhase !== "starting"}
-              originalExerciseName={session?.exercises[index]?.name ?? item.name}
+              originalExerciseName={originalName}
               wasSwapped={!!swappedExercises[exKey]}
+              isOverridden={!!profileOverrides[originalName]}
               onToggleExpand={handleToggleExpand}
               onToggleDone={handleToggleDone}
               onChangeWeight={handleChangeWeight}
               onChangeReps={handleChangeReps}
               onBlurField={handleBlurField}
               onOpenSwap={handleOpenSwap}
+              onOpenOverride={handleOpenOverride}
               onOpenHowTo={handleOpenHowTo}
               onAddSet={handleAddSet}
             />
@@ -1209,12 +1249,24 @@ export default function WorkoutScreen() {
 
       <SwapModal
         visible={swapTarget !== null}
+        mode="swap"
         exerciseName={swapTarget?.exerciseName}
         sessionExercises={displayedExercises}
         slotIndex={swapTarget?.slotIndex}
         originalName={swapTarget?.originalName}
         onSwap={handleConfirmSwap}
         onClose={handleCloseSwap}
+      />
+
+      <SwapModal
+        visible={overrideTarget !== null}
+        mode="override"
+        exerciseName={overrideTarget?.exerciseName}
+        sessionExercises={displayedExercises}
+        slotIndex={overrideTarget?.slotIndex}
+        originalName={overrideTarget?.originalName}
+        onSwap={handleConfirmOverride}
+        onClose={handleCloseOverride}
       />
 
       <HowToModal
