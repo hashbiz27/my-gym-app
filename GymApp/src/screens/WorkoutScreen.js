@@ -138,34 +138,36 @@ function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSynci
 function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
   if (!regimeCfg?.sessionOrder?.length) return null;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      className="bg-white border-b border-gray-100"
-      contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 6 }}
-    >
-      {regimeCfg.sessionOrder.map((sid) => {
-        const active = sid === selectedSessionId;
-        return (
-          <TouchableOpacity
-            key={sid}
-            onPress={() => !disabled && onSelect(sid)}
-            disabled={disabled}
-            className={`mr-1.5 px-3 py-1 rounded-full border ${
-              active
-                ? "bg-green-600 border-green-600"
-                : disabled
-                ? "bg-gray-50 border-gray-100"
-                : "bg-white border-gray-200"
-            }`}
-          >
-            <Text className={`text-xs font-semibold ${active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"}`}>
-              {regimeCfg.sessionLabels[sid]}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+    <View className="bg-white border-b border-gray-100">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 6, alignItems: "center" }}
+      >
+        {regimeCfg.sessionOrder.map((sid) => {
+          const active = sid === selectedSessionId;
+          return (
+            <TouchableOpacity
+              key={sid}
+              onPress={() => !disabled && onSelect(sid)}
+              disabled={disabled}
+              className={`mr-1.5 px-3 py-1 rounded-full border ${
+                active
+                  ? "bg-green-600 border-green-600"
+                  : disabled
+                  ? "bg-gray-50 border-gray-100"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+              <Text className={`text-xs font-semibold ${active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"}`}>
+                {regimeCfg.sessionLabels[sid]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
