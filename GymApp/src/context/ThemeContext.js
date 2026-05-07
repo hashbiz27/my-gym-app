@@ -1,31 +1,39 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SystemUI from "expo-system-ui";
+import { useColorScheme } from "nativewind";
 
 const THEME_KEY = "gym_theme";
-const BG_DARK = "#0f172a";
+const BG_DARK = "#111827";
 const BG_LIGHT = "#ffffff";
 
 const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} });
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(false);
+  const { setColorScheme } = useColorScheme();
 
+  // Restore persisted preference on mount
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then((value) => {
-      const dark = value === "dark";
-      if (dark) {
+      if (value === "dark") {
         setIsDark(true);
+        setColorScheme("dark");
         SystemUI.setBackgroundColorAsync(BG_DARK);
       }
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync NativeWind + SystemUI whenever isDark changes
+  useEffect(() => {
+    setColorScheme(isDark ? "dark" : "light");
+    SystemUI.setBackgroundColorAsync(isDark ? BG_DARK : BG_LIGHT);
+  }, [isDark, setColorScheme]);
 
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => {
       const next = !prev;
       AsyncStorage.setItem(THEME_KEY, next ? "dark" : "light");
-      SystemUI.setBackgroundColorAsync(next ? BG_DARK : BG_LIGHT);
       return next;
     });
   }, []);

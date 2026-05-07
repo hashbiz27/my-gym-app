@@ -30,7 +30,7 @@ export default function LibraryScreen({ navigation }) {
   }, [query]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-gray-950">
       {/* Search bar */}
       <View className="px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-3 gap-x-2">

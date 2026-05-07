@@ -280,7 +280,7 @@ export default function HistoryScreen() {
 
   if (loading && !sessionHistory.length) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950 items-center justify-center" edges={["top"]}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </SafeAreaView>
     );
@@ -288,7 +288,7 @@ export default function HistoryScreen() {
 
   if (!loading && !sessionHistory.length) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-8" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950 items-center justify-center px-8" edges={["top"]}>
         <Ionicons name="time-outline" size={48} color={Colors.textLight} />
         <Text className="text-lg font-bold text-gray-400 mt-4 text-center">No sessions yet</Text>
         <Text className="text-sm text-gray-400 mt-2 text-center leading-5">
@@ -299,7 +299,7 @@ export default function HistoryScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}

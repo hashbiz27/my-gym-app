@@ -175,7 +175,6 @@ function epley1RM(weight, reps) {
   const w = parseFloat(weight);
   const r = parseInt(reps);
   if (!w || !r || r <= 0) return null;
-  if (r === 1) return Math.round(w);
   return Math.round(w * (1 + r / 30));
 }
 
@@ -1094,7 +1093,7 @@ export default function WorkoutScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950 items-center justify-center">
         <ActivityIndicator size="large" color={Colors.success} />
       </SafeAreaView>
     );
@@ -1102,7 +1101,7 @@ export default function WorkoutScreen() {
 
   if (!profile?.regime) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950">
         <NoProfilePlaceholder />
       </SafeAreaView>
     );
@@ -1111,7 +1110,7 @@ export default function WorkoutScreen() {
   const isActive = sessionPhase === "active";
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <WorkoutHeader
         session={session}
         regimeCfg={regimeCfg}

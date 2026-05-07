@@ -31,7 +31,7 @@ function chunk(arr, size) {
 
 function SectionHeader({ title }) {
   return (
-    <Text className="px-4 pt-6 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400">
+    <Text className="px-4 pt-6 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
       {title}
     </Text>
   );
@@ -225,22 +225,22 @@ export default function SettingsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950 items-center justify-center" edges={["top"]}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
 
         {/* Account */}
         <SectionHeader title="Account" />
-        <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <View className="flex-row items-center px-4 py-3.5">
             <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
-            <Text className="ml-3 text-sm text-gray-700 flex-1" numberOfLines={1}>
+            <Text className="ml-3 text-sm text-gray-700 dark:text-gray-300 flex-1" numberOfLines={1}>
               {email ?? "—"}
             </Text>
           </View>
@@ -284,14 +284,14 @@ export default function SettingsScreen() {
 
         {/* Display */}
         <SectionHeader title="Display" />
-        <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <View className="flex-row items-center px-4 py-3.5">
             <Ionicons
               name={isDark ? "moon" : "sunny-outline"}
               size={18}
               color={Colors.textMuted}
             />
-            <Text className="ml-3 text-sm text-gray-700 flex-1">Dark mode</Text>
+            <Text className="ml-3 text-sm text-gray-700 dark:text-gray-300 flex-1">Dark mode</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
