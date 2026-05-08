@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "GymApp",
-    "slug": "gymapp",
+    "name": "LiftOff",
+    "slug": "liftoff",
     "version": "1.0.0",
-    "scheme": "gymapp",
+    "scheme": "liftoff",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gymapp.training"
+      "bundleIdentifier": "com.liftoffgym.app"
     },
     "android": {
-      "package": "com.gymapp.training",
+      "package": "com.liftoffgym.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
