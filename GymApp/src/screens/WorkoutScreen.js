@@ -44,7 +44,20 @@ function todayLabel() {
   });
 }
 
-function resolveSession(regimeKey, sessionId, ageClass) {
+function resolveSession(regimeKey, sessionId, ageClass, customSessions) {
+  if (regimeKey === "custom") {
+    const cs = Array.isArray(customSessions) ? customSessions : [];
+    const cs_ = cs.find((s) => s.id === sessionId);
+    if (!cs_?.exercises?.length) return null;
+    return {
+      label: cs_.label,
+      exercises: cs_.exercises.map((ex) => ({
+        name: ex.name,
+        sets: ex.sets ?? 3,
+        reps: String(ex.reps ?? "8"),
+      })),
+    };
+  }
   const base = ALL_SESSIONS[regimeKey]?.[sessionId];
   if (!base) return null;
   const overrides = AGE_OVERRIDES[regimeKey] ?? {};
@@ -745,7 +758,7 @@ export default function WorkoutScreen() {
             const sess = await fetchSessionById(sessionId);
             if (sess && !sess.finished_at) {
               const logs = await fetchLogsForSession(sessionId);
-              const resolved = resolveSession(p.regime, sessionTabId, p.age_class);
+              const resolved = resolveSession(p.regime, sessionTabId, p.age_class, p.custom_sessions);
               if (resolved) {
                 setLogState(
                   buildRestoredLogState(resolved.exercises, sessionTabId, logs)
@@ -765,7 +778,7 @@ export default function WorkoutScreen() {
 
       // Fresh start
       if (defaultSid) {
-        const resolved = resolveSession(p.regime, defaultSid, p.age_class ?? null);
+        const resolved = resolveSession(p.regime, defaultSid, p.age_class ?? null, p.custom_sessions);
         if (resolved) {
           setLogState(buildInitialLogState(resolved.exercises, defaultSid));
         }
@@ -780,7 +793,7 @@ export default function WorkoutScreen() {
   const session = useMemo(
     () =>
       profile?.regime && selectedSessionId
-        ? resolveSession(profile.regime, selectedSessionId, profile.age_class)
+        ? resolveSession(profile.regime, selectedSessionId, profile.age_class, profile.custom_sessions)
         : null,
     [profile, selectedSessionId]
   );
@@ -801,7 +814,8 @@ export default function WorkoutScreen() {
     const resolved = resolveSession(
       profile.regime,
       selectedSessionId,
-      profile.age_class
+      profile.age_class,
+      profile.custom_sessions
     );
     if (!resolved) return;
     AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(() => {});
@@ -836,7 +850,7 @@ export default function WorkoutScreen() {
               scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
             setSelectedSessionId(sid);
             if (sid) {
-              const resolved = resolveSession(p.regime, sid, p.age_class ?? null);
+              const resolved = resolveSession(p.regime, sid, p.age_class ?? null, p.custom_sessions);
               if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
             }
             setLoading(false);
@@ -1063,7 +1077,7 @@ export default function WorkoutScreen() {
     const p = profileRef.current;
     const sid = selectedSessionIdRef.current;
     if (p?.regime && sid) {
-      const resolved = resolveSession(p.regime, sid, p.age_class);
+      const resolved = resolveSession(p.regime, sid, p.age_class, p.custom_sessions);
       if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
     }
     setExpandedCards(new Set());

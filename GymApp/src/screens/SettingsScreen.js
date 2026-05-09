@@ -186,13 +186,137 @@ function SchedulePicker({ regime, schedule, onSelect, customSessions }) {
   );
 }
 
-function CustomSessionsEditor({ sessions, onAdd, onRemove }) {
+function ExerciseEditorModal({ session, onClose, onSave }) {
+  const [exercises, setExercises] = useState(session?.exercises ?? []);
+  const [draftName, setDraftName] = useState("");
+  const [draftSets, setDraftSets] = useState("3");
+  const [draftReps, setDraftReps] = useState("8");
+
+  useEffect(() => {
+    if (session) setExercises(session.exercises ?? []);
+  }, [session]);
+
+  function addExercise() {
+    const name = draftName.trim();
+    if (!name) return;
+    setExercises((prev) => [
+      ...prev,
+      { name, sets: parseInt(draftSets, 10) || 3, reps: draftReps.trim() || "8" },
+    ]);
+    setDraftName("");
+    setDraftSets("3");
+    setDraftReps("8");
+  }
+
+  function removeExercise(idx) {
+    setExercises((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <Modal
+      visible={!!session}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white dark:bg-gray-900 rounded-t-3xl px-5 pt-5 pb-8">
+          <Text className="text-base font-bold text-gray-900 dark:text-white mb-0.5">
+            {session?.label}
+          </Text>
+          <Text className="text-xs text-gray-400 mb-4">Add exercises for this session</Text>
+
+          <ScrollView style={{ maxHeight: 260 }} className="mb-4">
+            {exercises.length === 0 && (
+              <Text className="text-sm text-gray-400 text-center py-6">No exercises yet — add one below</Text>
+            )}
+            {exercises.map((ex, idx) => (
+              <View
+                key={idx}
+                className={`flex-row items-center py-2.5 ${idx < exercises.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : ""}`}
+              >
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</Text>
+                  <Text className="text-xs text-gray-400">{ex.sets} sets × {ex.reps} reps</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeExercise(idx)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Add exercise row */}
+          <View className="gap-2 mb-5">
+            <TextInput
+              value={draftName}
+              onChangeText={setDraftName}
+              placeholder="Exercise name (e.g. Bench Press)"
+              placeholderTextColor="#9ca3af"
+              className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+              returnKeyType="done"
+              onSubmitEditing={addExercise}
+            />
+            <View className="flex-row gap-2">
+              <TextInput
+                value={draftSets}
+                onChangeText={setDraftSets}
+                placeholder="Sets"
+                placeholderTextColor="#9ca3af"
+                keyboardType="number-pad"
+                className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 text-center"
+              />
+              <TextInput
+                value={draftReps}
+                onChangeText={setDraftReps}
+                placeholder="Reps"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 text-center"
+              />
+              <TouchableOpacity
+                onPress={addExercise}
+                className="px-5 rounded-xl bg-indigo-600 items-center justify-center"
+                activeOpacity={0.75}
+              >
+                <Text className="text-sm text-white font-semibold">Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Footer buttons */}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={onClose}
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => onSave(exercises)}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function CustomSessionsEditor({ sessions, onAdd, onRemove, onUpdateExercises }) {
   const [draft, setDraft] = useState("");
+  const [editingSession, setEditingSession] = useState(null);
 
   function add() {
     const label = draft.trim();
     if (!label) return;
-    onAdd({ id: `custom-${Date.now()}`, label });
+    onAdd({ id: `custom-${Date.now()}`, label, exercises: [] });
     setDraft("");
   }
 
@@ -200,20 +324,35 @@ function CustomSessionsEditor({ sessions, onAdd, onRemove }) {
     <View className="mx-4">
       {sessions.length > 0 && (
         <View className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-3">
-          {sessions.map((s, idx) => (
-            <View
-              key={s.id}
-              className={`flex-row items-center px-4 py-3 ${idx < sessions.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
-            >
-              <Text className="flex-1 text-sm text-gray-800 dark:text-gray-200">{s.label}</Text>
-              <TouchableOpacity
-                onPress={() => onRemove(s.id)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          {sessions.map((s, idx) => {
+            const exCount = s.exercises?.length ?? 0;
+            return (
+              <View
+                key={s.id}
+                className={`flex-row items-center px-4 py-3 ${idx < sessions.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
               >
-                <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
-              </TouchableOpacity>
-            </View>
-          ))}
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200">{s.label}</Text>
+                  <Text className="text-xs text-gray-400 mt-0.5">
+                    {exCount === 0 ? "No exercises" : `${exCount} exercise${exCount === 1 ? "" : "s"}`}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setEditingSession(s)}
+                  className="mr-3 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900 border border-indigo-200 dark:border-indigo-700"
+                  activeOpacity={0.75}
+                >
+                  <Text className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => onRemove(s.id)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </View>
       )}
       <View className="flex-row gap-2">
@@ -234,6 +373,15 @@ function CustomSessionsEditor({ sessions, onAdd, onRemove }) {
           <Text className="text-sm text-white font-semibold">Add</Text>
         </TouchableOpacity>
       </View>
+
+      <ExerciseEditorModal
+        session={editingSession}
+        onClose={() => setEditingSession(null)}
+        onSave={(exercises) => {
+          onUpdateExercises(editingSession.id, exercises);
+          setEditingSession(null);
+        }}
+      />
     </View>
   );
 }
@@ -355,6 +503,17 @@ export default function SettingsScreen() {
     [customSessions, saveProfile]
   );
 
+  const handleUpdateCustomSessionExercises = useCallback(
+    async (sessionId, exercises) => {
+      const next = customSessions.map((s) =>
+        s.id === sessionId ? { ...s, exercises } : s
+      );
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
+  );
+
   async function handleShareRoutine() {
     if (!regime) {
       Alert.alert("No routine set", "Please select a training regime first.");
@@ -431,6 +590,7 @@ export default function SettingsScreen() {
               sessions={customSessions}
               onAdd={handleAddCustomSession}
               onRemove={handleRemoveCustomSession}
+              onUpdateExercises={handleUpdateCustomSessionExercises}
             />
           </>
         )}
