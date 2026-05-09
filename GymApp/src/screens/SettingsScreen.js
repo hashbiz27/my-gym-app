@@ -131,9 +131,17 @@ function PillPicker({ options, value, onSelect }) {
   );
 }
 
-function SchedulePicker({ regime, schedule, onSelect }) {
-  const cfg = regime ? REGIMES[regime] : null;
-  const options = cfg
+function SchedulePicker({ regime, schedule, onSelect, customSessions }) {
+  const baseCfg = regime ? REGIMES[regime] : null;
+  const cfg =
+    regime === "custom" && customSessions?.length
+      ? {
+          ...baseCfg,
+          sessionOrder: customSessions.map((s) => s.id),
+          sessionLabels: Object.fromEntries(customSessions.map((s) => [s.id, s.label])),
+        }
+      : baseCfg;
+  const options = cfg?.sessionOrder?.length
     ? [
         { id: "rest", label: "Rest" },
         ...cfg.sessionOrder.map((id) => ({ id, label: cfg.sessionLabels[id] })),
@@ -174,6 +182,58 @@ function SchedulePicker({ regime, schedule, onSelect }) {
           </View>
         );
       })}
+    </View>
+  );
+}
+
+function CustomSessionsEditor({ sessions, onAdd, onRemove }) {
+  const [draft, setDraft] = useState("");
+
+  function add() {
+    const label = draft.trim();
+    if (!label) return;
+    onAdd({ id: `custom-${Date.now()}`, label });
+    setDraft("");
+  }
+
+  return (
+    <View className="mx-4">
+      {sessions.length > 0 && (
+        <View className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-3">
+          {sessions.map((s, idx) => (
+            <View
+              key={s.id}
+              className={`flex-row items-center px-4 py-3 ${idx < sessions.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
+            >
+              <Text className="flex-1 text-sm text-gray-800 dark:text-gray-200">{s.label}</Text>
+              <TouchableOpacity
+                onPress={() => onRemove(s.id)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
+      <View className="flex-row gap-2">
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          placeholder="e.g. Push Day, Legs, Upper…"
+          placeholderTextColor="#9ca3af"
+          className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+          returnKeyType="done"
+          onSubmitEditing={add}
+        />
+        <TouchableOpacity
+          onPress={add}
+          className="px-4 rounded-xl bg-indigo-600 items-center justify-center"
+          activeOpacity={0.75}
+        >
+          <Text className="text-sm text-white font-semibold">Add</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -231,6 +291,7 @@ export default function SettingsScreen() {
   const [weightClass, setWeightClass] = useState(null);
   const [sex, setSex] = useState(null);
   const [schedule, setSchedule] = useState(null);
+  const [customSessions, setCustomSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [importModalVisible, setImportModalVisible] = useState(false);
 
@@ -247,6 +308,7 @@ export default function SettingsScreen() {
         setWeightClass(profile.weight_class ?? null);
         setSex(profile.sex ?? null);
         setSchedule(profile.schedule ?? null);
+        setCustomSessions(Array.isArray(profile.custom_sessions) ? profile.custom_sessions : []);
       }
       setLoading(false);
     }
@@ -273,6 +335,24 @@ export default function SettingsScreen() {
       await saveProfile({ schedule: next });
     },
     [schedule, saveProfile]
+  );
+
+  const handleAddCustomSession = useCallback(
+    async (session) => {
+      const next = [...customSessions, session];
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
+  );
+
+  const handleRemoveCustomSession = useCallback(
+    async (id) => {
+      const next = customSessions.filter((s) => s.id !== id);
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
   );
 
   async function handleShareRoutine() {
@@ -343,12 +423,25 @@ export default function SettingsScreen() {
         <SectionHeader title="Training Regime" />
         <RegimeGrid value={regime} onSelect={(v) => handleSelect("regime", v)} />
 
+        {/* Custom session names — shown only when Custom regime is active */}
+        {regime === "custom" && (
+          <>
+            <SectionHeader title="Your Sessions" />
+            <CustomSessionsEditor
+              sessions={customSessions}
+              onAdd={handleAddCustomSession}
+              onRemove={handleRemoveCustomSession}
+            />
+          </>
+        )}
+
         {/* Weekly schedule */}
         <SectionHeader title="Weekly Schedule" />
         <SchedulePicker
           regime={regime}
           schedule={schedule}
           onSelect={handleScheduleSelect}
+          customSessions={customSessions}
         />
 
         {/* Sex */}

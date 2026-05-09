@@ -88,6 +88,19 @@ function buildRestoredLogState(exercises, sessionId, logs) {
   return initial;
 }
 
+function getRegimeCfg(profile) {
+  if (!profile?.regime) return null;
+  const base = REGIMES[profile.regime];
+  if (!base) return null;
+  if (profile.regime !== "custom") return base;
+  const sessions = Array.isArray(profile.custom_sessions) ? profile.custom_sessions : [];
+  return {
+    ...base,
+    sessionOrder: sessions.map((s) => s.id),
+    sessionLabels: Object.fromEntries(sessions.map((s) => [s.id, s.label])),
+  };
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSyncing, pendingCount }) {
@@ -717,7 +730,7 @@ export default function WorkoutScreen() {
         return;
       }
 
-      const order = REGIMES[p.regime]?.sessionOrder ?? [];
+      const order = getRegimeCfg(p)?.sessionOrder ?? [];
       const dayKey = String(new Date().getDay()); // "0"=Sun … "6"=Sat
       const scheduled = p.schedule?.[dayKey];
       const defaultSid =
@@ -762,7 +775,7 @@ export default function WorkoutScreen() {
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const regimeCfg = profile?.regime ? REGIMES[profile.regime] : null;
+  const regimeCfg = getRegimeCfg(profile);
 
   const session = useMemo(
     () =>
@@ -816,7 +829,7 @@ export default function WorkoutScreen() {
           const regimeChanged = p.regime !== prevRegime;
           // Reselect today's session when there's no session yet OR the regime changed
           if (!selectedSessionIdRef.current || regimeChanged) {
-            const order = REGIMES[p.regime]?.sessionOrder ?? [];
+            const order = getRegimeCfg(p)?.sessionOrder ?? [];
             const dayKey = String(new Date().getDay());
             const scheduled = p.schedule?.[dayKey];
             const sid =
@@ -1152,6 +1165,17 @@ export default function WorkoutScreen() {
             {MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId]
               ? <MobilityCard drills={MOBILITY_WARMUPS[profile.age_class][selectedSessionId]} />
               : null}
+            {profile.regime === "custom" && !session && selectedSessionId && (
+              <View className="mx-4 mt-4 mb-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 items-center">
+                <Text className="text-2xl mb-2">✏️</Text>
+                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center mb-1">
+                  No exercises defined
+                </Text>
+                <Text className="text-xs text-gray-400 dark:text-gray-500 text-center">
+                  This is a free-form session. Start it to record the workout, then log your sets in the History tab.
+                </Text>
+              </View>
+            )}
           </>
         }
         renderItem={({ item, index }) => {
@@ -1185,7 +1209,7 @@ export default function WorkoutScreen() {
           );
         }}
         ListFooterComponent={
-          session
+          session || (profile.regime === "custom" && selectedSessionId)
             ? isActive
               ? (
                 <FinishFooter
