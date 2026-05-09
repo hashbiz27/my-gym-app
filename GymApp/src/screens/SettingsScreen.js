@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
+  Share,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,6 +30,69 @@ function chunk(arr, size) {
   const result = [];
   for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
   return result;
+}
+
+function encodeRoutine(regime, schedule) {
+  const payload = JSON.stringify({ regime, schedule: schedule ?? {} });
+  return "LO:" + btoa(unescape(encodeURIComponent(payload)));
+}
+
+function decodeRoutine(code) {
+  try {
+    if (!code.startsWith("LO:")) return null;
+    const payload = JSON.parse(decodeURIComponent(escape(atob(code.slice(3)))));
+    if (!payload.regime || !REGIMES[payload.regime]) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function ImportModal({ visible, onClose, onImport }) {
+  const [code, setCode] = useState("");
+  const inputRef = useRef(null);
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      onShow={() => setTimeout(() => inputRef.current?.focus(), 100)}
+    >
+      <View className="flex-1 bg-black/50 items-center justify-center px-6">
+        <View className="bg-white rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 mb-1">Import Routine</Text>
+          <Text className="text-xs text-gray-400 mb-3">Paste the routine code shared by another LiftOff user.</Text>
+          <TextInput
+            ref={inputRef}
+            value={code}
+            onChangeText={setCode}
+            placeholder="Paste code here…"
+            placeholderTextColor="#9ca3af"
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 mb-4"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={() => { setCode(""); onClose(); }}
+              className="flex-1 py-3 rounded-xl border border-gray-200 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 font-medium">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { onImport(code.trim()); setCode(""); }}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">Import</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 function SectionHeader({ title }) {
@@ -166,6 +232,7 @@ export default function SettingsScreen() {
   const [sex, setSex] = useState(null);
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [importModalVisible, setImportModalVisible] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -207,6 +274,32 @@ export default function SettingsScreen() {
     },
     [schedule, saveProfile]
   );
+
+  async function handleShareRoutine() {
+    if (!regime) {
+      Alert.alert("No routine set", "Please select a training regime first.");
+      return;
+    }
+    const code = encodeRoutine(regime, schedule);
+    try {
+      await Share.share({
+        message: `Follow my training routine on LiftOff!\n\nRoutine code:\n${code}`,
+      });
+    } catch (_) {}
+  }
+
+  async function handleImportRoutine(code) {
+    const decoded = decodeRoutine(code);
+    if (!decoded) {
+      Alert.alert("Invalid code", "That doesn't look like a valid LiftOff routine code. Check the code and try again.");
+      return;
+    }
+    setImportModalVisible(false);
+    setRegime(decoded.regime);
+    setSchedule(decoded.schedule ?? null);
+    await saveProfile({ regime: decoded.regime, schedule: decoded.schedule ?? null });
+    Alert.alert("Routine imported!", `You're now following the ${REGIMES[decoded.regime].label} routine.`);
+  }
 
   async function handleSignOut() {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -301,6 +394,27 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Routine sharing */}
+        <SectionHeader title="Routine Sharing" />
+        <View className="mx-4 gap-3">
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl bg-indigo-600 py-3.5"
+            onPress={handleShareRoutine}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="share-outline" size={18} color="white" />
+            <Text className="text-white font-semibold text-sm">Share my routine</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-3.5"
+            onPress={() => setImportModalVisible(true)}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="download-outline" size={18} color={Colors.textMuted} />
+            <Text className="text-gray-700 dark:text-gray-300 font-semibold text-sm">Import a routine</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Sign out */}
         <View className="mt-6 mx-4">
           <TouchableOpacity
@@ -314,6 +428,12 @@ export default function SettingsScreen() {
         </View>
 
       </ScrollView>
+
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onImport={handleImportRoutine}
+      />
     </SafeAreaView>
   );
 }

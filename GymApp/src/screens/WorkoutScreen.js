@@ -751,8 +751,8 @@ export default function WorkoutScreen() {
       } catch (_) {}
 
       // Fresh start
-      if (defaultSid && p.age_class) {
-        const resolved = resolveSession(p.regime, defaultSid, p.age_class);
+      if (defaultSid) {
+        const resolved = resolveSession(p.regime, defaultSid, p.age_class ?? null);
         if (resolved) {
           setLogState(buildInitialLogState(resolved.exercises, defaultSid));
         }
@@ -774,8 +774,8 @@ export default function WorkoutScreen() {
 
   // Reset when regime / session tab / age class changes (user edits Settings)
   const sessionKey =
-    profile?.regime && selectedSessionId && profile?.age_class
-      ? `${profile.regime}|${selectedSessionId}|${profile.age_class}`
+    profile?.regime && selectedSessionId
+      ? `${profile.regime}|${selectedSessionId}|${profile.age_class ?? ""}`
       : null;
 
   useEffect(() => {
@@ -809,20 +809,25 @@ export default function WorkoutScreen() {
       if (sessionPhaseRef.current === "active") return;
       fetchProfile().then((p) => {
         if (!p) return;
+        const prevRegime = profileRef.current?.regime;
         setProfile(p);
         if (p?.overrides) setProfileOverrides(p.overrides);
-        if (p.regime && !selectedSessionIdRef.current) {
-          const order = REGIMES[p.regime]?.sessionOrder ?? [];
-          const dayKey = String(new Date().getDay());
-          const scheduled = p.schedule?.[dayKey];
-          const sid =
-            scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
-          setSelectedSessionId(sid);
-          if (sid) {
-            const resolved = resolveSession(p.regime, sid, p.age_class);
-            if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
+        if (p.regime) {
+          const regimeChanged = p.regime !== prevRegime;
+          // Reselect today's session when there's no session yet OR the regime changed
+          if (!selectedSessionIdRef.current || regimeChanged) {
+            const order = REGIMES[p.regime]?.sessionOrder ?? [];
+            const dayKey = String(new Date().getDay());
+            const scheduled = p.schedule?.[dayKey];
+            const sid =
+              scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
+            setSelectedSessionId(sid);
+            if (sid) {
+              const resolved = resolveSession(p.regime, sid, p.age_class ?? null);
+              if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
+            }
+            setLoading(false);
           }
-          setLoading(false);
         }
       });
     }, [fetchProfile])
