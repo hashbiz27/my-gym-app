@@ -12,6 +12,12 @@ import {
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -426,6 +432,19 @@ function epley1RM(weight, reps) {
 
 function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur, disabled }) {
   const orm = row.done ? epley1RM(row.weight, row.reps) : null;
+  const checkScale = useSharedValue(1);
+  const animatedCheckStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  function handleToggle() {
+    checkScale.value = withSequence(
+      withSpring(row.done ? 0.75 : 1.35, { damping: 6, stiffness: 300 }),
+      withSpring(1, { damping: 8, stiffness: 200 })
+    );
+    onToggle(setIndex);
+  }
+
   return (
     <View className="mb-2">
       <View className="flex-row items-center gap-x-2">
@@ -461,13 +480,18 @@ function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur,
           editable={!disabled}
         />
         <TouchableOpacity
-          onPress={() => onToggle(setIndex)}
+          onPress={handleToggle}
           disabled={disabled}
-          className={`w-7 h-7 rounded border-2 items-center justify-center ${
-            row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
-          }`}
+          activeOpacity={1}
         >
-          {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+          <Animated.View
+            style={animatedCheckStyle}
+            className={`w-7 h-7 rounded border-2 items-center justify-center ${
+              row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
+            }`}
+          >
+            {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+          </Animated.View>
         </TouchableOpacity>
       </View>
       {orm !== null && (
