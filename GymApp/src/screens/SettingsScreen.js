@@ -4,13 +4,13 @@ import {
   Alert,
   Modal,
   ScrollView,
+  Share,
   Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../lib/supabase";
@@ -50,12 +50,8 @@ function decodeRoutine(raw) {
 }
 
 function ShareCodeModal({ code, onClose }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    await Clipboard.setStringAsync(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  function shareCode() {
+    Share.share({ message: code });
   }
 
   return (
@@ -68,19 +64,21 @@ function ShareCodeModal({ code, onClose }) {
       <View className="flex-1 bg-black/50 items-center justify-center px-6">
         <View className="bg-white dark:bg-gray-900 rounded-2xl p-5 w-full">
           <Text className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Your Routine Code</Text>
-          <Text className="text-xs text-gray-400 mb-3">Share this code with anyone using LiftOff.</Text>
-          <View className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-3 mb-4">
-            <Text selectable className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{code}</Text>
-          </View>
+          <Text className="text-xs text-gray-400 mb-3">Long-press the code to copy, or tap Share.</Text>
+          <TextInput
+            value={code}
+            editable={false}
+            multiline
+            selectTextOnFocus
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-3 mb-4 text-xs font-mono text-gray-700 dark:text-gray-300"
+          />
           <View className="flex-row gap-2">
             <TouchableOpacity
-              onPress={copy}
-              className={`flex-1 py-3 rounded-xl items-center ${copied ? "bg-green-600" : "bg-indigo-600"}`}
+              onPress={shareCode}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
               activeOpacity={0.75}
             >
-              <Text className="text-sm text-white font-semibold">
-                {copied ? "Copied!" : "Copy code"}
-              </Text>
+              <Text className="text-sm text-white font-semibold">Share</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
