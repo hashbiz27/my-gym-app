@@ -302,10 +302,10 @@ function ExerciseDropdown({ exercises, selected, onSelect }) {
     <View className="mx-4 mb-3">
       <TouchableOpacity
         onPress={() => setOpen(true)}
-        className="flex-row items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3"
+        className="flex-row items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3"
         activeOpacity={0.75}
       >
-        <Text className="text-sm font-semibold text-gray-800 flex-1 mr-2" numberOfLines={1}>
+        <Text className="text-sm font-semibold text-gray-800 dark:text-white flex-1 mr-2" numberOfLines={1}>
           {selected || "Select exercise…"}
         </Text>
         <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
@@ -415,13 +415,13 @@ function LiftingSection({ sessions, allExercises }) {
                     key={label}
                     onPress={() => setShowOrm(val)}
                     className={`px-3 py-1.5 rounded-full border ${
-                      active ? "bg-gray-900 border-gray-900" : "bg-white border-gray-200"
+                      active ? "bg-gray-900 border-gray-900" : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                     }`}
                     activeOpacity={0.75}
                   >
                     <Text
                       className={`text-xs font-semibold ${
-                        active ? "text-white" : "text-gray-500"
+                        active ? "text-white" : "text-gray-500 dark:text-gray-300"
                       }`}
                     >
                       {label}
@@ -561,23 +561,23 @@ function PRsSection({ personalBests }) {
           <EmptyChart text="No personal bests yet." />
         </Card>
       ) : (
-        <View className="mx-4 mb-4 rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <View className="mx-4 mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
           {personalBests.map(([name, pb], i) => (
             <View
               key={name}
               className={`px-4 py-3.5 flex-row items-center ${
-                i < personalBests.length - 1 ? "border-b border-gray-50" : ""
+                i < personalBests.length - 1 ? "border-b border-gray-50 dark:border-gray-700" : ""
               }`}
             >
               <View className="flex-1 mr-3">
                 <View className="flex-row items-center gap-x-2 mb-0.5">
                   {i === 0 && (
-                    <View className="bg-amber-100 rounded px-1.5 py-0.5">
-                      <Text className="text-amber-700 text-xs font-bold">PB</Text>
+                    <View className="bg-amber-100 dark:bg-amber-900/40 rounded px-1.5 py-0.5">
+                      <Text className="text-amber-700 dark:text-amber-400 text-xs font-bold">PB</Text>
                     </View>
                   )}
                   <Text
-                    className="text-sm font-semibold text-gray-800 flex-shrink"
+                    className="text-sm font-semibold text-gray-800 dark:text-white flex-shrink"
                     numberOfLines={1}
                   >
                     {name}
@@ -586,7 +586,7 @@ function PRsSection({ personalBests }) {
                 <Text className="text-xs text-gray-400">{shortDate(pb.date)}</Text>
               </View>
               <View className="items-end">
-                <Text className="text-sm font-bold text-gray-900">
+                <Text className="text-sm font-bold text-gray-900 dark:text-white">
                   {pb.weight}kg × {pb.reps}
                 </Text>
                 {pb.orm > 0 && (
@@ -744,13 +744,13 @@ export default function AnalysisScreen() {
               key={s}
               onPress={() => setActiveSection(s)}
               className={`px-3 py-1.5 rounded-full border ${
-                active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
+                active ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
               }`}
               activeOpacity={0.75}
             >
               <Text
                 className={`text-xs font-semibold uppercase tracking-wider ${
-                  active ? "text-white" : "text-gray-500"
+                  active ? "text-white" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 {s}

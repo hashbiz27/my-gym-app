@@ -15,7 +15,7 @@ export default function ExerciseDetailScreen({ route }) {
 
   if (!guide) {
     return (
-      <View className="flex-1 items-center justify-center bg-white px-8">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-950 px-8">
         <Text className="text-gray-400 text-sm text-center">
           No guide available for this exercise.
         </Text>
@@ -25,39 +25,39 @@ export default function ExerciseDetailScreen({ route }) {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-white dark:bg-gray-950"
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       {/* ── Muscles ── */}
-      <View className="px-5 pt-5 pb-4 border-b border-gray-100">
+      <View className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
         <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
           Muscles
         </Text>
         <View className="flex-row flex-wrap gap-x-2 gap-y-2">
           {guide.muscles.primary.map((m) => (
-            <View key={m} className="bg-green-100 rounded-full px-3 py-1">
-              <Text className="text-xs font-semibold text-green-800">{m}</Text>
+            <View key={m} className="bg-green-100 dark:bg-green-900 rounded-full px-3 py-1">
+              <Text className="text-xs font-semibold text-green-800 dark:text-green-300">{m}</Text>
             </View>
           ))}
           {guide.muscles.secondary.map((m) => (
-            <View key={m} className="bg-gray-100 rounded-full px-3 py-1">
-              <Text className="text-xs font-semibold text-gray-500">{m}</Text>
+            <View key={m} className="bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1">
+              <Text className="text-xs font-semibold text-gray-500 dark:text-gray-400">{m}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* ── How to perform ── */}
-      <View className="px-5 pt-4 pb-4 border-b border-gray-100">
+      <View className="px-5 pt-4 pb-4 border-b border-gray-100 dark:border-gray-800">
         <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
           How to perform
         </Text>
         {guide.steps.map((step, i) => (
           <View key={i} className="flex-row mb-3">
-            <View className="w-6 h-6 rounded-full bg-indigo-100 items-center justify-center mr-3 mt-0.5 shrink-0">
-              <Text className="text-xs font-bold text-indigo-600">{i + 1}</Text>
+            <View className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 items-center justify-center mr-3 mt-0.5 shrink-0">
+              <Text className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{i + 1}</Text>
             </View>
-            <Text className="flex-1 text-sm text-gray-700 leading-5">
+            <Text className="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-5">
               {step}
             </Text>
           </View>
@@ -65,7 +65,7 @@ export default function ExerciseDetailScreen({ route }) {
       </View>
 
       {/* ── Key cues ── */}
-      <View className="px-5 pt-4 pb-4 border-b border-gray-100">
+      <View className="px-5 pt-4 pb-4 border-b border-gray-100 dark:border-gray-800">
         <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
           Key cues
         </Text>
@@ -74,7 +74,7 @@ export default function ExerciseDetailScreen({ route }) {
             <View className="mt-0.5 mr-3 shrink-0">
               <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
             </View>
-            <Text className="flex-1 text-sm text-gray-700 leading-5">
+            <Text className="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-5">
               {cue}
             </Text>
           </View>
@@ -82,7 +82,7 @@ export default function ExerciseDetailScreen({ route }) {
       </View>
 
       {/* ── Common mistakes ── */}
-      <View className="px-5 pt-4 pb-5 border-b border-gray-100">
+      <View className="px-5 pt-4 pb-5 border-b border-gray-100 dark:border-gray-800">
         <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
           Common mistakes
         </Text>
@@ -91,7 +91,7 @@ export default function ExerciseDetailScreen({ route }) {
             <View className="mt-0.5 mr-3 shrink-0">
               <Ionicons name="alert-circle" size={16} color="#dc2626" />
             </View>
-            <Text className="flex-1 text-sm text-gray-700 leading-5">
+            <Text className="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-5">
               {mistake}
             </Text>
           </View>

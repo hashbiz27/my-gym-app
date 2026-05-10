@@ -32,11 +32,11 @@ export default function LibraryScreen({ navigation }) {
   return (
     <View className="flex-1 bg-white dark:bg-gray-950">
       {/* Search bar */}
-      <View className="px-4 py-3 border-b border-gray-100">
-        <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-3 gap-x-2">
+      <View className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+        <View className="flex-row items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 gap-x-2">
           <Ionicons name="search" size={16} color="#9ca3af" />
           <TextInput
-            className="flex-1 py-2.5 text-sm text-gray-900"
+            className="flex-1 py-2.5 text-sm text-gray-900 dark:text-white"
             placeholder="Search exercises or muscles…"
             placeholderTextColor="#9ca3af"
             value={query}
@@ -54,14 +54,14 @@ export default function LibraryScreen({ navigation }) {
         keyboardDismissMode="on-drag"
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="flex-row items-center px-4 py-3.5 border-b border-gray-50"
+            className="flex-row items-center px-4 py-3.5 border-b border-gray-50 dark:border-gray-800"
             onPress={() =>
               navigation.navigate("ExerciseDetail", { name: item.name })
             }
             activeOpacity={0.7}
           >
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-gray-900">
+              <Text className="text-sm font-semibold text-gray-900 dark:text-white">
                 {item.name}
               </Text>
               <Text className="text-xs text-gray-400 mt-0.5">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, InteractionManager, Text, View } from "react-native";
+import { ActivityIndicator, InteractionManager, Text, useColorScheme, View } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetFlatList,
@@ -28,6 +28,7 @@ export default function SwapModal({
   const [search, setSearch] = useState("");
   const [ranked, setRanked] = useState([]);
   const [computing, setComputing] = useState(false);
+  const isDark = useColorScheme() === "dark";
 
   useEffect(() => {
     if (visible) {
@@ -121,12 +122,13 @@ export default function SwapModal({
       snapPoints={["75%"]}
       onDismiss={handleDismiss}
       backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{ backgroundColor: Colors.gray200, width: 40 }}
+      backgroundStyle={{ backgroundColor: isDark ? "#1f2937" : "white" }}
+      handleIndicatorStyle={{ backgroundColor: isDark ? "#4b5563" : Colors.gray200, width: 40 }}
     >
       {/* Header */}
-      <View className="px-4 pb-3 border-b border-gray-100">
+      <View className="px-4 pb-3 border-b border-gray-100 dark:border-gray-700">
         <View className="flex-row justify-between items-center mb-0.5">
-          <Text className="text-lg font-bold text-gray-900">
+          <Text className="text-lg font-bold text-gray-900 dark:text-white">
             {isOverride ? "Override Exercise" : "Swap Exercise"}
           </Text>
           <TouchableOpacity onPress={handleDismiss} className="p-1">
@@ -140,18 +142,18 @@ export default function SwapModal({
         </Text>
         <Text className="text-xs text-gray-400 mb-3">
           Replacing:{" "}
-          <Text className="text-gray-600 font-semibold">{exerciseName}</Text>
+          <Text className="text-gray-600 dark:text-gray-300 font-semibold">{exerciseName}</Text>
         </Text>
         <BottomSheetTextInput
           style={{
-            backgroundColor: Colors.gray50,
+            backgroundColor: isDark ? "#374151" : Colors.gray50,
             borderWidth: 1,
-            borderColor: Colors.gray200,
+            borderColor: isDark ? "#4b5563" : Colors.gray200,
             borderRadius: 8,
             paddingHorizontal: 12,
             paddingVertical: 8,
             fontSize: 14,
-            color: Colors.gray900,
+            color: isDark ? "#f9fafb" : Colors.gray900,
           }}
           placeholder="Search exercises…"
           placeholderTextColor={Colors.textMuted}
@@ -177,11 +179,11 @@ export default function SwapModal({
             const isOriginal = item.name === originalName;
             return (
               <TouchableOpacity
-                className="flex-row items-center px-4 py-3 border-b border-gray-50"
+                className="flex-row items-center px-4 py-3 border-b border-gray-50 dark:border-gray-700"
                 onPress={() => handleSelect(item.name)}
               >
                 <View className="flex-1 mr-3">
-                  <Text className="text-sm font-semibold text-gray-900">
+                  <Text className="text-sm font-semibold text-gray-900 dark:text-white">
                     {item.name}
                     {isOriginal && (
                       <Text className="text-xs text-indigo-500"> (original)</Text>

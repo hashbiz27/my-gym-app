@@ -130,23 +130,23 @@ export default function BodyScreen() {
         >
           {/* Header */}
           <View className="px-4 pt-4 pb-2">
-            <Text className="text-2xl font-bold text-gray-900">Body</Text>
+            <Text className="text-2xl font-bold text-gray-900 dark:text-white">Body</Text>
             <Text className="text-sm text-gray-400 mt-0.5">Bodyweight tracking</Text>
           </View>
 
           {/* Stats row */}
           {latest && (
             <View className="flex-row mx-4 gap-x-3 mt-2 mb-1">
-              <View className="flex-1 bg-white rounded-xl border border-gray-200 px-4 py-3">
+              <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
                 <Text className="text-xs text-gray-400 uppercase tracking-widest">Latest</Text>
-                <Text className="text-2xl font-bold text-gray-900 mt-1">
+                <Text className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                   {parseFloat(latest.weight_kg).toFixed(1)}
                   <Text className="text-base font-normal text-gray-400"> kg</Text>
                 </Text>
                 <Text className="text-xs text-gray-400 mt-0.5">{shortDate(latest.date)}</Text>
               </View>
               {diff !== null && (
-                <View className="flex-1 bg-white rounded-xl border border-gray-200 px-4 py-3">
+                <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
                   <Text className="text-xs text-gray-400 uppercase tracking-widest">Change</Text>
                   <Text
                     className={`text-2xl font-bold mt-1 ${
@@ -168,7 +168,7 @@ export default function BodyScreen() {
               <ActivityIndicator color={Colors.primary} />
             </View>
           ) : chartData.length >= 2 ? (
-            <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+            <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mt-3">
               <Text className="px-4 pt-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
                 Last {CHART_WINDOW} days
               </Text>
@@ -214,14 +214,14 @@ export default function BodyScreen() {
           ) : null}
 
           {/* Log entry form */}
-          <View className="mx-4 mt-4 bg-white rounded-xl border border-gray-200 p-4">
+          <View className="mx-4 mt-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
             <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
               Log weight
             </Text>
             <View className="flex-row gap-x-3 items-center">
               <TextInput
                 ref={inputRef}
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-800 bg-gray-50"
+                className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-base text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900"
                 placeholder="e.g. 82.5"
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="decimal-pad"
@@ -257,16 +257,16 @@ export default function BodyScreen() {
               <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
                 History
               </Text>
-              <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <View className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {[...entries].reverse().map((entry, i, arr) => (
                   <View
                     key={entry.id}
                     className={`flex-row items-center px-4 py-3 ${
-                      i < arr.length - 1 ? "border-b border-gray-100" : ""
+                      i < arr.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""
                     }`}
                   >
                     <View className="flex-1">
-                      <Text className="text-sm font-semibold text-gray-800">
+                      <Text className="text-sm font-semibold text-gray-800 dark:text-white">
                         {parseFloat(entry.weight_kg).toFixed(1)} kg
                       </Text>
                       <Text className="text-xs text-gray-400 mt-0.5">

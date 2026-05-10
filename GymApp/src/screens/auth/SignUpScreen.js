@@ -37,21 +37,17 @@ export default function SignUpScreen({ navigation }) {
       return;
     }
 
-    // Create a matching profiles row for the new user
     const userId = data.user?.id;
     if (userId) {
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({ user_id: userId });
-
       if (profileError) {
-        // Non-fatal: user exists but profile insert failed; log and continue
         console.warn("Profile insert failed:", profileError.message);
       }
     }
 
     setLoading(false);
-    // If email confirmation is enabled, prompt user; otherwise onAuthStateChange handles navigation
     if (!data.session) {
       Alert.alert(
         "Check your email",
@@ -62,18 +58,18 @@ export default function SignUpScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-950" edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View className="flex-1 justify-center px-6">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">Create account</Text>
-          <Text className="text-gray-500 mb-8">Start tracking your workouts</Text>
+          <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create account</Text>
+          <Text className="text-gray-500 dark:text-gray-400 mb-8">Start tracking your workouts</Text>
 
-          <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</Text>
           <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-900"
+            className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 mb-4 text-gray-900 dark:text-white"
             placeholder="you@example.com"
             placeholderTextColor={Colors.textMuted}
             autoCapitalize="none"
@@ -82,9 +78,9 @@ export default function SignUpScreen({ navigation }) {
             onChangeText={setEmail}
           />
 
-          <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</Text>
           <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-900"
+            className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 mb-6 text-gray-900 dark:text-white"
             placeholder="Min. 6 characters"
             placeholderTextColor={Colors.textMuted}
             secureTextEntry
@@ -105,9 +101,9 @@ export default function SignUpScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text className="text-center text-gray-500">
+            <Text className="text-center text-gray-500 dark:text-gray-400">
               Already have an account?{" "}
-              <Text className="text-indigo-600 font-semibold">Sign in</Text>
+              <Text className="text-indigo-600 dark:text-indigo-400 font-semibold">Sign in</Text>
             </Text>
           </TouchableOpacity>
         </View>

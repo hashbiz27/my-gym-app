@@ -27,22 +27,21 @@ export default function LoginScreen({ navigation }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) Alert.alert("Login failed", error.message);
-    // On success, onAuthStateChange in App.js switches to the main navigator
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-950" edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View className="flex-1 justify-center px-6">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">Welcome back</Text>
-          <Text className="text-gray-500 mb-8">Sign in to your account</Text>
+          <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</Text>
+          <Text className="text-gray-500 dark:text-gray-400 mb-8">Sign in to your account</Text>
 
-          <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</Text>
           <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-gray-900"
+            className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 mb-4 text-gray-900 dark:text-white"
             placeholder="you@example.com"
             placeholderTextColor={Colors.textMuted}
             autoCapitalize="none"
@@ -51,9 +50,9 @@ export default function LoginScreen({ navigation }) {
             onChangeText={setEmail}
           />
 
-          <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</Text>
           <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-900"
+            className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 mb-6 text-gray-900 dark:text-white"
             placeholder="••••••••"
             placeholderTextColor={Colors.textMuted}
             secureTextEntry
@@ -74,9 +73,9 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-            <Text className="text-center text-gray-500">
+            <Text className="text-center text-gray-500 dark:text-gray-400">
               Don't have an account?{" "}
-              <Text className="text-indigo-600 font-semibold">Sign up</Text>
+              <Text className="text-indigo-600 dark:text-indigo-400 font-semibold">Sign up</Text>
             </Text>
           </TouchableOpacity>
         </View>

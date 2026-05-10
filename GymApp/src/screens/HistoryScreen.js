@@ -64,9 +64,9 @@ function SetChip({ log, onEdit }) {
     <TouchableOpacity
       onPress={() => onEdit(log)}
       activeOpacity={0.7}
-      className="bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1"
+      className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-lg px-2.5 py-1"
     >
-      <Text className="text-xs text-gray-600 font-medium">{formatSetChip(log)}</Text>
+      <Text className="text-xs text-gray-600 dark:text-gray-300 font-medium">{formatSetChip(log)}</Text>
     </TouchableOpacity>
   );
 }
@@ -85,7 +85,7 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
   return (
     <View className="flex-row items-center gap-x-2 mt-1 mb-1">
       <TextInput
-        className="w-16 border border-gray-200 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 bg-white"
+        className="w-16 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
         placeholder="kg"
         placeholderTextColor={Colors.textLight}
         keyboardType="decimal-pad"
@@ -93,7 +93,7 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
         onChangeText={setWeight}
       />
       <TextInput
-        className="w-16 border border-gray-200 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 bg-white"
+        className="w-16 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
         placeholder="reps"
         placeholderTextColor={Colors.textLight}
         keyboardType="number-pad"
@@ -114,14 +114,14 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => onDelete(log.id)}
-        className="w-7 h-7 rounded-lg bg-red-50 border border-red-100 items-center justify-center"
+        className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 items-center justify-center"
         activeOpacity={0.8}
       >
         <Ionicons name="trash-outline" size={14} color={Colors.danger} />
       </TouchableOpacity>
       <TouchableOpacity
         onPress={onCancel}
-        className="w-7 h-7 rounded-lg bg-gray-100 items-center justify-center"
+        className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-600 items-center justify-center"
         activeOpacity={0.8}
       >
         <Ionicons name="close" size={14} color={Colors.textMuted} />
@@ -180,19 +180,19 @@ function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
   }
 
   return (
-    <View className="mx-4 mb-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <View className="mx-4 mb-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
       {/* Header */}
-      <View className="px-4 py-2.5 border-b border-gray-100 flex-row justify-between items-center bg-gray-50">
+      <View className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 flex-row justify-between items-center bg-gray-50 dark:bg-gray-700">
         <View className="flex-row items-center gap-x-2">
           {startTime ? (
-            <Text className="text-xs text-gray-500 font-medium">{startTime}</Text>
+            <Text className="text-xs text-gray-500 dark:text-gray-400 font-medium">{startTime}</Text>
           ) : null}
           {session.notes ? (
             <Ionicons name="document-text-outline" size={12} color={Colors.textMuted} />
           ) : null}
         </View>
-        <Text className="text-xs text-gray-400">
-          <Text className="font-semibold text-gray-500">{totalSets}</Text>
+        <Text className="text-xs text-gray-400 dark:text-gray-500">
+          <Text className="font-semibold text-gray-500 dark:text-gray-400">{totalSets}</Text>
           {" sets logged"}
         </Text>
       </View>
@@ -209,9 +209,9 @@ function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
           return (
             <View
               key={name}
-              className={`px-4 py-3 ${isLast ? "" : "border-b border-gray-50"}`}
+              className={`px-4 py-3 ${isLast ? "" : "border-b border-gray-50 dark:border-gray-700"}`}
             >
-              <Text className="text-xs font-semibold text-gray-700 mb-2">{name}</Text>
+              <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">{name}</Text>
               <View className="flex-row flex-wrap gap-x-2 gap-y-1.5">
                 {logs.map((log) =>
                   editingLogId === log.id ? (
@@ -305,8 +305,8 @@ export default function HistoryScreen() {
         keyExtractor={(item) => item.id}
         stickySectionHeadersEnabled
         renderSectionHeader={({ section: { title } }) => (
-          <View className="px-4 py-2 bg-gray-100 border-b border-gray-200">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+          <View className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
               {formatSectionDate(title)}
             </Text>
           </View>

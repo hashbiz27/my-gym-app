@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, useColorScheme, View } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetScrollView,
@@ -14,12 +14,12 @@ function MuscleTag({ label, primary }) {
   return (
     <View
       className={`px-2.5 py-1 rounded-full mr-1.5 mb-1.5 ${
-        primary ? "bg-indigo-100" : "bg-gray-100"
+        primary ? "bg-indigo-100 dark:bg-indigo-900" : "bg-gray-100 dark:bg-gray-700"
       }`}
     >
       <Text
         className={`text-xs font-semibold ${
-          primary ? "text-indigo-700" : "text-gray-500"
+          primary ? "text-indigo-700 dark:text-indigo-300" : "text-gray-500 dark:text-gray-400"
         }`}
       >
         {label}
@@ -31,6 +31,7 @@ function MuscleTag({ label, primary }) {
 export default function HowToModal({ visible, exerciseName, onClose }) {
   const sheetRef = useRef(null);
   const snapPoints = useMemo(() => ["80%"], []);
+  const isDark = useColorScheme() === "dark";
 
   useEffect(() => {
     if (visible) {
@@ -61,12 +62,13 @@ export default function HowToModal({ visible, exerciseName, onClose }) {
       snapPoints={snapPoints}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{ backgroundColor: Colors.gray200, width: 40 }}
+      backgroundStyle={{ backgroundColor: isDark ? "#1f2937" : "white" }}
+      handleIndicatorStyle={{ backgroundColor: isDark ? "#4b5563" : Colors.gray200, width: 40 }}
     >
       {/* Header */}
-      <View className="px-4 pb-3 border-b border-gray-100">
+      <View className="px-4 pb-3 border-b border-gray-100 dark:border-gray-700">
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg font-bold text-gray-900 flex-1 mr-3" numberOfLines={2}>
+          <Text className="text-lg font-bold text-gray-900 dark:text-white flex-1 mr-3" numberOfLines={2}>
             {exerciseName}
           </Text>
           <TouchableOpacity onPress={onClose} className="p-1">
@@ -120,7 +122,7 @@ export default function HowToModal({ visible, exerciseName, onClose }) {
                     <View className="w-6 h-6 rounded-full bg-indigo-600 items-center justify-center mr-3 mt-0.5 flex-shrink-0">
                       <Text className="text-white text-xs font-bold">{i + 1}</Text>
                     </View>
-                    <Text className="text-sm text-gray-700 leading-5 flex-1">{step}</Text>
+                    <Text className="text-sm text-gray-700 dark:text-gray-300 leading-5 flex-1">{step}</Text>
                   </View>
                 ))}
               </View>
@@ -135,7 +137,7 @@ export default function HowToModal({ visible, exerciseName, onClose }) {
                 {guide.cues.map((cue, i) => (
                   <View key={i} className="flex-row items-start mb-1.5">
                     <Text className="text-green-500 font-bold mr-2 text-sm">+</Text>
-                    <Text className="text-sm text-gray-700 leading-5 flex-1">{cue}</Text>
+                    <Text className="text-sm text-gray-700 dark:text-gray-300 leading-5 flex-1">{cue}</Text>
                   </View>
                 ))}
               </View>
@@ -150,7 +152,7 @@ export default function HowToModal({ visible, exerciseName, onClose }) {
                 {guide.mistakes.map((mistake, i) => (
                   <View key={i} className="flex-row items-start mb-1.5">
                     <Text className="text-red-400 font-bold mr-2 text-sm">−</Text>
-                    <Text className="text-sm text-gray-700 leading-5 flex-1">{mistake}</Text>
+                    <Text className="text-sm text-gray-700 dark:text-gray-300 leading-5 flex-1">{mistake}</Text>
                   </View>
                 ))}
               </View>

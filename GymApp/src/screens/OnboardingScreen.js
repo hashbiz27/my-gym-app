@@ -29,9 +29,9 @@ function StepHeader({ step, total, title, subtitle }) {
       <Text className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">
         Step {step} of {total}
       </Text>
-      <Text className="text-2xl font-bold text-gray-900">{title}</Text>
+      <Text className="text-2xl font-bold text-gray-900 dark:text-white">{title}</Text>
       {subtitle ? (
-        <Text className="text-sm text-gray-500 mt-1">{subtitle}</Text>
+        <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">{subtitle}</Text>
       ) : null}
     </View>
   );
@@ -49,11 +49,11 @@ function PillPicker({ options, value, onSelect }) {
             key={val}
             onPress={() => onSelect(val)}
             className={`px-4 py-2 rounded-full border ${
-              active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
+              active ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
             }`}
             activeOpacity={0.75}
           >
-            <Text className={`text-sm font-medium ${active ? "text-white" : "text-gray-600"}`}>
+            <Text className={`text-sm font-medium ${active ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -75,12 +75,12 @@ function RegimeGrid({ value, onSelect }) {
                 key={regime.id}
                 onPress={() => onSelect(regime.id)}
                 className={`flex-1 rounded-xl border p-3 ${
-                  active ? "border-indigo-400 bg-indigo-50" : "border-gray-200 bg-white"
+                  active ? "border-indigo-400 bg-indigo-50" : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                 }`}
                 activeOpacity={0.75}
               >
                 <Text className="text-xl mb-1">{regime.icon}</Text>
-                <Text className={`text-sm font-semibold ${active ? "text-indigo-700" : "text-gray-800"}`}>
+                <Text className={`text-sm font-semibold ${active ? "text-indigo-700" : "text-gray-800 dark:text-white"}`}>
                   {regime.label}
                 </Text>
                 <Text className={`text-xs mt-0.5 leading-4 ${active ? "text-indigo-500" : "text-gray-400"}`}>
@@ -122,7 +122,7 @@ export default function OnboardingScreen({ onComplete }) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top", "bottom"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {step === 1 && (
           <>
@@ -168,10 +168,10 @@ export default function OnboardingScreen({ onComplete }) {
               subtitle={`${REGIMES[regime]?.label} · ${ageClass} · ${weightClass}`}
             />
             <View className="px-6 mt-2">
-              <Text className="text-sm text-gray-600 leading-6">
+              <Text className="text-sm text-gray-600 dark:text-gray-300 leading-6">
                 {REGIMES[regime]?.description}
               </Text>
-              <Text className="text-sm text-gray-500 mt-4">
+              <Text className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 You can change any of these at any time from the Settings tab.
               </Text>
             </View>
@@ -181,7 +181,7 @@ export default function OnboardingScreen({ onComplete }) {
 
       <View className="px-6 pb-4 gap-3">
         <TouchableOpacity
-          className={`rounded-xl py-4 items-center ${canAdvance ? "bg-indigo-600" : "bg-gray-200"}`}
+          className={`rounded-xl py-4 items-center ${canAdvance ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-700"}`}
           onPress={advance}
           disabled={!canAdvance || saving}
           activeOpacity={0.8}
@@ -197,7 +197,7 @@ export default function OnboardingScreen({ onComplete }) {
 
         {step > 1 && (
           <TouchableOpacity onPress={() => setStep((s) => s - 1)} activeOpacity={0.7}>
-            <Text className="text-center text-sm text-gray-500">Back</Text>
+            <Text className="text-center text-sm text-gray-500 dark:text-gray-400">Back</Text>
           </TouchableOpacity>
         )}
       </View>
