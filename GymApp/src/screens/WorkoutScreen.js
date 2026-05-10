@@ -19,6 +19,7 @@ import Animated, {
   withSpring,
   withTiming,
   Easing,
+  interpolate,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -549,6 +550,15 @@ function ExerciseCard({
   const doneSets = rows.filter((r) => r.done).length;
   const allDone = doneSets === rows.length && rows.length > 0;
 
+  // Animated chevron rotation
+  const chevronRotation = useSharedValue(expanded ? 1 : 0);
+  useEffect(() => {
+    chevronRotation.value = withTiming(expanded ? 1 : 0, { duration: 220 });
+  }, [expanded]);
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(chevronRotation.value, [0, 1], [0, 180])}deg` }],
+  }));
+
   return (
     <View className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
       <TouchableOpacity
@@ -625,11 +635,9 @@ function ExerciseCard({
               >
                 {doneSets}/{rows.length}
               </Text>
-              <Ionicons
-                name={expanded ? "chevron-up" : "chevron-down"}
-                size={14}
-                color={Colors.textMuted}
-              />
+              <Animated.View style={chevronStyle}>
+                <Ionicons name="chevron-down" size={14} color={Colors.textMuted} />
+              </Animated.View>
             </View>
           )}
         </View>
