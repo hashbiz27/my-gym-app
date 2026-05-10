@@ -4,13 +4,13 @@ import {
   Alert,
   Modal,
   ScrollView,
-  Share,
   Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../lib/supabase";
@@ -34,18 +34,66 @@ function chunk(arr, size) {
 
 function encodeRoutine(regime, schedule) {
   const payload = JSON.stringify({ regime, schedule: schedule ?? {} });
-  return "LO:" + btoa(unescape(encodeURIComponent(payload)));
+  return "LO:" + btoa(payload);
 }
 
-function decodeRoutine(code) {
+function decodeRoutine(raw) {
   try {
+    const code = raw.trim();
     if (!code.startsWith("LO:")) return null;
-    const payload = JSON.parse(decodeURIComponent(escape(atob(code.slice(3)))));
+    const payload = JSON.parse(atob(code.slice(3)));
     if (!payload.regime || !REGIMES[payload.regime]) return null;
     return payload;
   } catch {
     return null;
   }
+}
+
+function ShareCodeModal({ code, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await Clipboard.setStringAsync(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Modal
+      visible={!!code}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/50 items-center justify-center px-6">
+        <View className="bg-white rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 mb-1">Your Routine Code</Text>
+          <Text className="text-xs text-gray-400 mb-3">Share this code with anyone using LiftOff.</Text>
+          <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 mb-4">
+            <Text selectable className="text-xs font-mono text-gray-700 break-all">{code}</Text>
+          </View>
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={copy}
+              className={`flex-1 py-3 rounded-xl items-center ${copied ? "bg-green-600" : "bg-indigo-600"}`}
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">
+                {copied ? "Copied!" : "Copy code"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onClose}
+              className="flex-1 py-3 rounded-xl border border-gray-200 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 font-medium">Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 function ImportModal({ visible, onClose, onImport }) {
@@ -442,6 +490,7 @@ export default function SettingsScreen() {
   const [customSessions, setCustomSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [importModalVisible, setImportModalVisible] = useState(false);
+  const [shareCode, setShareCode] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -514,17 +563,12 @@ export default function SettingsScreen() {
     [customSessions, saveProfile]
   );
 
-  async function handleShareRoutine() {
+  function handleShareRoutine() {
     if (!regime) {
       Alert.alert("No routine set", "Please select a training regime first.");
       return;
     }
-    const code = encodeRoutine(regime, schedule);
-    try {
-      await Share.share({
-        message: `Follow my training routine on LiftOff!\n\nRoutine code:\n${code}`,
-      });
-    } catch (_) {}
+    setShareCode(encodeRoutine(regime, schedule));
   }
 
   async function handleImportRoutine(code) {
@@ -686,6 +730,10 @@ export default function SettingsScreen() {
         visible={importModalVisible}
         onClose={() => setImportModalVisible(false)}
         onImport={handleImportRoutine}
+      />
+      <ShareCodeModal
+        code={shareCode}
+        onClose={() => setShareCode(null)}
       />
     </SafeAreaView>
   );
