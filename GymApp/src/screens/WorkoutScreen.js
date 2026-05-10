@@ -116,6 +116,224 @@ function getRegimeCfg(profile) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+// Deduplicated, sorted list of every exercise name in the static session library
+const ALL_EXERCISE_NAMES = (() => {
+  const names = new Set();
+  Object.values(ALL_SESSIONS).forEach((regime) => {
+    Object.values(regime).forEach((sess) => {
+      (sess.exercises ?? []).forEach((ex) => names.add(ex.name));
+    });
+  });
+  return Array.from(names).sort();
+})();
+
+function ExerciseSearchSheet({ visible, onClose, onSelect }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return ALL_EXERCISE_NAMES;
+    return ALL_EXERCISE_NAMES.filter((n) => n.toLowerCase().includes(q));
+  }, [query]);
+
+  const showCustom =
+    query.trim().length > 0 &&
+    !filtered.some((n) => n.toLowerCase() === query.trim().toLowerCase());
+
+  function pick(name) {
+    onSelect(name);
+    setQuery("");
+    onClose();
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      onShow={() => setTimeout(() => inputRef.current?.focus(), 80)}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white dark:bg-gray-900 rounded-t-3xl" style={{ maxHeight: "88%" }}>
+          <View className="px-4 pt-5 pb-3">
+            <Text className="text-base font-bold text-gray-900 dark:text-white mb-3">Add Exercise</Text>
+            <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2.5">
+              <Ionicons name="search-outline" size={16} color="#9ca3af" />
+              <TextInput
+                ref={inputRef}
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search exercises…"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 ml-2 text-sm text-gray-800 dark:text-gray-200"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => setQuery("")}>
+                  <Ionicons name="close-circle" size={16} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => pick(item)}
+                className="px-4 py-3 border-b border-gray-50 dark:border-gray-800"
+                activeOpacity={0.7}
+              >
+                <Text className="text-sm text-gray-800 dark:text-gray-200">{item}</Text>
+              </TouchableOpacity>
+            )}
+            ListFooterComponent={
+              showCustom ? (
+                <TouchableOpacity
+                  onPress={() => pick(query.trim())}
+                  className="flex-row items-center px-4 py-3.5 gap-2"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+                  <Text className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                    Add "{query.trim()}" as custom exercise
+                  </Text>
+                </TouchableOpacity>
+              ) : null
+            }
+            contentContainerStyle={{ paddingBottom: 32 }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function InlineExerciseRow({ exercise, onUpdate, onRemove }) {
+  return (
+    <View className="flex-row items-center px-4 py-2.5 border-b border-gray-50 dark:border-gray-800">
+      <View className="flex-1 mr-3">
+        <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1.5" numberOfLines={1}>
+          {exercise.name}
+        </Text>
+        <View className="flex-row gap-3">
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Sets</Text>
+            <TextInput
+              value={String(exercise.sets ?? 3)}
+              onChangeText={(v) => onUpdate("sets", parseInt(v, 10) || 1)}
+              keyboardType="number-pad"
+              selectTextOnFocus
+              className="w-10 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Reps</Text>
+            <TextInput
+              value={String(exercise.reps ?? "8")}
+              onChangeText={(v) => onUpdate("reps", v)}
+              selectTextOnFocus
+              className="w-14 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Rest</Text>
+            <TextInput
+              value={String(exercise.rest ?? "90s")}
+              onChangeText={(v) => onUpdate("rest", v)}
+              selectTextOnFocus
+              className="w-14 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+        </View>
+      </View>
+      <TouchableOpacity
+        onPress={onRemove}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="trash-outline" size={18} color={Colors.danger} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function InlineSessionEditor({ exercises, onUpdateExercise, onRemoveExercise, onAddExercise }) {
+  const [searchVisible, setSearchVisible] = useState(false);
+  return (
+    <View className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      {exercises.length === 0 && (
+        <Text className="text-xs text-gray-400 text-center py-3">
+          No exercises yet — add one below
+        </Text>
+      )}
+      {exercises.map((ex, idx) => (
+        <InlineExerciseRow
+          key={`${ex.name}-${idx}`}
+          exercise={ex}
+          onUpdate={(field, val) => onUpdateExercise(idx, field, val)}
+          onRemove={() => onRemoveExercise(idx)}
+        />
+      ))}
+      <TouchableOpacity
+        onPress={() => setSearchVisible(true)}
+        className="flex-row items-center justify-center gap-2 py-3"
+        activeOpacity={0.75}
+      >
+        <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+        <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">Add exercise</Text>
+      </TouchableOpacity>
+      <ExerciseSearchSheet
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+        onSelect={onAddExercise}
+      />
+    </View>
+  );
+}
+
+function CreateFirstSessionPrompt({ onCreate }) {
+  const [label, setLabel] = useState("");
+  function create() {
+    const name = label.trim();
+    if (!name) return;
+    onCreate(name);
+    setLabel("");
+  }
+  return (
+    <View className="mx-4 mt-6 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-700 p-6 items-center">
+      <Text className="text-2xl mb-2">✏️</Text>
+      <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center mb-1">
+        Create your first session
+      </Text>
+      <Text className="text-xs text-gray-400 text-center mb-4">
+        Give your session a name, then add exercises inline.
+      </Text>
+      <View className="flex-row gap-2 w-full">
+        <TextInput
+          value={label}
+          onChangeText={setLabel}
+          placeholder="e.g. Push Day, Legs…"
+          placeholderTextColor="#9ca3af"
+          className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+          returnKeyType="done"
+          onSubmitEditing={create}
+        />
+        <TouchableOpacity
+          onPress={create}
+          className="px-4 rounded-xl bg-indigo-600 items-center justify-center"
+          activeOpacity={0.75}
+        >
+          <Text className="text-sm text-white font-semibold">Create</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSyncing, pendingCount }) {
   const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
   const isActive = phase === "active";
@@ -716,6 +934,8 @@ export default function WorkoutScreen() {
   const [howToTarget, setHowToTarget] = useState(null);
   // { seconds: number, total: number, exerciseName: string } | null
   const [restTimer, setRestTimer] = useState(null);
+  // Whether the inline custom-session editor is expanded on Today
+  const [isEditingSession, setIsEditingSession] = useState(false);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -911,6 +1131,73 @@ export default function WorkoutScreen() {
   );
 
   const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
+
+  // ── Custom-session inline editing ─────────────────────────────────────────
+
+  const applyCustomSessionUpdate = useCallback(
+    async (exercises) => {
+      const next = (profile.custom_sessions ?? []).map((s) =>
+        s.id === selectedSessionId ? { ...s, exercises } : s
+      );
+      const updated = { ...profile, custom_sessions: next };
+      setProfile(updated);
+      if (sessionPhase !== "active") {
+        const resolved = resolveSession(profile.regime, selectedSessionId, profile.age_class, next);
+        if (resolved) setLogState(buildInitialLogState(resolved.exercises, selectedSessionId));
+        else setLogState({});
+      }
+      await saveProfile({ custom_sessions: next });
+    },
+    [profile, selectedSessionId, sessionPhase, saveProfile]
+  );
+
+  const handleUpdateSessionExercise = useCallback(
+    (idx, field, value) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      if (!sess) return;
+      const exercises = (sess.exercises ?? []).map((ex, i) =>
+        i === idx ? { ...ex, [field]: value } : ex
+      );
+      applyCustomSessionUpdate(exercises);
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleRemoveSessionExercise = useCallback(
+    (idx) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      if (!sess) return;
+      applyCustomSessionUpdate((sess.exercises ?? []).filter((_, i) => i !== idx));
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleAddSessionExercise = useCallback(
+    (name) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      const exercises = [...(sess?.exercises ?? []), { name, sets: 3, reps: "8", rest: "90s" }];
+      applyCustomSessionUpdate(exercises);
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleCreateCustomSession = useCallback(
+    async (label) => {
+      const id = `custom-${Date.now()}`;
+      const newSession = { id, label, exercises: [] };
+      const next = [...(profile.custom_sessions ?? []), newSession];
+      const updated = { ...profile, custom_sessions: next };
+      setProfile(updated);
+      setSelectedSessionId(id);
+      setIsEditingSession(true);
+      setLogState({});
+      await saveProfile({ custom_sessions: next });
+    },
+    [profile, saveProfile]
+  );
 
   const handleOpenOverride = useCallback(
     (exKey, slotIndex, currentName, originalName) => {
@@ -1156,9 +1443,41 @@ export default function WorkoutScreen() {
       <SessionPicker
         regimeCfg={regimeCfg}
         selectedSessionId={selectedSessionId}
-        onSelect={setSelectedSessionId}
+        onSelect={(sid) => { setSelectedSessionId(sid); setIsEditingSession(false); }}
         disabled={isActive}
       />
+
+      {/* Edit session button — custom regime, idle, session selected */}
+      {profile.regime === "custom" && selectedSessionId && !isActive && (
+        <TouchableOpacity
+          onPress={() => setIsEditingSession((v) => !v)}
+          className="flex-row items-center justify-center gap-1.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 py-2"
+          activeOpacity={0.75}
+        >
+          <Ionicons
+            name={isEditingSession ? "checkmark-circle-outline" : "pencil-outline"}
+            size={14}
+            color={isEditingSession ? Colors.success : Colors.textMuted}
+          />
+          <Text className={`text-xs font-semibold ${isEditingSession ? "text-green-600" : "text-gray-400"}`}>
+            {isEditingSession ? "Done editing" : "Edit session"}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Inline session editor */}
+      {profile.regime === "custom" && selectedSessionId && isEditingSession && !isActive && (() => {
+        const cs = profile.custom_sessions ?? [];
+        const editing = cs.find((s) => s.id === selectedSessionId);
+        return (
+          <InlineSessionEditor
+            exercises={editing?.exercises ?? []}
+            onUpdateExercise={handleUpdateSessionExercise}
+            onRemoveExercise={handleRemoveSessionExercise}
+            onAddExercise={handleAddSessionExercise}
+          />
+        );
+      })()}
 
       {isActive && restTimer && (
         <RestTimerBanner
@@ -1167,6 +1486,11 @@ export default function WorkoutScreen() {
           exerciseName={restTimer.exerciseName}
           onSkip={() => setRestTimer(null)}
         />
+      )}
+
+      {/* Create first session prompt — custom regime, no sessions yet */}
+      {profile.regime === "custom" && !regimeCfg?.sessionOrder?.length && !isActive && (
+        <CreateFirstSessionPrompt onCreate={handleCreateCustomSession} />
       )}
 
       <FlatList
@@ -1179,17 +1503,6 @@ export default function WorkoutScreen() {
             {MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId]
               ? <MobilityCard drills={MOBILITY_WARMUPS[profile.age_class][selectedSessionId]} />
               : null}
-            {profile.regime === "custom" && !session && selectedSessionId && (
-              <View className="mx-4 mt-4 mb-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 items-center">
-                <Text className="text-2xl mb-2">✏️</Text>
-                <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center mb-1">
-                  No exercises defined
-                </Text>
-                <Text className="text-xs text-gray-400 dark:text-gray-500 text-center">
-                  This is a free-form session. Start it to record the workout, then log your sets in the History tab.
-                </Text>
-              </View>
-            )}
           </>
         }
         renderItem={({ item, index }) => {
