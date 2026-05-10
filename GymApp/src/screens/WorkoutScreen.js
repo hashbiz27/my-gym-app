@@ -56,6 +56,7 @@ function resolveSession(regimeKey, sessionId, ageClass, customSessions) {
         name: ex.name,
         sets: ex.sets ?? 3,
         reps: String(ex.reps ?? "8"),
+        rest: ex.rest ?? "90s",
       })),
     };
   }
