@@ -32,9 +32,12 @@ function chunk(arr, size) {
   return result;
 }
 
-function encodeRoutine(regime, schedule) {
-  const payload = JSON.stringify({ regime, schedule: schedule ?? {} });
-  return "LO:" + btoa(payload);
+function encodeRoutine(regime, schedule, customSessions) {
+  const payload = { regime, schedule: schedule ?? {} };
+  if (regime === "custom" && Array.isArray(customSessions) && customSessions.length) {
+    payload.custom_sessions = customSessions;
+  }
+  return "LO:" + btoa(JSON.stringify(payload));
 }
 
 function decodeRoutine(raw) {
@@ -566,7 +569,7 @@ export default function SettingsScreen() {
       Alert.alert("No routine set", "Please select a training regime first.");
       return;
     }
-    setShareCode(encodeRoutine(regime, schedule));
+    setShareCode(encodeRoutine(regime, schedule, customSessions));
   }
 
   async function handleImportRoutine(code) {
@@ -578,7 +581,12 @@ export default function SettingsScreen() {
     setImportModalVisible(false);
     setRegime(decoded.regime);
     setSchedule(decoded.schedule ?? null);
-    await saveProfile({ regime: decoded.regime, schedule: decoded.schedule ?? null });
+    const profileUpdate = { regime: decoded.regime, schedule: decoded.schedule ?? null };
+    if (Array.isArray(decoded.custom_sessions)) {
+      setCustomSessions(decoded.custom_sessions);
+      profileUpdate.custom_sessions = decoded.custom_sessions;
+    }
+    await saveProfile(profileUpdate);
     Alert.alert("Routine imported!", `You're now following the ${REGIMES[decoded.regime].label} routine.`);
   }
 
