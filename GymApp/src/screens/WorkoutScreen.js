@@ -17,6 +17,8 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withSpring,
+  withTiming,
+  Easing,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -347,9 +349,20 @@ function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSynci
   const isActive = phase === "active";
   const showSync = isSyncing || pendingCount > 0;
 
+  const progressWidth = useSharedValue(0);
+  const animatedBar = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+
+  useEffect(() => {
+    progressWidth.value = withTiming(pct, {
+      duration: 500,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [pct]);
+
   return (
     <View className="bg-gray-900 px-4 pt-3 pb-2">
-      {/* Single compact row: date · session label · sets counter */}
       <View className="flex-row items-center">
         <Text className="text-xs text-gray-500 mr-2">{todayLabel()}</Text>
         {showSync && (
@@ -377,10 +390,9 @@ function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSynci
           <Text className="text-sm text-gray-500 tabular-nums">{totalSets} sets</Text>
         )}
       </View>
-      {/* Slim progress bar — only during active session */}
       {isActive && (
         <View className="h-0.5 bg-gray-700 rounded-full mt-2">
-          <View className="h-0.5 bg-green-500 rounded-full" style={{ width: `${pct}%` }} />
+          <Animated.View className="h-0.5 bg-green-500 rounded-full" style={animatedBar} />
         </View>
       )}
     </View>
