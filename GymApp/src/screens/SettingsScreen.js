@@ -66,11 +66,11 @@ function ShareCodeModal({ code, onClose }) {
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 items-center justify-center px-6">
-        <View className="bg-white rounded-2xl p-5 w-full">
-          <Text className="text-base font-semibold text-gray-800 mb-1">Your Routine Code</Text>
+        <View className="bg-white dark:bg-gray-900 rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Your Routine Code</Text>
           <Text className="text-xs text-gray-400 mb-3">Share this code with anyone using LiftOff.</Text>
-          <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 mb-4">
-            <Text selectable className="text-xs font-mono text-gray-700 break-all">{code}</Text>
+          <View className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-3 mb-4">
+            <Text selectable className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{code}</Text>
           </View>
           <View className="flex-row gap-2">
             <TouchableOpacity
@@ -84,10 +84,10 @@ function ShareCodeModal({ code, onClose }) {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
-              className="flex-1 py-3 rounded-xl border border-gray-200 items-center"
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
               activeOpacity={0.75}
             >
-              <Text className="text-sm text-gray-600 font-medium">Done</Text>
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Done</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -108,8 +108,8 @@ function ImportModal({ visible, onClose, onImport }) {
       onShow={() => setTimeout(() => inputRef.current?.focus(), 100)}
     >
       <View className="flex-1 bg-black/50 items-center justify-center px-6">
-        <View className="bg-white rounded-2xl p-5 w-full">
-          <Text className="text-base font-semibold text-gray-800 mb-1">Import Routine</Text>
+        <View className="bg-white dark:bg-gray-900 rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Import Routine</Text>
           <Text className="text-xs text-gray-400 mb-3">Paste the routine code shared by another LiftOff user.</Text>
           <TextInput
             ref={inputRef}
@@ -124,10 +124,10 @@ function ImportModal({ visible, onClose, onImport }) {
           <View className="flex-row gap-2">
             <TouchableOpacity
               onPress={() => { setCode(""); onClose(); }}
-              className="flex-1 py-3 rounded-xl border border-gray-200 items-center"
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
               activeOpacity={0.75}
             >
-              <Text className="text-sm text-gray-600 font-medium">Cancel</Text>
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => { onImport(code.trim()); setCode(""); }}
@@ -163,12 +163,12 @@ function PillPicker({ options, value, onSelect }) {
             key={val}
             onPress={() => onSelect(val)}
             className={`px-4 py-2 rounded-full border ${
-              active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
+              active ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
             }`}
             activeOpacity={0.75}
           >
             <Text
-              className={`text-sm font-medium ${active ? "text-white" : "text-gray-600"}`}
+              className={`text-sm font-medium ${active ? "text-white" : "text-gray-600 dark:text-gray-300"}`}
             >
               {label}
             </Text>
@@ -197,15 +197,15 @@ function SchedulePicker({ regime, schedule, onSelect, customSessions }) {
     : [{ id: "rest", label: "Rest" }];
 
   return (
-    <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {DAYS.map((day, idx) => {
         const value = schedule?.[String(idx)] ?? "rest";
         return (
           <View
             key={day}
-            className={`flex-row items-center px-4 py-2.5 ${idx < 6 ? "border-b border-gray-100" : ""}`}
+            className={`flex-row items-center px-4 py-2.5 ${idx < 6 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
           >
-            <Text className="w-9 text-sm font-semibold text-gray-500">{day}</Text>
+            <Text className="w-9 text-sm font-semibold text-gray-500 dark:text-gray-400">{day}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
               <View className="flex-row gap-2 pr-2">
                 {options.map((opt) => {
@@ -215,11 +215,11 @@ function SchedulePicker({ regime, schedule, onSelect, customSessions }) {
                       key={opt.id}
                       onPress={() => onSelect(String(idx), opt.id)}
                       className={`px-3 py-1 rounded-full border ${
-                        active ? "bg-indigo-600 border-indigo-600" : "bg-gray-50 border-gray-200"
+                        active ? "bg-indigo-600 border-indigo-600" : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                       }`}
                       activeOpacity={0.75}
                     >
-                      <Text className={`text-xs font-medium ${active ? "text-white" : "text-gray-600"}`}>
+                      <Text className={`text-xs font-medium ${active ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
                         {opt.label}
                       </Text>
                     </TouchableOpacity>
@@ -447,22 +447,22 @@ function RegimeGrid({ value, onSelect }) {
                 onPress={() => onSelect(regime.id)}
                 className={`flex-1 rounded-xl border p-3 ${
                   active
-                    ? "border-indigo-400 bg-indigo-50"
-                    : "border-gray-200 bg-white"
+                    ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-950 dark:border-indigo-500"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                 }`}
                 activeOpacity={0.75}
               >
                 <Text className="text-xl mb-1">{regime.icon}</Text>
                 <Text
                   className={`text-sm font-semibold ${
-                    active ? "text-indigo-700" : "text-gray-800"
+                    active ? "text-indigo-700 dark:text-indigo-400" : "text-gray-800 dark:text-gray-200"
                   }`}
                 >
                   {regime.label}
                 </Text>
                 <Text
                   className={`text-xs mt-0.5 leading-4 ${
-                    active ? "text-indigo-500" : "text-gray-400"
+                    active ? "text-indigo-500 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
                   {regime.tagline}
