@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   ScrollView,
   Text,
   TextInput,
