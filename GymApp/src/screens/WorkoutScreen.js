@@ -9,9 +9,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Vibration,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -396,7 +396,7 @@ function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
           return (
             <TouchableOpacity
               key={sid}
-              onPress={() => !disabled && onSelect(sid)}
+              onPress={() => { if (!disabled) { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onSelect(sid); } }}
               disabled={disabled}
               className={`mr-1.5 px-3 py-1 rounded-full border ${
                 active
@@ -1235,7 +1235,7 @@ export default function WorkoutScreen() {
   useEffect(() => {
     if (!restTimer) return;
     if (restTimer.seconds <= 0) {
-      Vibration.vibrate([0, 200, 100, 200]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       setRestTimer(null);
       return;
     }
@@ -1285,6 +1285,7 @@ export default function WorkoutScreen() {
       setSavingCards((prev) => ({ ...prev, [exKey]: true }));
 
       if (!row.done) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         const logId = await insertSessionLog(sessionId, {
           exerciseName: exercise.name,
           setNumber: setIndex + 1,
@@ -1296,12 +1297,12 @@ export default function WorkoutScreen() {
           rows[setIndex] = { ...rows[setIndex], done: true, logId };
           return { ...prev, [exKey]: rows };
         });
-        // Start rest timer (skip if this is the last set of the last exercise)
         const secs = parseRestSeconds(exercise.rest);
         if (secs > 0) {
           setRestTimer({ seconds: secs, total: secs, exerciseName: exercise.name });
         }
       } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (row.logId) await deleteSessionLog(row.logId);
         setLogState((prev) => {
           const rows = [...(prev[exKey] ?? [])];
@@ -1350,6 +1351,7 @@ export default function WorkoutScreen() {
   }, []);
 
   const handleAddSet = useCallback((exKey) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLogState((prev) => {
       const rows = prev[exKey] ?? [];
       // Copy weight/reps from the last row as a starting point
@@ -1385,6 +1387,7 @@ export default function WorkoutScreen() {
         if (notes?.trim()) await updateSessionNotes(sessionId, notes.trim());
         await finishSession(sessionId);
       }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       try {
         await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
       } catch (_) {}

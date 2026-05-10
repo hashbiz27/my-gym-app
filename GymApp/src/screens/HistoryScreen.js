@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,7 +63,7 @@ function formatSetChip(log) {
 function SetChip({ log, onEdit }) {
   return (
     <TouchableOpacity
-      onPress={() => onEdit(log)}
+      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onEdit(log); }}
       activeOpacity={0.7}
       className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-lg px-2.5 py-1"
     >
