@@ -938,6 +938,80 @@ function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
   );
 }
 
+// ─── Workout Complete Modal ───────────────────────────────────────────────────
+
+function WorkoutCompleteModal({ visible, stats, onDone }) {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      opacity.value = withTiming(1, { duration: 250 });
+      scale.value = withSpring(1, { damping: 10, stiffness: 180 });
+    } else {
+      opacity.value = 0;
+      scale.value = 0;
+    }
+  }, [visible]);
+
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  if (!visible) return null;
+
+  const mins = stats?.duration ?? 0;
+  const durStr = mins >= 60
+    ? `${Math.floor(mins / 60)}h ${mins % 60}m`
+    : `${mins}m`;
+
+  return (
+    <Modal transparent animationType="none" visible={visible} onRequestClose={onDone}>
+      <Animated.View
+        style={[overlayStyle, { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }]}
+      >
+        <Animated.View
+          style={[cardStyle, { backgroundColor: "#fff", borderRadius: 24, padding: 28, width: "100%", alignItems: "center" }]}
+        >
+          <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "#dcfce7", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <Ionicons name="checkmark" size={40} color="#16a34a" />
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827", marginBottom: 4 }}>
+            Session complete!
+          </Text>
+          <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
+            Great work today 💪
+          </Text>
+
+          <View style={{ flexDirection: "row", gap: 12, width: "100%", marginBottom: 24 }}>
+            <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{stats?.sets ?? 0}</Text>
+              <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Sets</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{stats?.exercises ?? 0}</Text>
+              <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Exercises</Text>
+            </View>
+            {mins > 0 && (
+              <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+                <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{durStr}</Text>
+                <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Duration</Text>
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity
+            onPress={onDone}
+            style={{ backgroundColor: "#4f46e5", borderRadius: 14, paddingVertical: 14, width: "100%", alignItems: "center" }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Done</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function WorkoutScreen() {
@@ -982,6 +1056,9 @@ export default function WorkoutScreen() {
   const [restTimer, setRestTimer] = useState(null);
   // Whether the inline custom-session editor is expanded on Today
   const [isEditingSession, setIsEditingSession] = useState(false);
+  // Completion celebration modal
+  const [completeStats, setCompleteStats] = useState(null);
+  const sessionStartRef = useRef(null);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -1309,6 +1386,7 @@ export default function WorkoutScreen() {
       return;
     }
 
+    sessionStartRef.current = Date.now();
     setActiveSessionId(sess.id);
     try {
       await AsyncStorage.setItem(
@@ -1435,8 +1513,15 @@ export default function WorkoutScreen() {
       try {
         await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
       } catch (_) {}
+      // Capture stats before resetting
+      const logSnap = logStateRef.current;
+      const totalDone = Object.values(logSnap).flat().filter((r) => r.done).length;
+      const exercisesDone = Object.values(logSnap).filter((rows) => rows.some((r) => r.done)).length;
+      const mins = sessionStartRef.current
+        ? Math.round((Date.now() - sessionStartRef.current) / 60000)
+        : 0;
       resetToIdle();
-      Alert.alert("Session complete!", "Great work today.");
+      setCompleteStats({ sets: totalDone, exercises: exercisesDone, duration: mins });
     },
     [finishSession, updateSessionNotes, resetToIdle]
   );
@@ -1634,6 +1719,12 @@ export default function WorkoutScreen() {
         visible={howToTarget !== null}
         exerciseName={howToTarget}
         onClose={handleCloseHowTo}
+      />
+
+      <WorkoutCompleteModal
+        visible={completeStats !== null}
+        stats={completeStats}
+        onDone={() => setCompleteStats(null)}
       />
     </SafeAreaView>
   );
