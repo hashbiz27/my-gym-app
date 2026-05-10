@@ -18,6 +18,7 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
+  withRepeat,
   Easing,
   interpolate,
 } from "react-native-reanimated";
@@ -38,6 +39,45 @@ import { useSyncContext } from "../context/SyncContext";
 import SwapModal from "../components/SwapModal";
 import HowToModal from "../components/HowToModal";
 import { Colors } from "../theme";
+
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  const shimmer = useSharedValue(0.4);
+  useEffect(() => {
+    shimmer.value = withRepeat(
+      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+  const shimmerStyle = useAnimatedStyle(() => ({ opacity: shimmer.value }));
+  return (
+    <Animated.View style={shimmerStyle} className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <View className="px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
+        <View className="flex-1 gap-y-2">
+          <View className="h-3 w-16 bg-gray-200 rounded" />
+          <View className="h-4 w-40 bg-gray-200 rounded" />
+        </View>
+        <View className="h-4 w-10 bg-gray-100 rounded" />
+      </View>
+    </Animated.View>
+  );
+}
+
+function WorkoutSkeleton() {
+  return (
+    <>
+      <View className="bg-gray-900 px-4 pt-3 pb-4">
+        <View className="h-3 w-28 bg-gray-700 rounded mb-2" />
+        <View className="h-5 w-44 bg-gray-600 rounded" />
+      </View>
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+    </>
+  );
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1546,8 +1586,8 @@ export default function WorkoutScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950 items-center justify-center">
-        <ActivityIndicator size="large" color={Colors.success} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
+        <WorkoutSkeleton />
       </SafeAreaView>
     );
   }
