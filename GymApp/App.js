@@ -1,11 +1,12 @@
 import "./global.css";
 
-import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, View } from "react-native";
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "./src/lib/supabase";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainNavigator from "./src/navigation/MainNavigator";
@@ -14,10 +15,49 @@ import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
 import { SyncProvider } from "./src/context/SyncContext";
 import { Colors } from "./src/theme";
 
+function SplashScreen() {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(translateY, { toValue: 0, speed: 14, bounciness: 6, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#111827", alignItems: "center", justifyContent: "center" }}>
+      <Animated.View style={{ opacity, transform: [{ translateY }], alignItems: "center" }}>
+        <Ionicons name="barbell" size={56} color={Colors.primary} />
+        <Animated.Text
+          style={{
+            color: "#fff",
+            fontSize: 28,
+            fontWeight: "800",
+            letterSpacing: 1,
+            marginTop: 16,
+          }}
+        >
+          LiftOff
+        </Animated.Text>
+        <Animated.Text
+          style={{
+            color: "#6b7280",
+            fontSize: 13,
+            marginTop: 6,
+          }}
+        >
+          Loading your programme…
+        </Animated.Text>
+      </Animated.View>
+    </View>
+  );
+}
+
 function Root() {
   const { isDark } = useAppTheme();
   const [session, setSession] = useState(undefined);
-  // null = not yet checked; true = needs onboarding; false = profile complete
   const [needsOnboarding, setNeedsOnboarding] = useState(null);
 
   useEffect(() => {
@@ -36,7 +76,6 @@ function Root() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // After session is known, check whether the profile has a regime set
   useEffect(() => {
     if (!session) return;
     supabase
@@ -52,11 +91,7 @@ function Root() {
   const isLoading = session === undefined || (session && needsOnboarding === null);
 
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+    return <SplashScreen />;
   }
 
   return (
