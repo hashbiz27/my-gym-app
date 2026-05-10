@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
+import Svg, { Circle } from "react-native-svg";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -930,50 +931,75 @@ function fmt(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+const RING_SIZE = 64;
+const RING_STROKE = 5;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRC = 2 * Math.PI * RING_RADIUS;
+
 function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
   const progress = total > 0 ? seconds / total : 0;
   const urgent = seconds <= 10;
+
+  const ringColor = urgent ? "#f97316" : "#6366f1";
+  const ringBg = urgent ? "#fed7aa" : "#c7d2fe";
+  const dashOffset = RING_CIRC * (1 - progress);
+
   return (
     <View
-      className={`mx-4 mb-3 rounded-xl overflow-hidden border ${
-        urgent ? "border-orange-300 bg-orange-50" : "border-indigo-200 bg-indigo-50"
+      className={`mx-4 mb-3 rounded-2xl border flex-row items-center px-4 py-3 gap-x-4 ${
+        urgent ? "border-orange-200 bg-orange-50" : "border-indigo-200 bg-indigo-50"
       }`}
     >
-      {/* progress bar */}
-      <View className="h-1 bg-gray-100">
-        <View
-          className={urgent ? "h-1 bg-orange-400" : "h-1 bg-indigo-400"}
-          style={{ width: `${progress * 100}%` }}
-        />
-      </View>
-      <View className="flex-row items-center px-4 py-2.5">
-        <Ionicons
-          name="timer-outline"
-          size={18}
-          color={urgent ? "#f97316" : "#6366f1"}
-        />
-        <View className="flex-1 ml-2">
-          <Text className={`text-xs ${urgent ? "text-orange-600" : "text-indigo-600"}`}>
-            Rest · {exerciseName}
-          </Text>
-          <Text
-            className={`text-xl font-bold tabular-nums ${
-              urgent ? "text-orange-600" : "text-indigo-700"
-            }`}
-          >
+      {/* Circular ring */}
+      <View style={{ width: RING_SIZE, height: RING_SIZE }}>
+        <Svg width={RING_SIZE} height={RING_SIZE} style={{ position: "absolute" }}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={ringBg}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={ringColor}
+            strokeWidth={RING_STROKE}
+            fill="none"
+            strokeDasharray={RING_CIRC}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+          />
+        </Svg>
+        <View style={{ position: "absolute", width: RING_SIZE, height: RING_SIZE, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: ringColor, fontVariant: ["tabular-nums"] }}>
             {fmt(seconds)}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={onSkip}
-          className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
-          activeOpacity={0.75}
-        >
-          <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
-            Skip
-          </Text>
-        </TouchableOpacity>
       </View>
+
+      {/* Text */}
+      <View className="flex-1">
+        <Text className={`text-xs font-semibold ${urgent ? "text-orange-500" : "text-indigo-500"}`}>
+          Rest
+        </Text>
+        <Text className={`text-sm font-bold mt-0.5 ${urgent ? "text-orange-700" : "text-indigo-700"}`} numberOfLines={1}>
+          {exerciseName}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        onPress={onSkip}
+        className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
+        activeOpacity={0.75}
+      >
+        <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
+          Skip
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
