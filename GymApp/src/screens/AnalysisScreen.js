@@ -30,7 +30,7 @@ const INDIGO = Colors.primary;
 const GRAY_400 = Colors.textMuted;
 const GRID_COLOR = Colors.borderLight;
 
-const SECTIONS = ["Overview", "Lifting", "Volume", "PRs", "Duration"];
+const SECTIONS = ["Overview", "Lifting", "Volume", "PRs", "Avg Reps", "Duration"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -119,6 +119,24 @@ function getPersonalBests(sessions) {
         });
     });
   return Object.entries(bests).sort((a, b) => b[1].weight - a[1].weight);
+}
+
+function getAvgRepsData(sessions) {
+  const acc = {};
+  sessions
+    .filter((s) => s.finished_at)
+    .forEach((s) => {
+      (s.session_logs ?? []).forEach((l) => {
+        if (!l.exercise_name || l.reps == null) return;
+        if (!acc[l.exercise_name]) acc[l.exercise_name] = { total: 0, count: 0 };
+        acc[l.exercise_name].total += parseInt(l.reps) || 0;
+        acc[l.exercise_name].count += 1;
+      });
+    });
+  return Object.entries(acc)
+    .map(([name, { total, count }]) => ({ name, avgReps: Math.round(total / count), count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
 }
 
 function getSessionDurations(sessions) {
@@ -603,6 +621,62 @@ function PRsSection({ personalBests }) {
   );
 }
 
+// ─── Section: Avg Reps ───────────────────────────────────────────────────────
+
+function AvgRepsSection({ avgRepsData }) {
+  if (avgRepsData.length === 0) {
+    return (
+      <View>
+        <SectionLabel>Average reps per exercise</SectionLabel>
+        <Card><EmptyChart text="No rep data yet." /></Card>
+      </View>
+    );
+  }
+
+  // Reverse so highest-frequency exercise ends up at the top of the horizontal bars
+  const sorted = [...avgRepsData].reverse();
+  const chartData = sorted.map((d) => ({
+    x: d.name.length > 13 ? d.name.slice(0, 12) + "…" : d.name,
+    y: d.avgReps,
+  }));
+  const chartHeight = Math.max(180, sorted.length * 26 + 50);
+
+  return (
+    <View>
+      <SectionLabel>Average reps — top {avgRepsData.length} exercises by frequency</SectionLabel>
+      <Card>
+        <Text className="text-xs text-gray-400 mb-2">Average reps per set</Text>
+        <VictoryChart
+          horizontal
+          width={CHART_WIDTH}
+          height={chartHeight}
+          theme={VictoryTheme.material}
+          padding={{ top: 8, bottom: 36, left: 90, right: 32 }}
+        >
+          <VictoryAxis
+            style={{
+              axis: { stroke: "none" },
+              grid: { stroke: "none" },
+              tickLabels: { fontSize: 8, fill: GRAY_400, fontFamily: "System" },
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            tickFormat={(v) => String(Math.round(v))}
+            style={depAxisStyle}
+          />
+          <VictoryBar
+            data={chartData}
+            style={{ data: { fill: INDIGO } }}
+            barWidth={14}
+            cornerRadius={{ top: 2 }}
+          />
+        </VictoryChart>
+      </Card>
+    </View>
+  );
+}
+
 // ─── Section: Duration ────────────────────────────────────────────────────────
 
 function DurationSection({ durations, avgDuration }) {
@@ -680,6 +754,7 @@ export default function AnalysisScreen() {
   const volumeHistory = useMemo(() => getVolumeHistory(sessions), [sessions]);
   const personalBests = useMemo(() => getPersonalBests(sessions), [sessions]);
   const durations = useMemo(() => getSessionDurations(sessions), [sessions]);
+  const avgRepsData = useMemo(() => getAvgRepsData(sessions), [sessions]);
   const calendar = useMemo(() => buildCalendar(sessions), [sessions]);
 
   const totalSessions = sessions.filter((s) => s.finished_at).length;
@@ -777,6 +852,7 @@ export default function AnalysisScreen() {
           <VolumeSection volumeHistory={volumeHistory} totalVolume={totalVolume} />
         )}
         {activeSection === "PRs" && <PRsSection personalBests={personalBests} />}
+        {activeSection === "Avg Reps" && <AvgRepsSection avgRepsData={avgRepsData} />}
         {activeSection === "Duration" && (
           <DurationSection durations={durations} avgDuration={avgDuration} />
         )}
