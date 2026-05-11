@@ -118,6 +118,11 @@ export default function BodyScreen() {
     ? (parseFloat(latest.weight_kg) - parseFloat(prev.weight_kg)).toFixed(1)
     : null;
 
+  const DATE_PILLS = [
+    { label: "Today", value: todayStr() },
+    { label: "Yesterday", value: toDateStr(new Date(Date.now() - 86400_000)) },
+  ];
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <KeyboardAvoidingView
@@ -167,7 +172,7 @@ export default function BodyScreen() {
             <View className="h-40 items-center justify-center">
               <ActivityIndicator color={Colors.primary} />
             </View>
-          ) : chartData.length >= 2 ? (
+          ) : chartData.length >= 1 ? (
             <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mt-3">
               <Text className="px-4 pt-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
                 Last {CHART_WINDOW} days
@@ -199,17 +204,24 @@ export default function BodyScreen() {
                     tickLabels: { fontSize: 10, fill: Colors.textMuted },
                   }}
                 />
-                <VictoryLine
-                  data={chartData}
-                  style={{ data: { stroke: Colors.primary, strokeWidth: 2 } }}
-                  interpolation="monotoneX"
-                />
+                {chartData.length >= 2 && (
+                  <VictoryLine
+                    data={chartData}
+                    style={{ data: { stroke: Colors.primary, strokeWidth: 2 } }}
+                    interpolation="monotoneX"
+                  />
+                )}
                 <VictoryScatter
                   data={chartData}
-                  size={3}
+                  size={4}
                   style={{ data: { fill: Colors.primary } }}
                 />
               </VictoryChart>
+              {chartData.length === 1 && (
+                <Text className="text-xs text-gray-400 text-center pb-3 -mt-2">
+                  Log more days to see your trend
+                </Text>
+              )}
             </View>
           ) : null}
 
@@ -218,6 +230,30 @@ export default function BodyScreen() {
             <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
               Log weight
             </Text>
+            {/* Date pills */}
+            <View className="flex-row gap-x-2 mb-3">
+              {DATE_PILLS.map((pill) => {
+                const isSelected = date === pill.value;
+                const alreadyLogged = entries.some((e) => e.date === pill.value);
+                return (
+                  <TouchableOpacity
+                    key={pill.value}
+                    onPress={() => setDate(pill.value)}
+                    activeOpacity={0.7}
+                    className={`px-3 py-1.5 rounded-lg border ${
+                      isSelected
+                        ? "bg-indigo-600 border-indigo-600"
+                        : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                    }`}
+                  >
+                    <Text className={`text-xs font-semibold ${isSelected ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
+                      {pill.label}
+                      {alreadyLogged ? " ✓" : ""}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             <View className="flex-row gap-x-3 items-center">
               <TextInput
                 ref={inputRef}
@@ -247,7 +283,7 @@ export default function BodyScreen() {
               </TouchableOpacity>
             </View>
             <Text className="text-xs text-gray-400 mt-2">
-              Date: {shortDate(date)} (today)
+              Logging for: {shortDate(date)}{entries.some((e) => e.date === date) ? " — updates existing entry" : ""}
             </Text>
           </View>
 
