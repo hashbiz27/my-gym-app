@@ -118,6 +118,61 @@ function SetChip({ log, onEdit }) {
   );
 }
 
+// ─── Add-set form (inline, per exercise) ─────────────────────────────────────
+
+function AddSetForm({ onSave, onCancel }) {
+  const [weight, setWeight] = useState("");
+  const [reps, setReps] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await onSave({ weight: weight || null, reps: reps || null });
+    setSaving(false);
+  }
+
+  return (
+    <View className="flex-row items-center gap-x-2 mt-1 mb-1">
+      <TextInput
+        className="w-16 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+        placeholder="kg"
+        placeholderTextColor={Colors.textLight}
+        keyboardType="decimal-pad"
+        value={weight}
+        onChangeText={setWeight}
+        autoFocus
+      />
+      <TextInput
+        className="w-16 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 px-2 text-center text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700"
+        placeholder="reps"
+        placeholderTextColor={Colors.textLight}
+        keyboardType="number-pad"
+        value={reps}
+        onChangeText={setReps}
+      />
+      <TouchableOpacity
+        onPress={handleSave}
+        disabled={saving || (!weight && !reps)}
+        className={`w-7 h-7 rounded-lg items-center justify-center ${saving || (!weight && !reps) ? "bg-indigo-300" : "bg-indigo-600"}`}
+        activeOpacity={0.8}
+      >
+        {saving ? (
+          <ActivityIndicator size="small" color={Colors.white} />
+        ) : (
+          <Ionicons name="checkmark" size={14} color={Colors.white} />
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onCancel}
+        className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-600 items-center justify-center"
+        activeOpacity={0.8}
+      >
+        <Ionicons name="close" size={14} color={Colors.textMuted} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ─── Inline set editor ────────────────────────────────────────────────────────
 
 function SetEditor({ log, onSave, onDelete, onCancel }) {
@@ -181,8 +236,9 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
 
 // ─── Session card ─────────────────────────────────────────────────────────────
 
-function SessionCard({ session, updateLog, deleteLog }) {
+function SessionCard({ session, updateLog, deleteLog, insertLog }) {
   const [editingLogId, setEditingLogId] = useState(null);
+  const [addingExercise, setAddingExercise] = useState(null);
   const [localLogs, setLocalLogs] = useState(session.session_logs ?? []);
 
   const startTime = formatTime(session.started_at);
@@ -229,6 +285,27 @@ function SessionCard({ session, updateLog, deleteLog }) {
     ]);
   }
 
+  async function handleAddSet(exerciseName, { weight, reps }) {
+    const existingForExercise = localLogs.filter((l) => l.exercise_name === exerciseName);
+    const nextSetNumber = existingForExercise.length
+      ? Math.max(...existingForExercise.map((l) => l.set_number)) + 1
+      : 1;
+    const newId = await insertLog(session.id, {
+      exerciseName,
+      setNumber: nextSetNumber,
+      weight: weight || null,
+      reps: reps || null,
+    });
+    if (newId) {
+      setLocalLogs((prev) => [
+        ...prev,
+        { id: newId, session_id: session.id, exercise_name: exerciseName, set_number: nextSetNumber,
+          weight: weight ? parseFloat(weight) : null, reps: reps ? parseInt(reps) : null },
+      ]);
+    }
+    setAddingExercise(null);
+  }
+
   return (
     <View className="mx-4 mb-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
       {/* Header */}
@@ -273,7 +350,19 @@ function SessionCard({ session, updateLog, deleteLog }) {
               key={name}
               className={`px-4 py-3 ${isLast ? "" : "border-b border-gray-50 dark:border-gray-700"}`}
             >
-              <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">{name}</Text>
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300">{name}</Text>
+                {addingExercise !== name && (
+                  <TouchableOpacity
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setAddingExercise(name); }}
+                    activeOpacity={0.7}
+                    className="flex-row items-center gap-x-0.5"
+                  >
+                    <Ionicons name="add-circle-outline" size={14} color={Colors.primary} />
+                    <Text className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Add set</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
               <View className="flex-row flex-wrap gap-x-2 gap-y-1.5">
                 {logs.map((log) =>
                   editingLogId === log.id ? (
@@ -293,6 +382,12 @@ function SessionCard({ session, updateLog, deleteLog }) {
                   )
                 )}
               </View>
+              {addingExercise === name && (
+                <AddSetForm
+                  onSave={(vals) => handleAddSet(name, vals)}
+                  onCancel={() => setAddingExercise(null)}
+                />
+              )}
             </View>
           );
         })
@@ -311,7 +406,7 @@ function SessionCard({ session, updateLog, deleteLog }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
-  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, sessionHistory, loading } = useGymData();
+  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, insertSessionLog, sessionHistory, loading } = useGymData();
 
   useFocusEffect(
     useCallback(() => {
@@ -378,6 +473,7 @@ export default function HistoryScreen() {
             session={item}
             updateLog={updateSessionLog}
             deleteLog={deleteSessionLog}
+            insertLog={insertSessionLog}
           />
         )}
         SectionSeparatorComponent={() => <View className="h-1" />}
