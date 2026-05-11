@@ -236,9 +236,12 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
 
 // ─── Session card ─────────────────────────────────────────────────────────────
 
-function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate }) {
+function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate, renameExercise }) {
   const [editingLogId, setEditingLogId] = useState(null);
   const [addingExercise, setAddingExercise] = useState(null);
+  const [renamingExercise, setRenamingExercise] = useState(null);
+  const [renameInput, setRenameInput] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
   const [editingDate, setEditingDate] = useState(false);
   const [dateInput, setDateInput] = useState(session.date);
   const [savingDate, setSavingDate] = useState(false);
@@ -304,6 +307,20 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate }) {
     await updateDate(session.id, dateInput);
     setSavingDate(false);
     setEditingDate(false);
+  }
+
+  async function handleRenameExercise() {
+    const newName = renameInput.trim();
+    if (!newName || newName === renamingExercise) { setRenamingExercise(null); return; }
+    setSavingRename(true);
+    const ok = await renameExercise(session.id, renamingExercise, newName);
+    if (ok) {
+      setLocalLogs((prev) =>
+        prev.map((l) => l.exercise_name === renamingExercise ? { ...l, exercise_name: newName } : l)
+      );
+    }
+    setSavingRename(false);
+    setRenamingExercise(null);
   }
 
   async function handleAddSet(exerciseName, { weight, reps }) {
@@ -405,19 +422,50 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate }) {
               key={name}
               className={`px-4 py-3 ${isLast ? "" : "border-b border-gray-50 dark:border-gray-700"}`}
             >
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300">{name}</Text>
-                {addingExercise !== name && (
-                  <TouchableOpacity
-                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setAddingExercise(name); }}
-                    activeOpacity={0.7}
-                    className="flex-row items-center gap-x-0.5"
-                  >
-                    <Ionicons name="add-circle-outline" size={14} color={Colors.primary} />
-                    <Text className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Add set</Text>
+              {renamingExercise === name ? (
+                <View className="flex-row items-center gap-x-2 mb-2">
+                  <TextInput
+                    className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg py-1 px-2 text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800"
+                    value={renameInput}
+                    onChangeText={setRenameInput}
+                    placeholder="New exercise name"
+                    placeholderTextColor={Colors.textMuted}
+                    autoFocus
+                    returnKeyType="done"
+                    onSubmitEditing={handleRenameExercise}
+                  />
+                  <TouchableOpacity onPress={handleRenameExercise} disabled={savingRename}
+                    className="w-6 h-6 rounded-lg bg-indigo-600 items-center justify-center" activeOpacity={0.8}>
+                    {savingRename ? <ActivityIndicator size="small" color={Colors.white} /> : <Ionicons name="checkmark" size={12} color={Colors.white} />}
                   </TouchableOpacity>
-                )}
-              </View>
+                  <TouchableOpacity onPress={() => setRenamingExercise(null)}
+                    className="w-6 h-6 rounded-lg bg-gray-100 dark:bg-gray-600 items-center justify-center" activeOpacity={0.8}>
+                    <Ionicons name="close" size={12} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View className="flex-row justify-between items-center mb-2">
+                  <View className="flex-row items-center gap-x-1.5 flex-1">
+                    <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300">{name}</Text>
+                    <TouchableOpacity
+                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setRenamingExercise(name); setRenameInput(name); }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="swap-horizontal-outline" size={13} color={Colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
+                  {addingExercise !== name && (
+                    <TouchableOpacity
+                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setAddingExercise(name); }}
+                      activeOpacity={0.7}
+                      className="flex-row items-center gap-x-0.5"
+                    >
+                      <Ionicons name="add-circle-outline" size={14} color={Colors.primary} />
+                      <Text className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Add set</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
               <View className="flex-row flex-wrap gap-x-2 gap-y-1.5">
                 {logs.map((log) =>
                   editingLogId === log.id ? (
@@ -461,7 +509,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
-  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, insertSessionLog, updateSessionDate, sessionHistory, loading } = useGymData();
+  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, insertSessionLog, updateSessionDate, renameExerciseInSession, sessionHistory, loading } = useGymData();
 
   useFocusEffect(
     useCallback(() => {
@@ -530,6 +578,7 @@ export default function HistoryScreen() {
             deleteLog={deleteSessionLog}
             insertLog={insertSessionLog}
             updateDate={updateSessionDate}
+            renameExercise={renameExerciseInSession}
           />
         )}
         SectionSeparatorComponent={() => <View className="h-1" />}
