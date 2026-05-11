@@ -113,9 +113,9 @@ export default function BodyScreen() {
   const yPad = Math.max((maxW - minW) * 0.2, 2);
 
   const latest = entries[entries.length - 1];
-  const prev = entries[entries.length - 2];
-  const diff = latest && prev
-    ? (parseFloat(latest.weight_kg) - parseFloat(prev.weight_kg)).toFixed(1)
+  const first = entries.length > 1 ? entries[0] : null;
+  const diff = latest && first
+    ? (parseFloat(latest.weight_kg) - parseFloat(first.weight_kg)).toFixed(1)
     : null;
 
   const DATE_PILLS = [
@@ -141,30 +141,36 @@ export default function BodyScreen() {
 
           {/* Stats row */}
           {latest && (
-            <View className="flex-row mx-4 gap-x-3 mt-2 mb-1">
-              <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
-                <Text className="text-xs text-gray-400 uppercase tracking-widest">Latest</Text>
-                <Text className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {parseFloat(latest.weight_kg).toFixed(1)}
-                  <Text className="text-base font-normal text-gray-400"> kg</Text>
-                </Text>
-                <Text className="text-xs text-gray-400 mt-0.5">{shortDate(latest.date)}</Text>
-              </View>
-              {diff !== null && (
+            <>
+              <View className="flex-row mx-4 gap-x-3 mt-2">
                 <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
-                  <Text className="text-xs text-gray-400 uppercase tracking-widest">Change</Text>
-                  <Text
-                    className={`text-2xl font-bold mt-1 ${
-                      parseFloat(diff) < 0 ? "text-green-600" : parseFloat(diff) > 0 ? "text-orange-500" : "text-gray-400"
-                    }`}
-                  >
-                    {parseFloat(diff) > 0 ? "+" : ""}{diff}
+                  <Text className="text-xs text-gray-400 uppercase tracking-widest">Latest</Text>
+                  <Text className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                    {parseFloat(latest.weight_kg).toFixed(1)}
                     <Text className="text-base font-normal text-gray-400"> kg</Text>
                   </Text>
-                  <Text className="text-xs text-gray-400 mt-0.5">vs previous</Text>
+                  <Text className="text-xs text-gray-400 mt-0.5">{shortDate(latest.date)}</Text>
                 </View>
-              )}
-            </View>
+                {diff !== null && (
+                  <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
+                    <Text className="text-xs text-gray-400 uppercase tracking-widest">Change</Text>
+                    <Text
+                      className={`text-2xl font-bold mt-1 ${
+                        parseFloat(diff) < 0 ? "text-green-600" : parseFloat(diff) > 0 ? "text-orange-500" : "text-gray-400"
+                      }`}
+                    >
+                      {parseFloat(diff) > 0 ? "+" : ""}{diff}
+                      <Text className="text-base font-normal text-gray-400"> kg</Text>
+                    </Text>
+                    <Text className="text-xs text-gray-400 mt-0.5">overall trend</Text>
+                  </View>
+                )}
+              </View>
+              <View className="mx-4 mt-3 mb-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 flex-row items-center justify-between">
+                <Text className="text-xs text-gray-400 uppercase tracking-widest">Entries logged</Text>
+                <Text className="text-xl font-bold text-gray-900 dark:text-white">{entries.length}</Text>
+              </View>
+            </>
           )}
 
           {/* Chart */}
