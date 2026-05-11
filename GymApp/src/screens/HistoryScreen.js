@@ -236,9 +236,12 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
 
 // ─── Session card ─────────────────────────────────────────────────────────────
 
-function SessionCard({ session, updateLog, deleteLog, insertLog }) {
+function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate }) {
   const [editingLogId, setEditingLogId] = useState(null);
   const [addingExercise, setAddingExercise] = useState(null);
+  const [editingDate, setEditingDate] = useState(false);
+  const [dateInput, setDateInput] = useState(session.date);
+  const [savingDate, setSavingDate] = useState(false);
   const [localLogs, setLocalLogs] = useState(session.session_logs ?? []);
 
   const startTime = formatTime(session.started_at);
@@ -285,6 +288,24 @@ function SessionCard({ session, updateLog, deleteLog, insertLog }) {
     ]);
   }
 
+  async function handleSaveDate() {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+      Alert.alert("Invalid date", "Use YYYY-MM-DD format.");
+      return;
+    }
+    const entered = new Date(dateInput + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (entered > today) {
+      Alert.alert("Invalid date", "Date cannot be in the future.");
+      return;
+    }
+    setSavingDate(true);
+    await updateDate(session.id, dateInput);
+    setSavingDate(false);
+    setEditingDate(false);
+  }
+
   async function handleAddSet(exerciseName, { weight, reps }) {
     const existingForExercise = localLogs.filter((l) => l.exercise_name === exerciseName);
     const nextSetNumber = existingForExercise.length
@@ -311,7 +332,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog }) {
       {/* Header */}
       <View className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center gap-x-2">
+          <View className="flex-row items-center gap-x-2 flex-1">
             {regime ? (
               <View className={`rounded-md px-2 py-0.5 ${regime.cls}`}>
                 <Text className={`text-xs font-semibold ${regime.textCls}`}>{regime.label}</Text>
@@ -324,16 +345,50 @@ function SessionCard({ session, updateLog, deleteLog, insertLog }) {
               <Ionicons name="document-text-outline" size={12} color={Colors.textMuted} />
             ) : null}
           </View>
-          <View className="items-end">
-            <Text className="text-xs text-gray-400 dark:text-gray-500">
-              <Text className="font-semibold text-gray-500 dark:text-gray-400">{totalSets}</Text>
-              {" sets"}
-            </Text>
-            {volume ? (
-              <Text className="text-xs text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{volume}</Text>
-            ) : null}
+          <View className="flex-row items-center gap-x-2">
+            <View className="items-end">
+              <Text className="text-xs text-gray-400 dark:text-gray-500">
+                <Text className="font-semibold text-gray-500 dark:text-gray-400">{totalSets}</Text>
+                {" sets"}
+              </Text>
+              {volume ? (
+                <Text className="text-xs text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{volume}</Text>
+              ) : null}
+            </View>
+            <TouchableOpacity
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setEditingDate((v) => !v); setDateInput(session.date); }}
+              activeOpacity={0.7}
+              className="w-6 h-6 items-center justify-center"
+            >
+              <Ionicons name={editingDate ? "close" : "pencil-outline"} size={13} color={Colors.textMuted} />
+            </TouchableOpacity>
           </View>
         </View>
+        {editingDate && (
+          <View className="flex-row items-center gap-x-2 mt-2">
+            <TextInput
+              className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 px-3 text-xs text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800"
+              value={dateInput}
+              onChangeText={setDateInput}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="numbers-and-punctuation"
+              autoFocus
+            />
+            <TouchableOpacity
+              onPress={handleSaveDate}
+              disabled={savingDate}
+              className="w-7 h-7 rounded-lg bg-indigo-600 items-center justify-center"
+              activeOpacity={0.8}
+            >
+              {savingDate ? (
+                <ActivityIndicator size="small" color={Colors.white} />
+              ) : (
+                <Ionicons name="checkmark" size={14} color={Colors.white} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Exercise rows */}
@@ -406,7 +461,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
-  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, insertSessionLog, sessionHistory, loading } = useGymData();
+  const { fetchSessionHistory, updateSessionLog, deleteSessionLog, insertSessionLog, updateSessionDate, sessionHistory, loading } = useGymData();
 
   useFocusEffect(
     useCallback(() => {
@@ -474,6 +529,7 @@ export default function HistoryScreen() {
             updateLog={updateSessionLog}
             deleteLog={deleteSessionLog}
             insertLog={insertSessionLog}
+            updateDate={updateSessionDate}
           />
         )}
         SectionSeparatorComponent={() => <View className="h-1" />}

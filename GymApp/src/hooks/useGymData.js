@@ -396,6 +396,24 @@ export function useGymData() {
     }
   }, []);
 
+  // ── Update the date of a past session ────────────────────────────────────
+  const updateSessionDate = useCallback(async (sessionId, date) => {
+    try {
+      const { error } = await supabase
+        .from("sessions")
+        .update({ date })
+        .eq("id", sessionId);
+      if (error) throw error;
+      setSessionHistory((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, date } : s))
+      );
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
   // ── Patch session notes after a workout finishes ──────────────────────────
   const updateSessionNotes = useCallback(async (sessionId, notes) => {
     try {
@@ -436,5 +454,6 @@ export function useGymData() {
     insertSessionLog,
     deleteSessionLog,
     updateSessionNotes,
+    updateSessionDate,
   };
 }
