@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Haptics from "expo-haptics";
+import { hapticLight } from "../utils/haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -106,7 +106,7 @@ function SetChip({ log, onEdit }) {
   const est1rm = calcEst1RM(log.weight, log.reps);
   return (
     <TouchableOpacity
-      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onEdit(log); }}
+      onPress={() => { hapticLight(); onEdit(log); }}
       activeOpacity={0.7}
       className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-lg px-2.5 py-1.5"
     >
@@ -373,7 +373,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate, ren
               ) : null}
             </View>
             <TouchableOpacity
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setEditingDate((v) => !v); setDateInput(session.date); }}
+              onPress={() => { hapticLight(); setEditingDate((v) => !v); setDateInput(session.date); }}
               activeOpacity={0.7}
               className="w-6 h-6 items-center justify-center"
             >
@@ -448,7 +448,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate, ren
                   <View className="flex-row items-center gap-x-1.5 flex-1">
                     <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300">{name}</Text>
                     <TouchableOpacity
-                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setRenamingExercise(name); setRenameInput(name); }}
+                      onPress={() => { hapticLight(); setRenamingExercise(name); setRenameInput(name); }}
                       activeOpacity={0.7}
                     >
                       <Ionicons name="swap-horizontal-outline" size={13} color={Colors.textMuted} />
@@ -456,7 +456,7 @@ function SessionCard({ session, updateLog, deleteLog, insertLog, updateDate, ren
                   </View>
                   {addingExercise !== name && (
                     <TouchableOpacity
-                      onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setAddingExercise(name); }}
+                      onPress={() => { hapticLight(); setAddingExercise(name); }}
                       activeOpacity={0.7}
                       className="flex-row items-center gap-x-0.5"
                     >

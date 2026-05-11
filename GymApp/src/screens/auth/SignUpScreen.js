@@ -4,6 +4,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -14,11 +15,17 @@ import { supabase } from "../../lib/supabase";
 import { Colors } from "../../theme";
 
 export default function SignUpScreen({ navigation }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSignUp() {
+    if (!firstName.trim()) {
+      Alert.alert("Error", "Please enter your first name.");
+      return;
+    }
     if (!email || !password) {
       Alert.alert("Error", "Please enter your email and password.");
       return;
@@ -41,7 +48,7 @@ export default function SignUpScreen({ navigation }) {
     if (userId) {
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert({ user_id: userId });
+        .insert({ user_id: userId, first_name: firstName.trim(), last_name: lastName.trim() || null });
       if (profileError) {
         console.warn("Profile insert failed:", profileError.message);
       }
@@ -63,9 +70,40 @@ export default function SignUpScreen({ navigation }) {
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View className="flex-1 justify-center px-6">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingVertical: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create account</Text>
           <Text className="text-gray-500 dark:text-gray-400 mb-8">Start tracking your workouts</Text>
+
+          {/* Name row */}
+          <View className="flex-row gap-x-3 mb-4">
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First name</Text>
+              <TextInput
+                className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 text-gray-900 dark:text-white"
+                placeholder="Alex"
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="words"
+                value={firstName}
+                onChangeText={setFirstName}
+                returnKeyType="next"
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last name</Text>
+              <TextInput
+                className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 text-gray-900 dark:text-white"
+                placeholder="Smith"
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="words"
+                value={lastName}
+                onChangeText={setLastName}
+                returnKeyType="next"
+              />
+            </View>
+          </View>
 
           <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</Text>
           <TextInput
@@ -76,6 +114,7 @@ export default function SignUpScreen({ navigation }) {
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
+            returnKeyType="next"
           />
 
           <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</Text>
@@ -86,6 +125,8 @@ export default function SignUpScreen({ navigation }) {
             secureTextEntry
             value={password}
             onChangeText={setPassword}
+            returnKeyType="done"
+            onSubmitEditing={handleSignUp}
           />
 
           <TouchableOpacity
@@ -106,7 +147,7 @@ export default function SignUpScreen({ navigation }) {
               <Text className="text-indigo-600 dark:text-indigo-400 font-semibold">Sign in</Text>
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -483,6 +483,7 @@ export default function SettingsScreen() {
   const { isDark, toggleTheme } = useAppTheme();
 
   const [email, setEmail] = useState(null);
+  const [firstName, setFirstName] = useState(null);
   const [regime, setRegime] = useState(null);
   const [ageClass, setAgeClass] = useState(null);
   const [weightClass, setWeightClass] = useState(null);
@@ -501,6 +502,7 @@ export default function SettingsScreen() {
       ]);
       if (user) setEmail(user.email);
       if (profile) {
+        setFirstName(profile.first_name ?? null);
         setRegime(profile.regime ?? null);
         setAgeClass(profile.age_class ?? null);
         setWeightClass(profile.weight_class ?? null);
@@ -620,6 +622,13 @@ export default function SettingsScreen() {
         {/* Account */}
         <SectionHeader title="Account" />
         <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {firstName ? (
+            <View className="px-4 pt-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+              <Text className="text-xl font-bold text-gray-900 dark:text-white">
+                Hi, {firstName} 👋
+              </Text>
+            </View>
+          ) : null}
           <View className="flex-row items-center px-4 py-3.5">
             <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
             <Text className="ml-3 text-sm text-gray-700 dark:text-gray-300 flex-1" numberOfLines={1}>
