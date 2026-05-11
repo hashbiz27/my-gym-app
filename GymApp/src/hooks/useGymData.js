@@ -130,7 +130,7 @@ export function useGymData() {
     try {
       const { data, error } = await supabase
         .from("sessions")
-        .select("*, session_logs(*)")
+        .select("*, session_logs(*), regimes(name)")
         .order("date", { ascending: false })
         .limit(limit);
       if (error) throw error;

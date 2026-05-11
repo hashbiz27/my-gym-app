@@ -58,19 +58,67 @@ function formatSetChip(log) {
   return "—";
 }
 
-// ─── Inline set editor ────────────────────────────────────────────────────────
+function calcEst1RM(weight, reps) {
+  if (weight == null || reps == null || reps <= 0) return null;
+  const w = parseFloat(weight);
+  const r = parseInt(reps);
+  if (!w || r > 30) return null; // Epley formula loses accuracy above 30 reps
+  return Math.round(w * (1 + r / 30));
+}
+
+function calcVolume(logs) {
+  return logs.reduce((sum, l) => {
+    const w = l.weight != null ? parseFloat(l.weight) : 0;
+    const r = l.reps != null ? parseInt(l.reps) : 0;
+    return sum + w * r;
+  }, 0);
+}
+
+function formatVolume(vol) {
+  if (vol <= 0) return null;
+  if (vol >= 1000) return `${(vol / 1000).toFixed(1)}t`;
+  return `${Math.round(vol)}kg`;
+}
+
+const REGIME_META = {
+  hypertrophy: { label: "Hypertrophy", cls: "bg-indigo-100 dark:bg-indigo-900/40", textCls: "text-indigo-700 dark:text-indigo-300" },
+  strength:    { label: "Strength",    cls: "bg-red-100 dark:bg-red-900/40",        textCls: "text-red-700 dark:text-red-300" },
+  power:       { label: "Power",       cls: "bg-orange-100 dark:bg-orange-900/40",  textCls: "text-orange-700 dark:text-orange-300" },
+  endurance:   { label: "Endurance",   cls: "bg-emerald-100 dark:bg-emerald-900/40",textCls: "text-emerald-700 dark:text-emerald-300" },
+  stability:   { label: "Stability",   cls: "bg-teal-100 dark:bg-teal-900/40",      textCls: "text-teal-700 dark:text-teal-300" },
+  flexibility: { label: "Flexibility", cls: "bg-purple-100 dark:bg-purple-900/40",  textCls: "text-purple-700 dark:text-purple-300" },
+  custom:      { label: "Custom",      cls: "bg-gray-100 dark:bg-gray-700",          textCls: "text-gray-600 dark:text-gray-300" },
+  ppl:         { label: "PPL",         cls: "bg-amber-100 dark:bg-amber-900/40",    textCls: "text-amber-700 dark:text-amber-300" },
+};
+
+function regimeMeta(name) {
+  if (!name) return null;
+  return REGIME_META[name.toLowerCase()] ?? {
+    label: name.charAt(0).toUpperCase() + name.slice(1),
+    cls: "bg-gray-100 dark:bg-gray-700",
+    textCls: "text-gray-600 dark:text-gray-300",
+  };
+}
+
+// ─── Set chip with optional 1RM ───────────────────────────────────────────────
 
 function SetChip({ log, onEdit }) {
+  const est1rm = calcEst1RM(log.weight, log.reps);
   return (
     <TouchableOpacity
       onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onEdit(log); }}
       activeOpacity={0.7}
-      className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-lg px-2.5 py-1"
+      className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 rounded-lg px-2.5 py-1.5"
     >
       <Text className="text-xs text-gray-600 dark:text-gray-300 font-medium">{formatSetChip(log)}</Text>
+      {est1rm ? (
+        <Text className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">~{est1rm}kg 1RM</Text>
+      ) : null}
     </TouchableOpacity>
   );
 }
+
+// ─── Inline set editor ────────────────────────────────────────────────────────
 
 function SetEditor({ log, onSave, onDelete, onCancel }) {
   const [weight, setWeight] = useState(log.weight != null ? String(log.weight) : "");
@@ -133,13 +181,14 @@ function SetEditor({ log, onSave, onDelete, onCancel }) {
 
 // ─── Session card ─────────────────────────────────────────────────────────────
 
-function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
+function SessionCard({ session, updateLog, deleteLog }) {
   const [editingLogId, setEditingLogId] = useState(null);
-  // Local copy of logs so we can update without a full refetch
   const [localLogs, setLocalLogs] = useState(session.session_logs ?? []);
 
   const startTime = formatTime(session.started_at);
   const totalSets = localLogs.length;
+  const volume = formatVolume(calcVolume(localLogs));
+  const regime = regimeMeta(session.regimes?.name);
 
   const exerciseOrder = [];
   const byExercise = {};
@@ -183,19 +232,31 @@ function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
   return (
     <View className="mx-4 mb-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
       {/* Header */}
-      <View className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 flex-row justify-between items-center bg-gray-50 dark:bg-gray-700">
-        <View className="flex-row items-center gap-x-2">
-          {startTime ? (
-            <Text className="text-xs text-gray-500 dark:text-gray-400 font-medium">{startTime}</Text>
-          ) : null}
-          {session.notes ? (
-            <Ionicons name="document-text-outline" size={12} color={Colors.textMuted} />
-          ) : null}
+      <View className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center gap-x-2">
+            {regime ? (
+              <View className={`rounded-md px-2 py-0.5 ${regime.cls}`}>
+                <Text className={`text-xs font-semibold ${regime.textCls}`}>{regime.label}</Text>
+              </View>
+            ) : null}
+            {startTime ? (
+              <Text className="text-xs text-gray-500 dark:text-gray-400 font-medium">{startTime}</Text>
+            ) : null}
+            {session.notes ? (
+              <Ionicons name="document-text-outline" size={12} color={Colors.textMuted} />
+            ) : null}
+          </View>
+          <View className="items-end">
+            <Text className="text-xs text-gray-400 dark:text-gray-500">
+              <Text className="font-semibold text-gray-500 dark:text-gray-400">{totalSets}</Text>
+              {" sets"}
+            </Text>
+            {volume ? (
+              <Text className="text-xs text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{volume}</Text>
+            ) : null}
+          </View>
         </View>
-        <Text className="text-xs text-gray-400 dark:text-gray-500">
-          <Text className="font-semibold text-gray-500 dark:text-gray-400">{totalSets}</Text>
-          {" sets logged"}
-        </Text>
       </View>
 
       {/* Exercise rows */}
@@ -239,8 +300,8 @@ function SessionCard({ session, updateLog, deleteLog, onSessionDeleted }) {
 
       {/* Session notes */}
       {session.notes ? (
-        <View className="px-4 py-3 bg-amber-50 border-t border-amber-100">
-          <Text className="text-xs text-amber-700 italic">"{session.notes}"</Text>
+        <View className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-100 dark:border-amber-800/40">
+          <Text className="text-xs text-amber-700 dark:text-amber-400 italic">"{session.notes}"</Text>
         </View>
       ) : null}
     </View>
