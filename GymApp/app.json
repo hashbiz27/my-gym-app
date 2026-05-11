@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LiftOff",
-    "slug": "liftoff",
+    "slug": "gymapp",
     "version": "1.0.0",
     "scheme": "liftoff",
     "orientation": "portrait",
