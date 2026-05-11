@@ -1,19 +1,17 @@
 import "./global.css";
 
 import { useEffect, useRef, useState } from "react";
-import { Animated, View } from "react-native";
+import { Animated, Image, View } from "react-native";
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "./src/lib/supabase";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainNavigator from "./src/navigation/MainNavigator";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 import { ThemeProvider, useAppTheme } from "./src/context/ThemeContext";
 import { SyncProvider } from "./src/context/SyncContext";
-import { Colors } from "./src/theme";
 
 function SplashScreen() {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -27,9 +25,12 @@ function SplashScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#111827", alignItems: "center", justifyContent: "center" }}>
+    <View style={{ flex: 1, backgroundColor: "#000000", alignItems: "center", justifyContent: "center" }}>
       <Animated.View style={{ opacity, transform: [{ translateY }], alignItems: "center" }}>
-        <Ionicons name="barbell" size={56} color={Colors.primary} />
+        <Image
+          source={require("./assets/icon.png")}
+          style={{ width: 100, height: 100, resizeMode: "contain" }}
+        />
         <Animated.Text
           style={{
             color: "#fff",
