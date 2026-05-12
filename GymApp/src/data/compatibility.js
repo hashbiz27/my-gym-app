@@ -100,8 +100,13 @@ export function getMuscles(exerciseName) {
 
 // ─── Get all exercise names across the entire database ────────────────────────
 // Includes base sessions + all age override variants
+// Result is cached after first call — this is expensive to build.
+
+let _exercisePoolCache = null;
 
 export function getAllExerciseNamesWithMuscles() {
+  if (_exercisePoolCache) return _exercisePoolCache;
+
   const map = {}; // name → { primary, secondary, groups }
 
   // Base sessions
@@ -129,7 +134,22 @@ export function getAllExerciseNamesWithMuscles() {
     if (!map[name]) map[name] = getMuscles(name);
   });
 
+  _exercisePoolCache = map;
   return map;
+}
+
+// ─── Score a single exercise entry (for chunked processing) ──────────────────
+export function scoreOneExercise(name, muscles, sessionExerciseNames, originalName, slotIndex) {
+  const directScore    = scoreDirectMatch(originalName, name);
+  const balancePenalty = scoreSessionBalance(sessionExerciseNames, originalName, name, slotIndex);
+  const finalScore     = Math.max(0, Math.min(100, directScore - balancePenalty));
+  const label =
+    finalScore >= 85 ? "Excellent match" :
+    finalScore >= 70 ? "Good match" :
+    finalScore >= 50 ? "Partial match" :
+    finalScore >= 30 ? "Different muscles" :
+                       "No overlap";
+  return { name, score: finalScore, label, muscles };
 }
 
 // ─── Score a single candidate against the original exercise ──────────────────

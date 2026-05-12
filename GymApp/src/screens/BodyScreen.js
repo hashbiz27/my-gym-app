@@ -113,13 +113,18 @@ export default function BodyScreen() {
   const yPad = Math.max((maxW - minW) * 0.2, 2);
 
   const latest = entries[entries.length - 1];
-  const prev = entries[entries.length - 2];
-  const diff = latest && prev
-    ? (parseFloat(latest.weight_kg) - parseFloat(prev.weight_kg)).toFixed(1)
+  const first = entries.length > 1 ? entries[0] : null;
+  const diff = latest && first
+    ? (parseFloat(latest.weight_kg) - parseFloat(first.weight_kg)).toFixed(1)
     : null;
 
+  const DATE_PILLS = [
+    { label: "Today", value: todayStr() },
+    { label: "Yesterday", value: toDateStr(new Date(Date.now() - 86400_000)) },
+  ];
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -130,36 +135,42 @@ export default function BodyScreen() {
         >
           {/* Header */}
           <View className="px-4 pt-4 pb-2">
-            <Text className="text-2xl font-bold text-gray-900">Body</Text>
+            <Text className="text-2xl font-bold text-gray-900 dark:text-white">Body</Text>
             <Text className="text-sm text-gray-400 mt-0.5">Bodyweight tracking</Text>
           </View>
 
           {/* Stats row */}
           {latest && (
-            <View className="flex-row mx-4 gap-x-3 mt-2 mb-1">
-              <View className="flex-1 bg-white rounded-xl border border-gray-200 px-4 py-3">
-                <Text className="text-xs text-gray-400 uppercase tracking-widest">Latest</Text>
-                <Text className="text-2xl font-bold text-gray-900 mt-1">
-                  {parseFloat(latest.weight_kg).toFixed(1)}
-                  <Text className="text-base font-normal text-gray-400"> kg</Text>
-                </Text>
-                <Text className="text-xs text-gray-400 mt-0.5">{shortDate(latest.date)}</Text>
-              </View>
-              {diff !== null && (
-                <View className="flex-1 bg-white rounded-xl border border-gray-200 px-4 py-3">
-                  <Text className="text-xs text-gray-400 uppercase tracking-widest">Change</Text>
-                  <Text
-                    className={`text-2xl font-bold mt-1 ${
-                      parseFloat(diff) < 0 ? "text-green-600" : parseFloat(diff) > 0 ? "text-orange-500" : "text-gray-400"
-                    }`}
-                  >
-                    {parseFloat(diff) > 0 ? "+" : ""}{diff}
+            <>
+              <View className="flex-row mx-4 gap-x-3 mt-2">
+                <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
+                  <Text className="text-xs text-gray-400 uppercase tracking-widest">Latest</Text>
+                  <Text className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                    {parseFloat(latest.weight_kg).toFixed(1)}
                     <Text className="text-base font-normal text-gray-400"> kg</Text>
                   </Text>
-                  <Text className="text-xs text-gray-400 mt-0.5">vs previous</Text>
+                  <Text className="text-xs text-gray-400 mt-0.5">{shortDate(latest.date)}</Text>
                 </View>
-              )}
-            </View>
+                {diff !== null && (
+                  <View className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3">
+                    <Text className="text-xs text-gray-400 uppercase tracking-widest">Change</Text>
+                    <Text
+                      className={`text-2xl font-bold mt-1 ${
+                        parseFloat(diff) < 0 ? "text-green-600" : parseFloat(diff) > 0 ? "text-orange-500" : "text-gray-400"
+                      }`}
+                    >
+                      {parseFloat(diff) > 0 ? "+" : ""}{diff}
+                      <Text className="text-base font-normal text-gray-400"> kg</Text>
+                    </Text>
+                    <Text className="text-xs text-gray-400 mt-0.5">overall trend</Text>
+                  </View>
+                )}
+              </View>
+              <View className="mx-4 mt-3 mb-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 flex-row items-center justify-between">
+                <Text className="text-xs text-gray-400 uppercase tracking-widest">Entries logged</Text>
+                <Text className="text-xl font-bold text-gray-900 dark:text-white">{entries.length}</Text>
+              </View>
+            </>
           )}
 
           {/* Chart */}
@@ -167,8 +178,8 @@ export default function BodyScreen() {
             <View className="h-40 items-center justify-center">
               <ActivityIndicator color={Colors.primary} />
             </View>
-          ) : chartData.length >= 2 ? (
-            <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+          ) : chartData.length >= 1 ? (
+            <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mt-3">
               <Text className="px-4 pt-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
                 Last {CHART_WINDOW} days
               </Text>
@@ -199,29 +210,60 @@ export default function BodyScreen() {
                     tickLabels: { fontSize: 10, fill: Colors.textMuted },
                   }}
                 />
-                <VictoryLine
-                  data={chartData}
-                  style={{ data: { stroke: Colors.primary, strokeWidth: 2 } }}
-                  interpolation="monotoneX"
-                />
+                {chartData.length >= 2 && (
+                  <VictoryLine
+                    data={chartData}
+                    style={{ data: { stroke: Colors.primary, strokeWidth: 2 } }}
+                    interpolation="monotoneX"
+                  />
+                )}
                 <VictoryScatter
                   data={chartData}
-                  size={3}
+                  size={4}
                   style={{ data: { fill: Colors.primary } }}
                 />
               </VictoryChart>
+              {chartData.length === 1 && (
+                <Text className="text-xs text-gray-400 text-center pb-3 -mt-2">
+                  Log more days to see your trend
+                </Text>
+              )}
             </View>
           ) : null}
 
           {/* Log entry form */}
-          <View className="mx-4 mt-4 bg-white rounded-xl border border-gray-200 p-4">
+          <View className="mx-4 mt-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
             <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
               Log weight
             </Text>
+            {/* Date pills */}
+            <View className="flex-row gap-x-2 mb-3">
+              {DATE_PILLS.map((pill) => {
+                const isSelected = date === pill.value;
+                const alreadyLogged = entries.some((e) => e.date === pill.value);
+                return (
+                  <TouchableOpacity
+                    key={pill.value}
+                    onPress={() => setDate(pill.value)}
+                    activeOpacity={0.7}
+                    className={`px-3 py-1.5 rounded-lg border ${
+                      isSelected
+                        ? "bg-indigo-600 border-indigo-600"
+                        : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                    }`}
+                  >
+                    <Text className={`text-xs font-semibold ${isSelected ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
+                      {pill.label}
+                      {alreadyLogged ? " ✓" : ""}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             <View className="flex-row gap-x-3 items-center">
               <TextInput
                 ref={inputRef}
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-800 bg-gray-50"
+                className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-base text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900"
                 placeholder="e.g. 82.5"
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="decimal-pad"
@@ -247,7 +289,7 @@ export default function BodyScreen() {
               </TouchableOpacity>
             </View>
             <Text className="text-xs text-gray-400 mt-2">
-              Date: {shortDate(date)} (today)
+              Logging for: {shortDate(date)}{entries.some((e) => e.date === date) ? " — updates existing entry" : ""}
             </Text>
           </View>
 
@@ -257,16 +299,16 @@ export default function BodyScreen() {
               <Text className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
                 History
               </Text>
-              <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <View className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {[...entries].reverse().map((entry, i, arr) => (
                   <View
                     key={entry.id}
                     className={`flex-row items-center px-4 py-3 ${
-                      i < arr.length - 1 ? "border-b border-gray-100" : ""
+                      i < arr.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""
                     }`}
                   >
                     <View className="flex-1">
-                      <Text className="text-sm font-semibold text-gray-800">
+                      <Text className="text-sm font-semibold text-gray-800 dark:text-white">
                         {parseFloat(entry.weight_kg).toFixed(1)} kg
                       </Text>
                       <Text className="text-xs text-gray-400 mt-0.5">

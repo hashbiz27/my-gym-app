@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { Animated, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../theme";
@@ -23,6 +25,43 @@ function tabIcon(name) {
   );
 }
 
+function AnimatedTabButton({ children, onPress, onLongPress, style }) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  function handlePressIn() {
+    Animated.spring(scale, {
+      toValue: 0.82,
+      speed: 40,
+      bounciness: 0,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function handlePressOut() {
+    Animated.spring(scale, {
+      toValue: 1,
+      speed: 20,
+      bounciness: 10,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale }] }}>
+        {children}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
 export default function MainNavigator() {
   return (
     <Tab.Navigator
@@ -40,6 +79,7 @@ export default function MainNavigator() {
           fontWeight: "600",
           marginBottom: 2,
         },
+        tabBarButton: (props) => <AnimatedTabButton {...props} />,
       }}
     >
       <Tab.Screen

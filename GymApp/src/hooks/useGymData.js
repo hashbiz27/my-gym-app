@@ -130,7 +130,7 @@ export function useGymData() {
     try {
       const { data, error } = await supabase
         .from("sessions")
-        .select("*, session_logs(*)")
+        .select("*, session_logs(*), regimes(name)")
         .order("date", { ascending: false })
         .limit(limit);
       if (error) throw error;
@@ -396,6 +396,52 @@ export function useGymData() {
     }
   }, []);
 
+  // ── Rename an exercise across all logs of a session ──────────────────────
+  const renameExerciseInSession = useCallback(async (sessionId, oldName, newName) => {
+    try {
+      const { error } = await supabase
+        .from("session_logs")
+        .update({ exercise_name: newName })
+        .eq("session_id", sessionId)
+        .eq("exercise_name", oldName);
+      if (error) throw error;
+      setSessionHistory((prev) =>
+        prev.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                session_logs: s.session_logs?.map((l) =>
+                  l.exercise_name === oldName ? { ...l, exercise_name: newName } : l
+                ),
+              }
+            : s
+        )
+      );
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
+  // ── Update the date of a past session ────────────────────────────────────
+  const updateSessionDate = useCallback(async (sessionId, date) => {
+    try {
+      const { error } = await supabase
+        .from("sessions")
+        .update({ date })
+        .eq("id", sessionId);
+      if (error) throw error;
+      setSessionHistory((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, date } : s))
+      );
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    }
+  }, []);
+
   // ── Patch session notes after a workout finishes ──────────────────────────
   const updateSessionNotes = useCallback(async (sessionId, notes) => {
     try {
@@ -436,5 +482,7 @@ export function useGymData() {
     insertSessionLog,
     deleteSessionLog,
     updateSessionNotes,
+    updateSessionDate,
+    renameExerciseInSession,
   };
 }

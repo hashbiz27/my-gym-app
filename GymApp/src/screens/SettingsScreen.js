@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
+  Share,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -29,9 +32,121 @@ function chunk(arr, size) {
   return result;
 }
 
+function encodeRoutine(regime, schedule, customSessions) {
+  const payload = { regime, schedule: schedule ?? {} };
+  if (regime === "custom" && Array.isArray(customSessions) && customSessions.length) {
+    payload.custom_sessions = customSessions;
+  }
+  return "LO:" + btoa(JSON.stringify(payload));
+}
+
+function decodeRoutine(raw) {
+  try {
+    const code = raw.trim();
+    if (!code.startsWith("LO:")) return null;
+    const payload = JSON.parse(atob(code.slice(3)));
+    if (!payload.regime || !REGIMES[payload.regime]) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function ShareCodeModal({ code, onClose }) {
+  function shareCode() {
+    Share.share({ message: code });
+  }
+
+  return (
+    <Modal
+      visible={!!code}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/50 items-center justify-center px-6">
+        <View className="bg-white dark:bg-gray-900 rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Your Routine Code</Text>
+          <Text className="text-xs text-gray-400 mb-3">Long-press the code to copy, or tap Share.</Text>
+          <TextInput
+            value={code}
+            editable={false}
+            multiline
+            selectTextOnFocus
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-3 mb-4 text-xs font-mono text-gray-700 dark:text-gray-300"
+          />
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={shareCode}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onClose}
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function ImportModal({ visible, onClose, onImport }) {
+  const [code, setCode] = useState("");
+  const inputRef = useRef(null);
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      onShow={() => setTimeout(() => inputRef.current?.focus(), 100)}
+    >
+      <View className="flex-1 bg-black/50 items-center justify-center px-6">
+        <View className="bg-white dark:bg-gray-900 rounded-2xl p-5 w-full">
+          <Text className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Import Routine</Text>
+          <Text className="text-xs text-gray-400 mb-3">Paste the routine code shared by another LiftOff user.</Text>
+          <TextInput
+            ref={inputRef}
+            value={code}
+            onChangeText={setCode}
+            placeholder="Paste code here…"
+            placeholderTextColor="#9ca3af"
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 mb-4"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={() => { setCode(""); onClose(); }}
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { onImport(code.trim()); setCode(""); }}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">Import</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function SectionHeader({ title }) {
   return (
-    <Text className="px-4 pt-6 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400">
+    <Text className="px-4 pt-6 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
       {title}
     </Text>
   );
@@ -49,12 +164,12 @@ function PillPicker({ options, value, onSelect }) {
             key={val}
             onPress={() => onSelect(val)}
             className={`px-4 py-2 rounded-full border ${
-              active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
+              active ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
             }`}
             activeOpacity={0.75}
           >
             <Text
-              className={`text-sm font-medium ${active ? "text-white" : "text-gray-600"}`}
+              className={`text-sm font-medium ${active ? "text-white" : "text-gray-600 dark:text-gray-300"}`}
             >
               {label}
             </Text>
@@ -65,9 +180,17 @@ function PillPicker({ options, value, onSelect }) {
   );
 }
 
-function SchedulePicker({ regime, schedule, onSelect }) {
-  const cfg = regime ? REGIMES[regime] : null;
-  const options = cfg
+function SchedulePicker({ regime, schedule, onSelect, customSessions }) {
+  const baseCfg = regime ? REGIMES[regime] : null;
+  const cfg =
+    regime === "custom" && customSessions?.length
+      ? {
+          ...baseCfg,
+          sessionOrder: customSessions.map((s) => s.id),
+          sessionLabels: Object.fromEntries(customSessions.map((s) => [s.id, s.label])),
+        }
+      : baseCfg;
+  const options = cfg?.sessionOrder?.length
     ? [
         { id: "rest", label: "Rest" },
         ...cfg.sessionOrder.map((id) => ({ id, label: cfg.sessionLabels[id] })),
@@ -75,15 +198,15 @@ function SchedulePicker({ regime, schedule, onSelect }) {
     : [{ id: "rest", label: "Rest" }];
 
   return (
-    <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {DAYS.map((day, idx) => {
         const value = schedule?.[String(idx)] ?? "rest";
         return (
           <View
             key={day}
-            className={`flex-row items-center px-4 py-2.5 ${idx < 6 ? "border-b border-gray-100" : ""}`}
+            className={`flex-row items-center px-4 py-2.5 ${idx < 6 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
           >
-            <Text className="w-9 text-sm font-semibold text-gray-500">{day}</Text>
+            <Text className="w-9 text-sm font-semibold text-gray-500 dark:text-gray-400">{day}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
               <View className="flex-row gap-2 pr-2">
                 {options.map((opt) => {
@@ -93,11 +216,11 @@ function SchedulePicker({ regime, schedule, onSelect }) {
                       key={opt.id}
                       onPress={() => onSelect(String(idx), opt.id)}
                       className={`px-3 py-1 rounded-full border ${
-                        active ? "bg-indigo-600 border-indigo-600" : "bg-gray-50 border-gray-200"
+                        active ? "bg-indigo-600 border-indigo-600" : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                       }`}
                       activeOpacity={0.75}
                     >
-                      <Text className={`text-xs font-medium ${active ? "text-white" : "text-gray-600"}`}>
+                      <Text className={`text-xs font-medium ${active ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
                         {opt.label}
                       </Text>
                     </TouchableOpacity>
@@ -108,6 +231,206 @@ function SchedulePicker({ regime, schedule, onSelect }) {
           </View>
         );
       })}
+    </View>
+  );
+}
+
+function ExerciseEditorModal({ session, onClose, onSave }) {
+  const [exercises, setExercises] = useState(session?.exercises ?? []);
+  const [draftName, setDraftName] = useState("");
+  const [draftSets, setDraftSets] = useState("3");
+  const [draftReps, setDraftReps] = useState("8");
+
+  useEffect(() => {
+    if (session) setExercises(session.exercises ?? []);
+  }, [session]);
+
+  function addExercise() {
+    const name = draftName.trim();
+    if (!name) return;
+    setExercises((prev) => [
+      ...prev,
+      { name, sets: parseInt(draftSets, 10) || 3, reps: draftReps.trim() || "8" },
+    ]);
+    setDraftName("");
+    setDraftSets("3");
+    setDraftReps("8");
+  }
+
+  function removeExercise(idx) {
+    setExercises((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <Modal
+      visible={!!session}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white dark:bg-gray-900 rounded-t-3xl px-5 pt-5 pb-8">
+          <Text className="text-base font-bold text-gray-900 dark:text-white mb-0.5">
+            {session?.label}
+          </Text>
+          <Text className="text-xs text-gray-400 mb-4">Add exercises for this session</Text>
+
+          <ScrollView style={{ maxHeight: 260 }} className="mb-4">
+            {exercises.length === 0 && (
+              <Text className="text-sm text-gray-400 text-center py-6">No exercises yet — add one below</Text>
+            )}
+            {exercises.map((ex, idx) => (
+              <View
+                key={idx}
+                className={`flex-row items-center py-2.5 ${idx < exercises.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : ""}`}
+              >
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-800 dark:text-gray-200">{ex.name}</Text>
+                  <Text className="text-xs text-gray-400">{ex.sets} sets × {ex.reps} reps</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeExercise(idx)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Add exercise row */}
+          <View className="gap-2 mb-5">
+            <TextInput
+              value={draftName}
+              onChangeText={setDraftName}
+              placeholder="Exercise name (e.g. Bench Press)"
+              placeholderTextColor="#9ca3af"
+              className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+              returnKeyType="done"
+              onSubmitEditing={addExercise}
+            />
+            <View className="flex-row gap-2">
+              <TextInput
+                value={draftSets}
+                onChangeText={setDraftSets}
+                placeholder="Sets"
+                placeholderTextColor="#9ca3af"
+                keyboardType="number-pad"
+                className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 text-center"
+              />
+              <TextInput
+                value={draftReps}
+                onChangeText={setDraftReps}
+                placeholder="Reps"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 text-center"
+              />
+              <TouchableOpacity
+                onPress={addExercise}
+                className="px-5 rounded-xl bg-indigo-600 items-center justify-center"
+                activeOpacity={0.75}
+              >
+                <Text className="text-sm text-white font-semibold">Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Footer buttons */}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={onClose}
+              className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-gray-600 dark:text-gray-400 font-medium">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => onSave(exercises)}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 items-center"
+              activeOpacity={0.75}
+            >
+              <Text className="text-sm text-white font-semibold">Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function CustomSessionsEditor({ sessions, onAdd, onRemove, onUpdateExercises }) {
+  const [draft, setDraft] = useState("");
+  const [editingSession, setEditingSession] = useState(null);
+
+  function add() {
+    const label = draft.trim();
+    if (!label) return;
+    onAdd({ id: `custom-${Date.now()}`, label, exercises: [] });
+    setDraft("");
+  }
+
+  return (
+    <View className="mx-4">
+      {sessions.length > 0 && (
+        <View className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-3">
+          {sessions.map((s, idx) => {
+            const exCount = s.exercises?.length ?? 0;
+            return (
+              <View
+                key={s.id}
+                className={`flex-row items-center px-4 py-3 ${idx < sessions.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
+              >
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200">{s.label}</Text>
+                  <Text className="text-xs text-gray-400 mt-0.5">
+                    {exCount === 0 ? "No exercises" : `${exCount} exercise${exCount === 1 ? "" : "s"}`}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setEditingSession(s)}
+                  className="mr-3 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900 border border-indigo-200 dark:border-indigo-700"
+                  activeOpacity={0.75}
+                >
+                  <Text className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => onRemove(s.id)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.danger} />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      )}
+      <View className="flex-row gap-2">
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          placeholder="e.g. Push Day, Legs, Upper…"
+          placeholderTextColor="#9ca3af"
+          className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+          returnKeyType="done"
+          onSubmitEditing={add}
+        />
+        <TouchableOpacity
+          onPress={add}
+          className="px-4 rounded-xl bg-indigo-600 items-center justify-center"
+          activeOpacity={0.75}
+        >
+          <Text className="text-sm text-white font-semibold">Add</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ExerciseEditorModal
+        session={editingSession}
+        onClose={() => setEditingSession(null)}
+        onSave={(exercises) => {
+          onUpdateExercises(editingSession.id, exercises);
+          setEditingSession(null);
+        }}
+      />
     </View>
   );
 }
@@ -125,22 +448,22 @@ function RegimeGrid({ value, onSelect }) {
                 onPress={() => onSelect(regime.id)}
                 className={`flex-1 rounded-xl border p-3 ${
                   active
-                    ? "border-indigo-400 bg-indigo-50"
-                    : "border-gray-200 bg-white"
+                    ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-950 dark:border-indigo-500"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                 }`}
                 activeOpacity={0.75}
               >
                 <Text className="text-xl mb-1">{regime.icon}</Text>
                 <Text
                   className={`text-sm font-semibold ${
-                    active ? "text-indigo-700" : "text-gray-800"
+                    active ? "text-indigo-700 dark:text-indigo-400" : "text-gray-800 dark:text-gray-200"
                   }`}
                 >
                   {regime.label}
                 </Text>
                 <Text
                   className={`text-xs mt-0.5 leading-4 ${
-                    active ? "text-indigo-500" : "text-gray-400"
+                    active ? "text-indigo-500 dark:text-indigo-400" : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
                   {regime.tagline}
@@ -160,12 +483,16 @@ export default function SettingsScreen() {
   const { isDark, toggleTheme } = useAppTheme();
 
   const [email, setEmail] = useState(null);
+  const [firstName, setFirstName] = useState(null);
   const [regime, setRegime] = useState(null);
   const [ageClass, setAgeClass] = useState(null);
   const [weightClass, setWeightClass] = useState(null);
   const [sex, setSex] = useState(null);
   const [schedule, setSchedule] = useState(null);
+  const [customSessions, setCustomSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [shareCode, setShareCode] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -175,11 +502,13 @@ export default function SettingsScreen() {
       ]);
       if (user) setEmail(user.email);
       if (profile) {
+        setFirstName(profile.first_name ?? null);
         setRegime(profile.regime ?? null);
         setAgeClass(profile.age_class ?? null);
         setWeightClass(profile.weight_class ?? null);
         setSex(profile.sex ?? null);
         setSchedule(profile.schedule ?? null);
+        setCustomSessions(Array.isArray(profile.custom_sessions) ? profile.custom_sessions : []);
       }
       setLoading(false);
     }
@@ -208,6 +537,61 @@ export default function SettingsScreen() {
     [schedule, saveProfile]
   );
 
+  const handleAddCustomSession = useCallback(
+    async (session) => {
+      const next = [...customSessions, session];
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
+  );
+
+  const handleRemoveCustomSession = useCallback(
+    async (id) => {
+      const next = customSessions.filter((s) => s.id !== id);
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
+  );
+
+  const handleUpdateCustomSessionExercises = useCallback(
+    async (sessionId, exercises) => {
+      const next = customSessions.map((s) =>
+        s.id === sessionId ? { ...s, exercises } : s
+      );
+      setCustomSessions(next);
+      await saveProfile({ custom_sessions: next });
+    },
+    [customSessions, saveProfile]
+  );
+
+  function handleShareRoutine() {
+    if (!regime) {
+      Alert.alert("No routine set", "Please select a training regime first.");
+      return;
+    }
+    setShareCode(encodeRoutine(regime, schedule, customSessions));
+  }
+
+  async function handleImportRoutine(code) {
+    const decoded = decodeRoutine(code);
+    if (!decoded) {
+      Alert.alert("Invalid code", "That doesn't look like a valid LiftOff routine code. Check the code and try again.");
+      return;
+    }
+    setImportModalVisible(false);
+    setRegime(decoded.regime);
+    setSchedule(decoded.schedule ?? null);
+    const profileUpdate = { regime: decoded.regime, schedule: decoded.schedule ?? null };
+    if (Array.isArray(decoded.custom_sessions)) {
+      setCustomSessions(decoded.custom_sessions);
+      profileUpdate.custom_sessions = decoded.custom_sessions;
+    }
+    await saveProfile(profileUpdate);
+    Alert.alert("Routine imported!", `You're now following the ${REGIMES[decoded.regime].label} routine.`);
+  }
+
   async function handleSignOut() {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
@@ -223,24 +607,54 @@ export default function SettingsScreen() {
     ]);
   }
 
+  async function handleDeleteAccount() {
+    Alert.alert(
+      "Delete account",
+      "This will permanently delete your workout history, body logs, and profile. This cannot be undone. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete my account",
+          style: "destructive",
+          onPress: async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const uid = user.id;
+            await supabase.from("sessions").delete().eq("user_id", uid);
+            await supabase.from("bodyweight_logs").delete().eq("user_id", uid);
+            await supabase.from("profiles").delete().eq("user_id", uid);
+            await supabase.auth.signOut();
+          },
+        },
+      ]
+    );
+  }
+
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950 items-center justify-center" edges={["top"]}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
 
         {/* Account */}
         <SectionHeader title="Account" />
-        <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {firstName ? (
+            <View className="px-4 pt-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+              <Text className="text-xl font-bold text-gray-900 dark:text-white">
+                Hi, {firstName} 👋
+              </Text>
+            </View>
+          ) : null}
           <View className="flex-row items-center px-4 py-3.5">
             <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
-            <Text className="ml-3 text-sm text-gray-700 flex-1" numberOfLines={1}>
+            <Text className="ml-3 text-sm text-gray-700 dark:text-gray-300 flex-1" numberOfLines={1}>
               {email ?? "—"}
             </Text>
           </View>
@@ -250,12 +664,26 @@ export default function SettingsScreen() {
         <SectionHeader title="Training Regime" />
         <RegimeGrid value={regime} onSelect={(v) => handleSelect("regime", v)} />
 
+        {/* Custom session names — shown only when Custom regime is active */}
+        {regime === "custom" && (
+          <>
+            <SectionHeader title="Your Sessions" />
+            <CustomSessionsEditor
+              sessions={customSessions}
+              onAdd={handleAddCustomSession}
+              onRemove={handleRemoveCustomSession}
+              onUpdateExercises={handleUpdateCustomSessionExercises}
+            />
+          </>
+        )}
+
         {/* Weekly schedule */}
         <SectionHeader title="Weekly Schedule" />
         <SchedulePicker
           regime={regime}
           schedule={schedule}
           onSelect={handleScheduleSelect}
+          customSessions={customSessions}
         />
 
         {/* Sex */}
@@ -284,14 +712,14 @@ export default function SettingsScreen() {
 
         {/* Display */}
         <SectionHeader title="Display" />
-        <View className="mx-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <View className="mx-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <View className="flex-row items-center px-4 py-3.5">
             <Ionicons
               name={isDark ? "moon" : "sunny-outline"}
               size={18}
               color={Colors.textMuted}
             />
-            <Text className="ml-3 text-sm text-gray-700 flex-1">Dark mode</Text>
+            <Text className="ml-3 text-sm text-gray-700 dark:text-gray-300 flex-1">Dark mode</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -299,6 +727,27 @@ export default function SettingsScreen() {
               thumbColor={isDark ? Colors.primary : Colors.gray50}
             />
           </View>
+        </View>
+
+        {/* Routine sharing */}
+        <SectionHeader title="Routine Sharing" />
+        <View className="mx-4 gap-3">
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl bg-indigo-600 py-3.5"
+            onPress={handleShareRoutine}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="share-outline" size={18} color="white" />
+            <Text className="text-white font-semibold text-sm">Share my routine</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-3.5"
+            onPress={() => setImportModalVisible(true)}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="download-outline" size={18} color={Colors.textMuted} />
+            <Text className="text-gray-700 dark:text-gray-300 font-semibold text-sm">Import a routine</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Sign out */}
@@ -313,7 +762,29 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Delete account */}
+        <View className="mt-3 mx-4 mb-8">
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl py-3.5"
+            onPress={handleDeleteAccount}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="trash-outline" size={16} color={Colors.textMuted} />
+            <Text className="text-gray-400 dark:text-gray-600 text-sm">Delete account</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
+
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onImport={handleImportRoutine}
+      />
+      <ShareCodeModal
+        code={shareCode}
+        onClose={() => setShareCode(null)}
+      />
     </SafeAreaView>
   );
 }

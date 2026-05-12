@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  FlatList,
+  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -28,7 +30,7 @@ const INDIGO = Colors.primary;
 const GRAY_400 = Colors.textMuted;
 const GRID_COLOR = Colors.borderLight;
 
-const SECTIONS = ["Overview", "Lifting", "Volume", "PRs", "Duration"];
+const SECTIONS = ["Overview", "Lifting", "Volume", "PRs", "Avg Reps", "Duration"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,7 +74,9 @@ function getExerciseHistory(sessions, exName) {
           return w && r ? Math.round(w * (1 + r / 30)) : 0;
         })
       );
-      return { date: s.date, maxWeight, bestOrm };
+      const totalReps = logs.reduce((sum, l) => sum + (parseInt(l.reps) || 0), 0);
+      const avgReps = logs.length > 0 ? Math.round(totalReps / logs.length) : 0;
+      return { date: s.date, maxWeight, bestOrm, avgReps };
     })
     .filter(Boolean)
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -115,6 +119,24 @@ function getPersonalBests(sessions) {
         });
     });
   return Object.entries(bests).sort((a, b) => b[1].weight - a[1].weight);
+}
+
+function getAvgRepsData(sessions) {
+  const acc = {};
+  sessions
+    .filter((s) => s.finished_at)
+    .forEach((s) => {
+      (s.session_logs ?? []).forEach((l) => {
+        if (!l.exercise_name || l.reps == null) return;
+        if (!acc[l.exercise_name]) acc[l.exercise_name] = { total: 0, count: 0 };
+        acc[l.exercise_name].total += parseInt(l.reps) || 0;
+        acc[l.exercise_name].count += 1;
+      });
+    });
+  return Object.entries(acc)
+    .map(([name, { total, count }]) => ({ name, avgReps: Math.round(total / count), count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
 }
 
 function getSessionDurations(sessions) {
@@ -163,23 +185,23 @@ function buildCalendar(sessions) {
 
 function MetricCard({ label, value, sub, highlight = false }) {
   return (
-    <View className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-3">
-      <Text className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-3 py-3">
+      <Text className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
         {label}
       </Text>
       <Text
-        className={`text-xl font-bold ${highlight ? "text-indigo-600" : "text-gray-900"}`}
+        className={`text-xl font-bold ${highlight ? "text-indigo-500" : "text-gray-900 dark:text-white"}`}
       >
         {value}
       </Text>
-      {sub ? <Text className="text-xs text-gray-400 mt-0.5">{sub}</Text> : null}
+      {sub ? <Text className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{sub}</Text> : null}
     </View>
   );
 }
 
 function Card({ children }) {
   return (
-    <View className="mx-4 mb-4 rounded-xl border border-gray-200 bg-white overflow-hidden p-4">
+    <View className="mx-4 mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden p-4">
       {children}
     </View>
   );
@@ -187,7 +209,7 @@ function Card({ children }) {
 
 function SectionLabel({ children }) {
   return (
-    <Text className="px-4 pt-4 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400">
+    <Text className="px-4 pt-4 pb-2 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
       {children}
     </Text>
   );
@@ -290,6 +312,64 @@ function OverviewSection({ totalSessions, totalVolume, avgDuration, streak, cale
   );
 }
 
+// ─── Exercise dropdown ─────────────────────────────────────────────────────────
+
+function ExerciseDropdown({ exercises, selected, onSelect }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View className="mx-4 mb-3">
+      <TouchableOpacity
+        onPress={() => setOpen(true)}
+        className="flex-row items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3"
+        activeOpacity={0.75}
+      >
+        <Text className="text-sm font-semibold text-gray-800 dark:text-white flex-1 mr-2" numberOfLines={1}>
+          {selected || "Select exercise…"}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
+      </TouchableOpacity>
+
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <View style={{ flex: 1 }}>
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
+            activeOpacity={1}
+            onPress={() => setOpen(false)}
+          />
+          <View style={{ backgroundColor: "white", borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: 380 }}>
+            <View className="px-4 py-3.5 border-b border-gray-100 flex-row items-center justify-between">
+              <Text className="text-base font-bold text-gray-900">Select exercise</Text>
+              <TouchableOpacity onPress={() => setOpen(false)} className="p-1">
+                <Ionicons name="close" size={20} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={exercises}
+              keyExtractor={(item) => item}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => {
+                const active = item === selected;
+                return (
+                  <TouchableOpacity
+                    className={`px-4 py-3.5 border-b border-gray-50 flex-row items-center justify-between ${active ? "bg-indigo-50" : ""}`}
+                    onPress={() => { onSelect(item); setOpen(false); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text className={`text-sm font-medium ${active ? "text-indigo-700" : "text-gray-800"}`}>
+                      {item}
+                    </Text>
+                    {active && <Ionicons name="checkmark" size={16} color={Colors.primary} />}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 // ─── Section: Lifting (progression) ──────────────────────────────────────────
 
 function LiftingSection({ sessions, allExercises }) {
@@ -310,6 +390,9 @@ function LiftingSection({ sessions, allExercises }) {
     ? Math.max(...history.map((d) => d.maxWeight))
     : 0;
   const bestOrm = history.length ? Math.max(...history.map((d) => d.bestOrm)) : 0;
+  const avgReps = history.length
+    ? Math.round(history.reduce((sum, d) => sum + d.avgReps, 0) / history.length)
+    : 0;
   const progress =
     history.length >= 2
       ? history[history.length - 1].maxWeight - history[0].maxWeight
@@ -330,32 +413,8 @@ function LiftingSection({ sessions, allExercises }) {
     <View>
       <SectionLabel>Progressive overload tracker</SectionLabel>
 
-      {/* Exercise picker */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12, gap: 8 }}
-      >
-        {allExercises.map((name) => {
-          const active = name === selected;
-          return (
-            <TouchableOpacity
-              key={name}
-              onPress={() => setSelected(name)}
-              className={`px-3 py-1.5 rounded-full border ${
-                active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
-              }`}
-              activeOpacity={0.75}
-            >
-              <Text
-                className={`text-xs font-medium ${active ? "text-white" : "text-gray-600"}`}
-              >
-                {name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {/* Exercise picker dropdown */}
+      <ExerciseDropdown exercises={allExercises} selected={selected} onSelect={setSelected} />
 
       <Card>
         {history.length === 0 ? (
@@ -374,13 +433,13 @@ function LiftingSection({ sessions, allExercises }) {
                     key={label}
                     onPress={() => setShowOrm(val)}
                     className={`px-3 py-1.5 rounded-full border ${
-                      active ? "bg-gray-900 border-gray-900" : "bg-white border-gray-200"
+                      active ? "bg-gray-900 border-gray-900" : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                     }`}
                     activeOpacity={0.75}
                   >
                     <Text
                       className={`text-xs font-semibold ${
-                        active ? "text-white" : "text-gray-500"
+                        active ? "text-white" : "text-gray-500 dark:text-gray-300"
                       }`}
                     >
                       {label}
@@ -422,6 +481,9 @@ function LiftingSection({ sessions, allExercises }) {
                 sub="Epley formula"
                 highlight
               />
+            </View>
+            <View className="flex-row gap-x-3 mt-3 flex-wrap gap-y-3">
+              <MetricCard label="Avg reps" value={avgReps > 0 ? String(avgReps) : "—"} sub="per set" />
               {progress !== null && (
                 <MetricCard
                   label="Progress"
@@ -517,23 +579,23 @@ function PRsSection({ personalBests }) {
           <EmptyChart text="No personal bests yet." />
         </Card>
       ) : (
-        <View className="mx-4 mb-4 rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <View className="mx-4 mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
           {personalBests.map(([name, pb], i) => (
             <View
               key={name}
               className={`px-4 py-3.5 flex-row items-center ${
-                i < personalBests.length - 1 ? "border-b border-gray-50" : ""
+                i < personalBests.length - 1 ? "border-b border-gray-50 dark:border-gray-700" : ""
               }`}
             >
               <View className="flex-1 mr-3">
                 <View className="flex-row items-center gap-x-2 mb-0.5">
                   {i === 0 && (
-                    <View className="bg-amber-100 rounded px-1.5 py-0.5">
-                      <Text className="text-amber-700 text-xs font-bold">PB</Text>
+                    <View className="bg-amber-100 dark:bg-amber-900/40 rounded px-1.5 py-0.5">
+                      <Text className="text-amber-700 dark:text-amber-400 text-xs font-bold">PB</Text>
                     </View>
                   )}
                   <Text
-                    className="text-sm font-semibold text-gray-800 flex-shrink"
+                    className="text-sm font-semibold text-gray-800 dark:text-white flex-shrink"
                     numberOfLines={1}
                   >
                     {name}
@@ -542,7 +604,7 @@ function PRsSection({ personalBests }) {
                 <Text className="text-xs text-gray-400">{shortDate(pb.date)}</Text>
               </View>
               <View className="items-end">
-                <Text className="text-sm font-bold text-gray-900">
+                <Text className="text-sm font-bold text-gray-900 dark:text-white">
                   {pb.weight}kg × {pb.reps}
                 </Text>
                 {pb.orm > 0 && (
@@ -555,6 +617,62 @@ function PRsSection({ personalBests }) {
           ))}
         </View>
       )}
+    </View>
+  );
+}
+
+// ─── Section: Avg Reps ───────────────────────────────────────────────────────
+
+function AvgRepsSection({ avgRepsData }) {
+  if (avgRepsData.length === 0) {
+    return (
+      <View>
+        <SectionLabel>Average reps per exercise</SectionLabel>
+        <Card><EmptyChart text="No rep data yet." /></Card>
+      </View>
+    );
+  }
+
+  // Reverse so highest-frequency exercise ends up at the top of the horizontal bars
+  const sorted = [...avgRepsData].reverse();
+  const chartData = sorted.map((d) => ({
+    x: d.name.length > 13 ? d.name.slice(0, 12) + "…" : d.name,
+    y: d.avgReps,
+  }));
+  const chartHeight = Math.max(180, sorted.length * 26 + 50);
+
+  return (
+    <View>
+      <SectionLabel>Average reps — top {avgRepsData.length} exercises by frequency</SectionLabel>
+      <Card>
+        <Text className="text-xs text-gray-400 mb-2">Average reps per set</Text>
+        <VictoryChart
+          horizontal
+          width={CHART_WIDTH}
+          height={chartHeight}
+          theme={VictoryTheme.material}
+          padding={{ top: 8, bottom: 36, left: 90, right: 32 }}
+        >
+          <VictoryAxis
+            style={{
+              axis: { stroke: "none" },
+              grid: { stroke: "none" },
+              tickLabels: { fontSize: 8, fill: GRAY_400, fontFamily: "System" },
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            tickFormat={(v) => String(Math.round(v))}
+            style={depAxisStyle}
+          />
+          <VictoryBar
+            data={chartData}
+            style={{ data: { fill: INDIGO } }}
+            barWidth={14}
+            cornerRadius={{ top: 2 }}
+          />
+        </VictoryChart>
+      </Card>
     </View>
   );
 }
@@ -636,6 +754,7 @@ export default function AnalysisScreen() {
   const volumeHistory = useMemo(() => getVolumeHistory(sessions), [sessions]);
   const personalBests = useMemo(() => getPersonalBests(sessions), [sessions]);
   const durations = useMemo(() => getSessionDurations(sessions), [sessions]);
+  const avgRepsData = useMemo(() => getAvgRepsData(sessions), [sessions]);
   const calendar = useMemo(() => buildCalendar(sessions), [sessions]);
 
   const totalSessions = sessions.filter((s) => s.finished_at).length;
@@ -661,7 +780,7 @@ export default function AnalysisScreen() {
 
   if (loading && !sessions.length) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950 items-center justify-center" edges={["top"]}>
         <ActivityIndicator size="large" color={INDIGO} />
       </SafeAreaView>
     );
@@ -670,7 +789,7 @@ export default function AnalysisScreen() {
   if (!loading && !sessions.length) {
     return (
       <SafeAreaView
-        className="flex-1 bg-white items-center justify-center px-8"
+        className="flex-1 bg-white dark:bg-gray-950 items-center justify-center px-8"
         edges={["top"]}
       >
         <Ionicons name="stats-chart-outline" size={48} color={Colors.textLight} />
@@ -685,12 +804,12 @@ export default function AnalysisScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       {/* Section tab bar */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="bg-white border-b border-gray-100 grow-0 shrink-0"
+        className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 grow-0 shrink-0"
         contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10, gap: 8 }}
       >
         {SECTIONS.map((s) => {
@@ -700,13 +819,13 @@ export default function AnalysisScreen() {
               key={s}
               onPress={() => setActiveSection(s)}
               className={`px-3 py-1.5 rounded-full border ${
-                active ? "bg-indigo-600 border-indigo-600" : "bg-white border-gray-200"
+                active ? "bg-indigo-600 border-indigo-600" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
               }`}
               activeOpacity={0.75}
             >
               <Text
                 className={`text-xs font-semibold uppercase tracking-wider ${
-                  active ? "text-white" : "text-gray-500"
+                  active ? "text-white" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 {s}
@@ -733,6 +852,7 @@ export default function AnalysisScreen() {
           <VolumeSection volumeHistory={volumeHistory} totalVolume={totalVolume} />
         )}
         {activeSection === "PRs" && <PRsSection personalBests={personalBests} />}
+        {activeSection === "Avg Reps" && <AvgRepsSection avgRepsData={avgRepsData} />}
         {activeSection === "Duration" && (
           <DurationSection durations={durations} avgDuration={avgDuration} />
         )}

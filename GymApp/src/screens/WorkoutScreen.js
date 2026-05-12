@@ -4,13 +4,25 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  Vibration,
   View,
 } from "react-native";
+import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "../utils/haptics";
+import Svg, { Circle } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+  withTiming,
+  withRepeat,
+  Easing,
+  interpolate,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,6 +41,45 @@ import SwapModal from "../components/SwapModal";
 import HowToModal from "../components/HowToModal";
 import { Colors } from "../theme";
 
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  const shimmer = useSharedValue(0.4);
+  useEffect(() => {
+    shimmer.value = withRepeat(
+      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+  const shimmerStyle = useAnimatedStyle(() => ({ opacity: shimmer.value }));
+  return (
+    <Animated.View style={shimmerStyle} className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <View className="px-4 py-3 border-b border-gray-100 flex-row justify-between items-center">
+        <View className="flex-1 gap-y-2">
+          <View className="h-3 w-16 bg-gray-200 rounded" />
+          <View className="h-4 w-40 bg-gray-200 rounded" />
+        </View>
+        <View className="h-4 w-10 bg-gray-100 rounded" />
+      </View>
+    </Animated.View>
+  );
+}
+
+function WorkoutSkeleton() {
+  return (
+    <>
+      <View className="bg-gray-900 px-4 pt-3 pb-4">
+        <View className="h-3 w-28 bg-gray-700 rounded mb-2" />
+        <View className="h-5 w-44 bg-gray-600 rounded" />
+      </View>
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+    </>
+  );
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ACTIVE_SESSION_KEY = "gym_active_session";
@@ -44,7 +95,21 @@ function todayLabel() {
   });
 }
 
-function resolveSession(regimeKey, sessionId, ageClass) {
+function resolveSession(regimeKey, sessionId, ageClass, customSessions) {
+  if (regimeKey === "custom") {
+    const cs = Array.isArray(customSessions) ? customSessions : [];
+    const cs_ = cs.find((s) => s.id === sessionId);
+    if (!cs_?.exercises?.length) return null;
+    return {
+      label: cs_.label,
+      exercises: cs_.exercises.map((ex) => ({
+        name: ex.name,
+        sets: ex.sets ?? 3,
+        reps: String(ex.reps ?? "8"),
+        rest: ex.rest ?? "90s",
+      })),
+    };
+  }
   const base = ALL_SESSIONS[regimeKey]?.[sessionId];
   if (!base) return null;
   const overrides = AGE_OVERRIDES[regimeKey] ?? {};
@@ -88,90 +153,290 @@ function buildRestoredLogState(exercises, sessionId, logs) {
   return initial;
 }
 
+function getRegimeCfg(profile) {
+  if (!profile?.regime) return null;
+  const base = REGIMES[profile.regime];
+  if (!base) return null;
+  if (profile.regime !== "custom") return base;
+  const sessions = Array.isArray(profile.custom_sessions) ? profile.custom_sessions : [];
+  return {
+    ...base,
+    sessionOrder: sessions.map((s) => s.id),
+    sessionLabels: Object.fromEntries(sessions.map((s) => [s.id, s.label])),
+  };
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function WorkoutHeader({
-  session,
-  regimeCfg,
-  doneSets,
-  totalSets,
-  phase,
-  isSyncing,
-  pendingCount,
-}) {
-  const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
-  const showSync = isSyncing || pendingCount > 0;
+// Deduplicated, sorted list of every exercise name in the static session library
+const ALL_EXERCISE_NAMES = (() => {
+  const names = new Set();
+  Object.values(ALL_SESSIONS).forEach((regime) => {
+    Object.values(regime).forEach((sess) => {
+      (sess.exercises ?? []).forEach((ex) => names.add(ex.name));
+    });
+  });
+  return Array.from(names).sort();
+})();
+
+function ExerciseSearchSheet({ visible, onClose, onSelect }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return ALL_EXERCISE_NAMES;
+    return ALL_EXERCISE_NAMES.filter((n) => n.toLowerCase().includes(q));
+  }, [query]);
+
+  const showCustom =
+    query.trim().length > 0 &&
+    !filtered.some((n) => n.toLowerCase() === query.trim().toLowerCase());
+
+  function pick(name) {
+    onSelect(name);
+    setQuery("");
+    onClose();
+  }
 
   return (
-    <View className="bg-gray-900 px-5 pt-4 pb-4">
-      <Text className="text-xs tracking-widest uppercase text-gray-500 mb-1">
-        {todayLabel()}
-      </Text>
-
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1 mr-4">
-          <Text className="text-xl font-bold text-white">
-            {session?.label ?? "—"}
-          </Text>
-          <Text className="text-xs text-gray-400 italic mt-0.5">
-            {regimeCfg?.label}
-            {session?.tag ? ` · ${session.tag}` : ""}
-          </Text>
-        </View>
-        <View className="items-end">
-          {phase === "active" ? (
-            <>
-              <Text className="text-2xl font-bold text-white">
-                {doneSets}
-                <Text className="text-sm text-gray-500">/{totalSets}</Text>
-              </Text>
-              <Text className="text-xs text-gray-500 uppercase tracking-wider">
-                sets done
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text className="text-2xl font-bold text-gray-600">
-                {totalSets}
-              </Text>
-              <Text className="text-xs text-gray-500 uppercase tracking-wider">
-                sets total
-              </Text>
-            </>
-          )}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      onShow={() => setTimeout(() => inputRef.current?.focus(), 80)}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white dark:bg-gray-900 rounded-t-3xl" style={{ maxHeight: "88%" }}>
+          <View className="px-4 pt-5 pb-3">
+            <Text className="text-base font-bold text-gray-900 dark:text-white mb-3">Add Exercise</Text>
+            <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2.5">
+              <Ionicons name="search-outline" size={16} color="#9ca3af" />
+              <TextInput
+                ref={inputRef}
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search exercises…"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 ml-2 text-sm text-gray-800 dark:text-gray-200"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => setQuery("")}>
+                  <Ionicons name="close-circle" size={16} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => pick(item)}
+                className="px-4 py-3 border-b border-gray-50 dark:border-gray-800"
+                activeOpacity={0.7}
+              >
+                <Text className="text-sm text-gray-800 dark:text-gray-200">{item}</Text>
+              </TouchableOpacity>
+            )}
+            ListFooterComponent={
+              showCustom ? (
+                <TouchableOpacity
+                  onPress={() => pick(query.trim())}
+                  className="flex-row items-center px-4 py-3.5 gap-2"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+                  <Text className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                    Add "{query.trim()}" as custom exercise
+                  </Text>
+                </TouchableOpacity>
+              ) : null
+            }
+            contentContainerStyle={{ paddingBottom: 32 }}
+          />
         </View>
       </View>
+    </Modal>
+  );
+}
 
-      <View className="h-1 bg-gray-700 rounded-full mt-3">
-        {phase === "active" && (
-          <View
-            className="h-1 bg-green-500 rounded-full"
-            style={{ width: `${pct}%` }}
-          />
+function InlineExerciseRow({ exercise, onUpdate, onRemove }) {
+  return (
+    <View className="flex-row items-center px-4 py-2.5 border-b border-gray-50 dark:border-gray-800">
+      <View className="flex-1 mr-3">
+        <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1.5" numberOfLines={1}>
+          {exercise.name}
+        </Text>
+        <View className="flex-row gap-3">
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Sets</Text>
+            <TextInput
+              value={String(exercise.sets ?? 3)}
+              onChangeText={(v) => onUpdate("sets", parseInt(v, 10) || 1)}
+              keyboardType="number-pad"
+              selectTextOnFocus
+              className="w-10 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Reps</Text>
+            <TextInput
+              value={String(exercise.reps ?? "8")}
+              onChangeText={(v) => onUpdate("reps", v)}
+              selectTextOnFocus
+              className="w-14 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+          <View className="items-center">
+            <Text className="text-[10px] text-gray-400 mb-0.5">Rest</Text>
+            <TextInput
+              value={String(exercise.rest ?? "90s")}
+              onChangeText={(v) => onUpdate("rest", v)}
+              selectTextOnFocus
+              className="w-14 text-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800"
+            />
+          </View>
+        </View>
+      </View>
+      <TouchableOpacity
+        onPress={onRemove}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="trash-outline" size={18} color={Colors.danger} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function InlineSessionEditor({ exercises, onUpdateExercise, onRemoveExercise, onAddExercise }) {
+  const [searchVisible, setSearchVisible] = useState(false);
+  return (
+    <View className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      {exercises.length === 0 && (
+        <Text className="text-xs text-gray-400 text-center py-3">
+          No exercises yet — add one below
+        </Text>
+      )}
+      {exercises.map((ex, idx) => (
+        <InlineExerciseRow
+          key={`${ex.name}-${idx}`}
+          exercise={ex}
+          onUpdate={(field, val) => onUpdateExercise(idx, field, val)}
+          onRemove={() => onRemoveExercise(idx)}
+        />
+      ))}
+      <TouchableOpacity
+        onPress={() => setSearchVisible(true)}
+        className="flex-row items-center justify-center gap-2 py-3"
+        activeOpacity={0.75}
+      >
+        <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+        <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">Add exercise</Text>
+      </TouchableOpacity>
+      <ExerciseSearchSheet
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+        onSelect={onAddExercise}
+      />
+    </View>
+  );
+}
+
+function CreateFirstSessionPrompt({ onCreate }) {
+  const [label, setLabel] = useState("");
+  function create() {
+    const name = label.trim();
+    if (!name) return;
+    onCreate(name);
+    setLabel("");
+  }
+  return (
+    <View className="mx-4 mt-6 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-700 p-6 items-center">
+      <Text className="text-2xl mb-2">✏️</Text>
+      <Text className="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center mb-1">
+        Create your first session
+      </Text>
+      <Text className="text-xs text-gray-400 text-center mb-4">
+        Give your session a name, then add exercises inline.
+      </Text>
+      <View className="flex-row gap-2 w-full">
+        <TextInput
+          value={label}
+          onChangeText={setLabel}
+          placeholder="e.g. Push Day, Legs…"
+          placeholderTextColor="#9ca3af"
+          className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200"
+          returnKeyType="done"
+          onSubmitEditing={create}
+        />
+        <TouchableOpacity
+          onPress={create}
+          className="px-4 rounded-xl bg-indigo-600 items-center justify-center"
+          activeOpacity={0.75}
+        >
+          <Text className="text-sm text-white font-semibold">Create</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function WorkoutHeader({ session, regimeCfg, doneSets, totalSets, phase, isSyncing, pendingCount }) {
+  const pct = totalSets > 0 ? (doneSets / totalSets) * 100 : 0;
+  const isActive = phase === "active";
+  const showSync = isSyncing || pendingCount > 0;
+
+  const progressWidth = useSharedValue(0);
+  const animatedBar = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+
+  useEffect(() => {
+    progressWidth.value = withTiming(pct, {
+      duration: 500,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [pct]);
+
+  return (
+    <View className="bg-gray-900 px-4 pt-3 pb-2">
+      <View className="flex-row items-center">
+        <Text className="text-xs text-gray-500 mr-2">{todayLabel()}</Text>
+        {showSync && (
+          isSyncing
+            ? <ActivityIndicator size="small" color={Colors.info} style={{ marginRight: 6 }} />
+            : <View className="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-2" />
         )}
       </View>
-
-      {showSync ? (
-        <View className="flex-row items-center gap-x-1.5 mt-2">
-          {isSyncing ? (
-            <ActivityIndicator size="small" color={Colors.info} />
-          ) : (
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: Colors.warning,
-              }}
-            />
-          )}
-          <Text className="text-xs text-blue-400">
-            {isSyncing
-              ? "Syncing…"
-              : `${pendingCount} set${pendingCount !== 1 ? "s" : ""} pending sync`}
+      <View className="flex-row items-center justify-between mt-0.5">
+        <View className="flex-1 mr-3">
+          <Text className="text-base font-bold text-white" numberOfLines={1}>
+            {session?.label ?? "—"}
           </Text>
+          {regimeCfg?.label ? (
+            <Text className="text-xs text-gray-500" numberOfLines={1}>
+              {regimeCfg.label}{session?.tag ? ` · ${session.tag}` : ""}
+            </Text>
+          ) : null}
         </View>
-      ) : null}
+        {isActive ? (
+          <Text className="text-sm font-bold text-white tabular-nums">
+            {doneSets}<Text className="text-gray-500 font-normal">/{totalSets}</Text>
+          </Text>
+        ) : (
+          <Text className="text-sm text-gray-500 tabular-nums">{totalSets} sets</Text>
+        )}
+      </View>
+      {isActive && (
+        <View className="h-0.5 bg-gray-700 rounded-full mt-2">
+          <Animated.View className="h-0.5 bg-green-500 rounded-full" style={animatedBar} />
+        </View>
+      )}
     </View>
   );
 }
@@ -179,38 +444,36 @@ function WorkoutHeader({
 function SessionPicker({ regimeCfg, selectedSessionId, onSelect, disabled }) {
   if (!regimeCfg?.sessionOrder?.length) return null;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      className="bg-white border-b border-gray-100"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10 }}
-    >
-      {regimeCfg.sessionOrder.map((sid) => {
-        const active = sid === selectedSessionId;
-        return (
-          <TouchableOpacity
-            key={sid}
-            onPress={() => !disabled && onSelect(sid)}
-            disabled={disabled}
-            className={`mr-2 px-4 py-1.5 rounded-full border ${
-              active
-                ? "bg-green-600 border-green-600"
-                : disabled
-                ? "bg-gray-50 border-gray-100"
-                : "bg-white border-gray-200"
-            }`}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"
+    <View className="bg-white border-b border-gray-100">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 6, alignItems: "center" }}
+      >
+        {regimeCfg.sessionOrder.map((sid) => {
+          const active = sid === selectedSessionId;
+          return (
+            <TouchableOpacity
+              key={sid}
+              onPress={() => { if (!disabled) { hapticLight(); onSelect(sid); } }}
+              disabled={disabled}
+              className={`mr-1.5 px-3 py-1 rounded-full border ${
+                active
+                  ? "bg-green-600 border-green-600"
+                  : disabled
+                  ? "bg-gray-50 border-gray-100"
+                  : "bg-white border-gray-200"
               }`}
             >
-              {regimeCfg.sessionLabels[sid]}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+              <Text className={`text-xs font-semibold ${active ? "text-white" : disabled ? "text-gray-300" : "text-gray-500"}`}>
+                {regimeCfg.sessionLabels[sid]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -218,12 +481,24 @@ function epley1RM(weight, reps) {
   const w = parseFloat(weight);
   const r = parseInt(reps);
   if (!w || !r || r <= 0) return null;
-  if (r === 1) return Math.round(w);
   return Math.round(w * (1 + r / 30));
 }
 
 function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur, disabled }) {
   const orm = row.done ? epley1RM(row.weight, row.reps) : null;
+  const checkScale = useSharedValue(1);
+  const animatedCheckStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  function handleToggle() {
+    checkScale.value = withSequence(
+      withSpring(row.done ? 0.75 : 1.35, { damping: 6, stiffness: 300 }),
+      withSpring(1, { damping: 8, stiffness: 200 })
+    );
+    onToggle(setIndex);
+  }
+
   return (
     <View className="mb-2">
       <View className="flex-row items-center gap-x-2">
@@ -259,13 +534,18 @@ function SetRow({ setIndex, row, onToggle, onChangeWeight, onChangeReps, onBlur,
           editable={!disabled}
         />
         <TouchableOpacity
-          onPress={() => onToggle(setIndex)}
+          onPress={handleToggle}
           disabled={disabled}
-          className={`w-7 h-7 rounded border-2 items-center justify-center ${
-            row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
-          }`}
+          activeOpacity={1}
         >
-          {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+          <Animated.View
+            style={animatedCheckStyle}
+            className={`w-7 h-7 rounded border-2 items-center justify-center ${
+              row.done ? "bg-green-500 border-green-500" : "border-gray-300 bg-white"
+            }`}
+          >
+            {row.done && <Ionicons name="checkmark" size={16} color={Colors.white} />}
+          </Animated.View>
         </TouchableOpacity>
       </View>
       {orm !== null && (
@@ -298,8 +578,10 @@ function ExerciseCard({
   onChangeReps,
   onBlurField,
   onOpenSwap,
+  onOpenOverride,
   onOpenHowTo,
   onAddSet,
+  isOverridden,
 }) {
   const target =
     weightClass && exercise.weight?.[weightClass]
@@ -308,6 +590,15 @@ function ExerciseCard({
 
   const doneSets = rows.filter((r) => r.done).length;
   const allDone = doneSets === rows.length && rows.length > 0;
+
+  // Animated chevron rotation
+  const chevronRotation = useSharedValue(expanded ? 1 : 0);
+  useEffect(() => {
+    chevronRotation.value = withTiming(expanded ? 1 : 0, { duration: 220 });
+  }, [expanded]);
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(chevronRotation.value, [0, 1], [0, 180])}deg` }],
+  }));
 
   return (
     <View className="mx-4 mt-3 rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -339,28 +630,30 @@ function ExerciseCard({
           ) : null}
 
           <View className="flex-row items-center mt-1.5 ml-5 gap-x-3">
+            {/* Swap — session only */}
             {canSwap ? (
               <TouchableOpacity
-                onPress={() =>
-                  onOpenSwap(exKey, index, exercise.name, originalExerciseName)
-                }
+                onPress={() => onOpenSwap(exKey, index, exercise.name, originalExerciseName)}
                 activeOpacity={0.7}
               >
-                <Text
-                  className={`text-xs font-medium ${
-                    wasSwapped ? "text-orange-500" : "text-indigo-500"
-                  }`}
-                >
-                  {wasSwapped ? "Swapped" : "Swap"}
+                <Text className={`text-xs font-medium ${wasSwapped ? "text-orange-500" : "text-indigo-500"}`}>
+                  {wasSwapped ? "Swapped ↺" : "Swap"}
                 </Text>
               </TouchableOpacity>
             ) : (
               <Text className="text-xs text-gray-300">Swap</Text>
             )}
+            {/* Override — permanent */}
             <TouchableOpacity
-              onPress={() => onOpenHowTo(exercise.name)}
+              onPress={() => onOpenOverride(exKey, index, exercise.name, originalExerciseName)}
               activeOpacity={0.7}
             >
+              <Text className={`text-xs font-medium ${isOverridden ? "text-amber-600" : "text-gray-400"}`}>
+                {isOverridden ? "Overridden ✦" : "Override"}
+              </Text>
+            </TouchableOpacity>
+            {/* How to */}
+            <TouchableOpacity onPress={() => onOpenHowTo(exercise.name)} activeOpacity={0.7}>
               <Text className="text-xs font-medium text-gray-400">How to</Text>
             </TouchableOpacity>
           </View>
@@ -383,11 +676,9 @@ function ExerciseCard({
               >
                 {doneSets}/{rows.length}
               </Text>
-              <Ionicons
-                name={expanded ? "chevron-up" : "chevron-down"}
-                size={14}
-                color={Colors.textMuted}
-              />
+              <Animated.View style={chevronStyle}>
+                <Ionicons name="chevron-down" size={14} color={Colors.textMuted} />
+              </Animated.View>
             </View>
           )}
         </View>
@@ -640,51 +931,150 @@ function fmt(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+const RING_SIZE = 64;
+const RING_STROKE = 5;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRC = 2 * Math.PI * RING_RADIUS;
+
 function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
   const progress = total > 0 ? seconds / total : 0;
   const urgent = seconds <= 10;
+
+  const ringColor = urgent ? "#f97316" : "#6366f1";
+  const ringBg = urgent ? "#fed7aa" : "#c7d2fe";
+  const dashOffset = RING_CIRC * (1 - progress);
+
   return (
     <View
-      className={`mx-4 mb-3 rounded-xl overflow-hidden border ${
-        urgent ? "border-orange-300 bg-orange-50" : "border-indigo-200 bg-indigo-50"
+      className={`mx-4 mb-3 rounded-2xl border flex-row items-center px-4 py-3 gap-x-4 ${
+        urgent ? "border-orange-200 bg-orange-50" : "border-indigo-200 bg-indigo-50"
       }`}
     >
-      {/* progress bar */}
-      <View className="h-1 bg-gray-100">
-        <View
-          className={urgent ? "h-1 bg-orange-400" : "h-1 bg-indigo-400"}
-          style={{ width: `${progress * 100}%` }}
-        />
-      </View>
-      <View className="flex-row items-center px-4 py-2.5">
-        <Ionicons
-          name="timer-outline"
-          size={18}
-          color={urgent ? "#f97316" : "#6366f1"}
-        />
-        <View className="flex-1 ml-2">
-          <Text className={`text-xs ${urgent ? "text-orange-600" : "text-indigo-600"}`}>
-            Rest · {exerciseName}
-          </Text>
-          <Text
-            className={`text-xl font-bold tabular-nums ${
-              urgent ? "text-orange-600" : "text-indigo-700"
-            }`}
-          >
+      {/* Circular ring */}
+      <View style={{ width: RING_SIZE, height: RING_SIZE }}>
+        <Svg width={RING_SIZE} height={RING_SIZE} style={{ position: "absolute" }}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={ringBg}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={ringColor}
+            strokeWidth={RING_STROKE}
+            fill="none"
+            strokeDasharray={RING_CIRC}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+          />
+        </Svg>
+        <View style={{ position: "absolute", width: RING_SIZE, height: RING_SIZE, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: ringColor, fontVariant: ["tabular-nums"] }}>
             {fmt(seconds)}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={onSkip}
-          className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
-          activeOpacity={0.75}
-        >
-          <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
-            Skip
-          </Text>
-        </TouchableOpacity>
       </View>
+
+      {/* Text */}
+      <View className="flex-1">
+        <Text className={`text-xs font-semibold ${urgent ? "text-orange-500" : "text-indigo-500"}`}>
+          Rest
+        </Text>
+        <Text className={`text-sm font-bold mt-0.5 ${urgent ? "text-orange-700" : "text-indigo-700"}`} numberOfLines={1}>
+          {exerciseName}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        onPress={onSkip}
+        className={`px-3 py-1.5 rounded-lg ${urgent ? "bg-orange-100" : "bg-indigo-100"}`}
+        activeOpacity={0.75}
+      >
+        <Text className={`text-xs font-semibold ${urgent ? "text-orange-700" : "text-indigo-700"}`}>
+          Skip
+        </Text>
+      </TouchableOpacity>
     </View>
+  );
+}
+
+// ─── Workout Complete Modal ───────────────────────────────────────────────────
+
+function WorkoutCompleteModal({ visible, stats, onDone }) {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      opacity.value = withTiming(1, { duration: 250 });
+      scale.value = withSpring(1, { damping: 10, stiffness: 180 });
+    } else {
+      opacity.value = 0;
+      scale.value = 0;
+    }
+  }, [visible]);
+
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  if (!visible) return null;
+
+  const mins = stats?.duration ?? 0;
+  const durStr = mins >= 60
+    ? `${Math.floor(mins / 60)}h ${mins % 60}m`
+    : `${mins}m`;
+
+  return (
+    <Modal transparent animationType="none" visible={visible} onRequestClose={onDone}>
+      <Animated.View
+        style={[overlayStyle, { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }]}
+      >
+        <Animated.View
+          style={[cardStyle, { backgroundColor: "#fff", borderRadius: 24, padding: 28, width: "100%", alignItems: "center" }]}
+        >
+          <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "#dcfce7", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <Ionicons name="checkmark" size={40} color="#16a34a" />
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827", marginBottom: 4 }}>
+            Session complete!
+          </Text>
+          <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
+            Great work today 💪
+          </Text>
+
+          <View style={{ flexDirection: "row", gap: 12, width: "100%", marginBottom: 24 }}>
+            <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{stats?.sets ?? 0}</Text>
+              <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Sets</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{stats?.exercises ?? 0}</Text>
+              <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Exercises</Text>
+            </View>
+            {mins > 0 && (
+              <View style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 12, padding: 12, alignItems: "center" }}>
+                <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>{durStr}</Text>
+                <Text style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Duration</Text>
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity
+            onPress={onDone}
+            style={{ backgroundColor: "#4f46e5", borderRadius: 14, paddingVertical: 14, width: "100%", alignItems: "center" }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Done</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
   );
 }
 
@@ -693,6 +1083,7 @@ function RestTimerBanner({ seconds, total, exerciseName, onSkip }) {
 export default function WorkoutScreen() {
   const {
     fetchProfile,
+    saveProfile,
     ensureRegime,
     createSession,
     finishSession,
@@ -720,11 +1111,20 @@ export default function WorkoutScreen() {
 
   // { [exKey]: replacementName } — overrides the plan exercise at that slot
   const [swappedExercises, setSwappedExercises] = useState({});
+  // { "Exercise Name": "Replacement Name" } — permanent profile-level overrides
+  const [profileOverrides, setProfileOverrides] = useState({});
   // { exKey, slotIndex, exerciseName, originalName } | null
   const [swapTarget, setSwapTarget] = useState(null);
+  // { exKey, slotIndex, exerciseName, originalName } | null — for permanent override
+  const [overrideTarget, setOverrideTarget] = useState(null);
   const [howToTarget, setHowToTarget] = useState(null);
   // { seconds: number, total: number, exerciseName: string } | null
   const [restTimer, setRestTimer] = useState(null);
+  // Whether the inline custom-session editor is expanded on Today
+  const [isEditingSession, setIsEditingSession] = useState(false);
+  // Completion celebration modal
+  const [completeStats, setCompleteStats] = useState(null);
+  const sessionStartRef = useRef(null);
 
   // Refs for async callbacks to avoid stale closures
   const activeSessionIdRef = useRef(null);
@@ -745,13 +1145,14 @@ export default function WorkoutScreen() {
     (async () => {
       const p = await fetchProfile();
       setProfile(p);
+      if (p?.overrides) setProfileOverrides(p.overrides);
 
       if (!p?.regime) {
         setLoading(false);
         return;
       }
 
-      const order = REGIMES[p.regime]?.sessionOrder ?? [];
+      const order = getRegimeCfg(p)?.sessionOrder ?? [];
       const dayKey = String(new Date().getDay()); // "0"=Sun … "6"=Sat
       const scheduled = p.schedule?.[dayKey];
       const defaultSid =
@@ -766,7 +1167,7 @@ export default function WorkoutScreen() {
             const sess = await fetchSessionById(sessionId);
             if (sess && !sess.finished_at) {
               const logs = await fetchLogsForSession(sessionId);
-              const resolved = resolveSession(p.regime, sessionTabId, p.age_class);
+              const resolved = resolveSession(p.regime, sessionTabId, p.age_class, p.custom_sessions);
               if (resolved) {
                 setLogState(
                   buildRestoredLogState(resolved.exercises, sessionTabId, logs)
@@ -785,8 +1186,8 @@ export default function WorkoutScreen() {
       } catch (_) {}
 
       // Fresh start
-      if (defaultSid && p.age_class) {
-        const resolved = resolveSession(p.regime, defaultSid, p.age_class);
+      if (defaultSid) {
+        const resolved = resolveSession(p.regime, defaultSid, p.age_class ?? null, p.custom_sessions);
         if (resolved) {
           setLogState(buildInitialLogState(resolved.exercises, defaultSid));
         }
@@ -796,20 +1197,20 @@ export default function WorkoutScreen() {
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const regimeCfg = profile?.regime ? REGIMES[profile.regime] : null;
+  const regimeCfg = getRegimeCfg(profile);
 
   const session = useMemo(
     () =>
       profile?.regime && selectedSessionId
-        ? resolveSession(profile.regime, selectedSessionId, profile.age_class)
+        ? resolveSession(profile.regime, selectedSessionId, profile.age_class, profile.custom_sessions)
         : null,
     [profile, selectedSessionId]
   );
 
   // Reset when regime / session tab / age class changes (user edits Settings)
   const sessionKey =
-    profile?.regime && selectedSessionId && profile?.age_class
-      ? `${profile.regime}|${selectedSessionId}|${profile.age_class}`
+    profile?.regime && selectedSessionId
+      ? `${profile.regime}|${selectedSessionId}|${profile.age_class ?? ""}`
       : null;
 
   useEffect(() => {
@@ -822,7 +1223,8 @@ export default function WorkoutScreen() {
     const resolved = resolveSession(
       profile.regime,
       selectedSessionId,
-      profile.age_class
+      profile.age_class,
+      profile.custom_sessions
     );
     if (!resolved) return;
     AsyncStorage.removeItem(ACTIVE_SESSION_KEY).catch(() => {});
@@ -843,19 +1245,25 @@ export default function WorkoutScreen() {
       if (sessionPhaseRef.current === "active") return;
       fetchProfile().then((p) => {
         if (!p) return;
+        const prevRegime = profileRef.current?.regime;
         setProfile(p);
-        if (p.regime && !selectedSessionIdRef.current) {
-          const order = REGIMES[p.regime]?.sessionOrder ?? [];
-          const dayKey = String(new Date().getDay());
-          const scheduled = p.schedule?.[dayKey];
-          const sid =
-            scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
-          setSelectedSessionId(sid);
-          if (sid) {
-            const resolved = resolveSession(p.regime, sid, p.age_class);
-            if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
+        if (p?.overrides) setProfileOverrides(p.overrides);
+        if (p.regime) {
+          const regimeChanged = p.regime !== prevRegime;
+          // Reselect today's session when there's no session yet OR the regime changed
+          if (!selectedSessionIdRef.current || regimeChanged) {
+            const order = getRegimeCfg(p)?.sessionOrder ?? [];
+            const dayKey = String(new Date().getDay());
+            const scheduled = p.schedule?.[dayKey];
+            const sid =
+              scheduled && order.includes(scheduled) ? scheduled : order[0] ?? null;
+            setSelectedSessionId(sid);
+            if (sid) {
+              const resolved = resolveSession(p.regime, sid, p.age_class ?? null, p.custom_sessions);
+              if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
+            }
+            setLoading(false);
           }
-          setLoading(false);
         }
       });
     }, [fetchProfile])
@@ -875,17 +1283,18 @@ export default function WorkoutScreen() {
     [session]
   );
 
-  // Plan exercises with user-selected swap overrides applied
+  // Apply profile overrides first (permanent), then session swaps (temporary)
   const displayedExercises = useMemo(() => {
     if (!session) return [];
     return session.exercises.map((ex, i) => {
       const exKey = `${selectedSessionId}-${i}`;
       const swappedName = swappedExercises[exKey];
-      return swappedName
-        ? { ...ex, name: swappedName, weight: undefined, note: undefined }
-        : ex;
+      if (swappedName) return { ...ex, name: swappedName, weight: undefined, note: undefined };
+      const overriddenName = profileOverrides[ex.name];
+      if (overriddenName) return { ...ex, name: overriddenName, weight: undefined, note: undefined };
+      return ex;
     });
-  }, [session, selectedSessionId, swappedExercises]);
+  }, [session, selectedSessionId, swappedExercises, profileOverrides]);
 
   const handleOpenSwap = useCallback(
     (exKey, slotIndex, currentName, originalName) => {
@@ -912,6 +1321,97 @@ export default function WorkoutScreen() {
 
   const handleCloseSwap = useCallback(() => setSwapTarget(null), []);
 
+  // ── Custom-session inline editing ─────────────────────────────────────────
+
+  const applyCustomSessionUpdate = useCallback(
+    async (exercises) => {
+      const next = (profile.custom_sessions ?? []).map((s) =>
+        s.id === selectedSessionId ? { ...s, exercises } : s
+      );
+      const updated = { ...profile, custom_sessions: next };
+      setProfile(updated);
+      if (sessionPhase !== "active") {
+        const resolved = resolveSession(profile.regime, selectedSessionId, profile.age_class, next);
+        if (resolved) setLogState(buildInitialLogState(resolved.exercises, selectedSessionId));
+        else setLogState({});
+      }
+      await saveProfile({ custom_sessions: next });
+    },
+    [profile, selectedSessionId, sessionPhase, saveProfile]
+  );
+
+  const handleUpdateSessionExercise = useCallback(
+    (idx, field, value) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      if (!sess) return;
+      const exercises = (sess.exercises ?? []).map((ex, i) =>
+        i === idx ? { ...ex, [field]: value } : ex
+      );
+      applyCustomSessionUpdate(exercises);
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleRemoveSessionExercise = useCallback(
+    (idx) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      if (!sess) return;
+      applyCustomSessionUpdate((sess.exercises ?? []).filter((_, i) => i !== idx));
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleAddSessionExercise = useCallback(
+    (name) => {
+      const cs = profile.custom_sessions ?? [];
+      const sess = cs.find((s) => s.id === selectedSessionId);
+      const exercises = [...(sess?.exercises ?? []), { name, sets: 3, reps: "8", rest: "90s" }];
+      applyCustomSessionUpdate(exercises);
+    },
+    [profile, selectedSessionId, applyCustomSessionUpdate]
+  );
+
+  const handleCreateCustomSession = useCallback(
+    async (label) => {
+      const id = `custom-${Date.now()}`;
+      const newSession = { id, label, exercises: [] };
+      const next = [...(profile.custom_sessions ?? []), newSession];
+      const updated = { ...profile, custom_sessions: next };
+      setProfile(updated);
+      setSelectedSessionId(id);
+      setIsEditingSession(true);
+      setLogState({});
+      await saveProfile({ custom_sessions: next });
+    },
+    [profile, saveProfile]
+  );
+
+  const handleOpenOverride = useCallback(
+    (exKey, slotIndex, currentName, originalName) => {
+      setOverrideTarget({ exKey, slotIndex, exerciseName: originalName, originalName });
+    },
+    []
+  );
+
+  const handleConfirmOverride = useCallback(
+    async (selectedName) => {
+      if (!overrideTarget) return;
+      const originalName = overrideTarget.originalName;
+      const next =
+        selectedName === originalName
+          ? (({ [originalName]: _, ...rest }) => rest)(profileOverrides)
+          : { ...profileOverrides, [originalName]: selectedName };
+      setProfileOverrides(next);
+      setOverrideTarget(null);
+      await saveProfile({ overrides: next });
+    },
+    [overrideTarget, profileOverrides, saveProfile]
+  );
+
+  const handleCloseOverride = useCallback(() => setOverrideTarget(null), []);
+
   const handleOpenHowTo = useCallback((exerciseName) => {
     setHowToTarget(exerciseName);
   }, []);
@@ -922,7 +1422,7 @@ export default function WorkoutScreen() {
   useEffect(() => {
     if (!restTimer) return;
     if (restTimer.seconds <= 0) {
-      Vibration.vibrate([0, 200, 100, 200]);
+      hapticWarning();
       setRestTimer(null);
       return;
     }
@@ -952,6 +1452,7 @@ export default function WorkoutScreen() {
       return;
     }
 
+    sessionStartRef.current = Date.now();
     setActiveSessionId(sess.id);
     try {
       await AsyncStorage.setItem(
@@ -972,6 +1473,7 @@ export default function WorkoutScreen() {
       setSavingCards((prev) => ({ ...prev, [exKey]: true }));
 
       if (!row.done) {
+        hapticMedium();
         const logId = await insertSessionLog(sessionId, {
           exerciseName: exercise.name,
           setNumber: setIndex + 1,
@@ -983,12 +1485,12 @@ export default function WorkoutScreen() {
           rows[setIndex] = { ...rows[setIndex], done: true, logId };
           return { ...prev, [exKey]: rows };
         });
-        // Start rest timer (skip if this is the last set of the last exercise)
         const secs = parseRestSeconds(exercise.rest);
         if (secs > 0) {
           setRestTimer({ seconds: secs, total: secs, exerciseName: exercise.name });
         }
       } else {
+        hapticLight();
         if (row.logId) await deleteSessionLog(row.logId);
         setLogState((prev) => {
           const rows = [...(prev[exKey] ?? [])];
@@ -1037,6 +1539,7 @@ export default function WorkoutScreen() {
   }, []);
 
   const handleAddSet = useCallback((exKey) => {
+    hapticLight();
     setLogState((prev) => {
       const rows = prev[exKey] ?? [];
       // Copy weight/reps from the last row as a starting point
@@ -1053,7 +1556,7 @@ export default function WorkoutScreen() {
     const p = profileRef.current;
     const sid = selectedSessionIdRef.current;
     if (p?.regime && sid) {
-      const resolved = resolveSession(p.regime, sid, p.age_class);
+      const resolved = resolveSession(p.regime, sid, p.age_class, p.custom_sessions);
       if (resolved) setLogState(buildInitialLogState(resolved.exercises, sid));
     }
     setExpandedCards(new Set());
@@ -1072,11 +1575,19 @@ export default function WorkoutScreen() {
         if (notes?.trim()) await updateSessionNotes(sessionId, notes.trim());
         await finishSession(sessionId);
       }
+      hapticSuccess();
       try {
         await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
       } catch (_) {}
+      // Capture stats before resetting
+      const logSnap = logStateRef.current;
+      const totalDone = Object.values(logSnap).flat().filter((r) => r.done).length;
+      const exercisesDone = Object.values(logSnap).filter((rows) => rows.some((r) => r.done)).length;
+      const mins = sessionStartRef.current
+        ? Math.round((Date.now() - sessionStartRef.current) / 60000)
+        : 0;
       resetToIdle();
-      Alert.alert("Session complete!", "Great work today.");
+      setCompleteStats({ sets: totalDone, exercises: exercisesDone, duration: mins });
     },
     [finishSession, updateSessionNotes, resetToIdle]
   );
@@ -1101,15 +1612,15 @@ export default function WorkoutScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color={Colors.success} />
+      <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
+        <WorkoutSkeleton />
       </SafeAreaView>
     );
   }
 
   if (!profile?.regime) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white dark:bg-gray-950">
         <NoProfilePlaceholder />
       </SafeAreaView>
     );
@@ -1118,7 +1629,7 @@ export default function WorkoutScreen() {
   const isActive = sessionPhase === "active";
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950" edges={["top"]}>
       <WorkoutHeader
         session={session}
         regimeCfg={regimeCfg}
@@ -1132,16 +1643,40 @@ export default function WorkoutScreen() {
       <SessionPicker
         regimeCfg={regimeCfg}
         selectedSessionId={selectedSessionId}
-        onSelect={setSelectedSessionId}
+        onSelect={(sid) => { setSelectedSessionId(sid); setIsEditingSession(false); }}
         disabled={isActive}
       />
 
-      <RegimeTipBox regime={regimeCfg} />
-      {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
+      {/* Edit session button — custom regime, idle, session selected */}
+      {profile.regime === "custom" && selectedSessionId && !isActive && (
+        <TouchableOpacity
+          onPress={() => setIsEditingSession((v) => !v)}
+          className="flex-row items-center justify-center gap-1.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 py-2"
+          activeOpacity={0.75}
+        >
+          <Ionicons
+            name={isEditingSession ? "checkmark-circle-outline" : "pencil-outline"}
+            size={14}
+            color={isEditingSession ? Colors.success : Colors.textMuted}
+          />
+          <Text className={`text-xs font-semibold ${isEditingSession ? "text-green-600" : "text-gray-400"}`}>
+            {isEditingSession ? "Done editing" : "Edit session"}
+          </Text>
+        </TouchableOpacity>
+      )}
 
-      {(() => {
-        const drills = MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId];
-        return drills ? <MobilityCard drills={drills} /> : null;
+      {/* Inline session editor */}
+      {profile.regime === "custom" && selectedSessionId && isEditingSession && !isActive && (() => {
+        const cs = profile.custom_sessions ?? [];
+        const editing = cs.find((s) => s.id === selectedSessionId);
+        return (
+          <InlineSessionEditor
+            exercises={editing?.exercises ?? []}
+            onUpdateExercise={handleUpdateSessionExercise}
+            onRemoveExercise={handleRemoveSessionExercise}
+            onAddExercise={handleAddSessionExercise}
+          />
+        );
       })()}
 
       {isActive && restTimer && (
@@ -1153,11 +1688,26 @@ export default function WorkoutScreen() {
         />
       )}
 
+      {/* Create first session prompt — custom regime, no sessions yet */}
+      {profile.regime === "custom" && !regimeCfg?.sessionOrder?.length && !isActive && (
+        <CreateFirstSessionPrompt onCreate={handleCreateCustomSession} />
+      )}
+
       <FlatList
         data={displayedExercises}
         keyExtractor={(_, index) => `${selectedSessionId}-${index}`}
+        ListHeaderComponent={
+          <>
+            <RegimeTipBox regime={regimeCfg} />
+            {profile.age_class && <AgeProfileBanner ageClass={profile.age_class} />}
+            {MOBILITY_WARMUPS[profile.age_class]?.[selectedSessionId]
+              ? <MobilityCard drills={MOBILITY_WARMUPS[profile.age_class][selectedSessionId]} />
+              : null}
+          </>
+        }
         renderItem={({ item, index }) => {
           const exKey = `${selectedSessionId}-${index}`;
+          const originalName = session?.exercises[index]?.name ?? item.name;
           return (
             <ExerciseCard
               exercise={item}
@@ -1170,21 +1720,23 @@ export default function WorkoutScreen() {
               cardSaving={!!savingCards[exKey]}
               interactive={isActive}
               canSwap={sessionPhase !== "starting"}
-              originalExerciseName={session?.exercises[index]?.name ?? item.name}
+              originalExerciseName={originalName}
               wasSwapped={!!swappedExercises[exKey]}
+              isOverridden={!!profileOverrides[originalName]}
               onToggleExpand={handleToggleExpand}
               onToggleDone={handleToggleDone}
               onChangeWeight={handleChangeWeight}
               onChangeReps={handleChangeReps}
               onBlurField={handleBlurField}
               onOpenSwap={handleOpenSwap}
+              onOpenOverride={handleOpenOverride}
               onOpenHowTo={handleOpenHowTo}
               onAddSet={handleAddSet}
             />
           );
         }}
         ListFooterComponent={
-          session
+          session || (profile.regime === "custom" && selectedSessionId)
             ? isActive
               ? (
                 <FinishFooter
@@ -1209,6 +1761,7 @@ export default function WorkoutScreen() {
 
       <SwapModal
         visible={swapTarget !== null}
+        mode="swap"
         exerciseName={swapTarget?.exerciseName}
         sessionExercises={displayedExercises}
         slotIndex={swapTarget?.slotIndex}
@@ -1217,10 +1770,27 @@ export default function WorkoutScreen() {
         onClose={handleCloseSwap}
       />
 
+      <SwapModal
+        visible={overrideTarget !== null}
+        mode="override"
+        exerciseName={overrideTarget?.exerciseName}
+        sessionExercises={displayedExercises}
+        slotIndex={overrideTarget?.slotIndex}
+        originalName={overrideTarget?.originalName}
+        onSwap={handleConfirmOverride}
+        onClose={handleCloseOverride}
+      />
+
       <HowToModal
         visible={howToTarget !== null}
         exerciseName={howToTarget}
         onClose={handleCloseHowTo}
+      />
+
+      <WorkoutCompleteModal
+        visible={completeStats !== null}
+        stats={completeStats}
+        onDone={() => setCompleteStats(null)}
       />
     </SafeAreaView>
   );
