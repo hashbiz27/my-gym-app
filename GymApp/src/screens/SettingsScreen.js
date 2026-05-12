@@ -607,6 +607,29 @@ export default function SettingsScreen() {
     ]);
   }
 
+  async function handleDeleteAccount() {
+    Alert.alert(
+      "Delete account",
+      "This will permanently delete your workout history, body logs, and profile. This cannot be undone. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete my account",
+          style: "destructive",
+          onPress: async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const uid = user.id;
+            await supabase.from("sessions").delete().eq("user_id", uid);
+            await supabase.from("bodyweight_logs").delete().eq("user_id", uid);
+            await supabase.from("profiles").delete().eq("user_id", uid);
+            await supabase.auth.signOut();
+          },
+        },
+      ]
+    );
+  }
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-950 items-center justify-center" edges={["top"]}>
@@ -736,6 +759,18 @@ export default function SettingsScreen() {
           >
             <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
             <Text className="text-red-600 font-semibold text-sm">Sign out</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Delete account */}
+        <View className="mt-3 mx-4 mb-8">
+          <TouchableOpacity
+            className="flex-row items-center justify-center gap-x-2 rounded-xl py-3.5"
+            onPress={handleDeleteAccount}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="trash-outline" size={16} color={Colors.textMuted} />
+            <Text className="text-gray-400 dark:text-gray-600 text-sm">Delete account</Text>
           </TouchableOpacity>
         </View>
 
