@@ -10,12 +10,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../../lib/supabase";
 import { Colors } from "../../theme";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
@@ -51,14 +53,36 @@ export default function LoginScreen({ navigation }) {
           />
 
           <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</Text>
-          <TextInput
-            className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 mb-6 text-gray-900 dark:text-white"
-            placeholder="••••••••"
-            placeholderTextColor={Colors.textMuted}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View className="mb-2">
+            <TextInput
+              className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-4 py-3 pr-12 text-gray-900 dark:text-white"
+              placeholder="••••••••"
+              placeholderTextColor={Colors.textMuted}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              className="absolute right-3 top-3"
+              onPress={() => setShowPassword(v => !v)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            className="self-end mb-6"
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            <Text className="text-sm text-indigo-600 dark:text-indigo-400">Forgot password?</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             className="bg-indigo-600 rounded-lg py-3 items-center mb-4"
